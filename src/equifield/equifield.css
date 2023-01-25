@@ -1,0 +1,21 @@
+@media print {
+	.wcl-equifield-root {
+		margin-left: 50%;
+		margin-right: -50%;
+		transform: translateX(-50%);
+		width: 98vw;
+		font-size: calc(98vw / 120) !important;
+		box-sizing: border-box;
+	}
+}
+
+.wcl-equifield-field {
+	page-break-inside: avoid;
+	overflow: hidden;
+}
+.wcl-equifield-content {
+	transform-origin: left top;
+	transform: scale(0.2);
+	font-size: 5em;
+	width: 500%;
+}

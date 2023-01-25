@@ -1,0 +1,28 @@
+{
+  "name": "sparks-nmn-dev",
+  "version": "1.0.0",
+  "source": "./src/index.html",
+  "license": "MIT",
+  "scripts": {
+    "start": "parcel --port 8527 --host localhost",
+    "build": "parcel build --public-url ./"
+  },
+  "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
+  "devDependencies": {
+    "@parcel/transformer-sass": "^2.8.2",
+    "@types/react": "^18.0.26",
+    "@types/react-dom": "^18.0.10",
+    "parcel": "^2.8.2",
+    "process": "^0.11.10",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "sass": "^1.57.1"
+  },
+  "dependencies": {
+    "@types/jquery": "^3.5.16",
+    "ace-builds": "^1.14.0",
+    "jquery": "^3.6.3",
+    "react-ace": "^10.1.0",
+    "react-jss": "^10.9.2"
+  }
+}

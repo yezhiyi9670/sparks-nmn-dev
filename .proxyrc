@@ -1,0 +1,1 @@
+{"/backend": {"target": "http://localhost:8543/","pathRewrite": {"^/backend": ""}}} 
