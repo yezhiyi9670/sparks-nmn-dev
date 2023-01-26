@@ -15,7 +15,7 @@ import { SectionsParser } from "./sections/SectionsParser";
 import { Beats, DestructedArticle, DestructedFragment, DestructedLine, DestructedLyricLine, DestructedPart, DestructedScore, JumperAttr, LrcAttr, LyricDestructionType, MusicProps, MusicSection, NoteCharAny, NoteCharMusic, PartAttr, Qpm } from "./types";
 
 type MusicalPropsLine = (DestructedLine & {head: 'P' | 'Sp'}) | undefined
-type RenderPropsLine = (DestructedLine & {head: 'Rp' | 'Frp'}) | undefined
+type RenderPropsLine = (DestructedLine & {head: 'Rp' | 'Srp' | 'Frp'}) | undefined
 
 export class Destructor {
 	/**
@@ -67,7 +67,8 @@ export class Destructor {
 	}
 	parseArticle(article: LineTree<SparseLine>, context: ScoreContext, issues: LinedIssue[]): DestructedArticle {
 		const musicalProps = this.destruct(article.uniqueLines['Sp'], issues, context) as MusicalPropsLine
-		const newContext = addMusicProp(context, musicalProps?.props)
+		const renderProps = this.destruct(article.uniqueLines['Srp'], issues, context) as RenderPropsLine
+		const newContext = addRenderProp(addMusicProp(context, musicalProps?.props), renderProps?.props)
 		const mutableContext = copyContext(newContext)
 		let isText = false
 		if(article.lines.length > 0 && article.lines[0].head == 'T') {
@@ -86,6 +87,7 @@ export class Destructor {
 				lineNumber: article.lineNumber,
 				type: 'music',
 				musicalProps: musicalProps as any,
+				renderProps: renderProps as any,
 				fragments: article.children.map((fragment) => {
 					return this.parseFragment(fragment, mutableContext, issues)
 				})
@@ -152,7 +154,7 @@ export class Destructor {
 		if(['P', 'Pi', 'Sp'].indexOf(line.head) != -1) {
 			return this.destructMusicProp(line as any, issues)
 		}
-		if(['Rp', 'Frp'].indexOf(line.head) != -1) {
+		if(['Rp', 'Srp', 'Frp'].indexOf(line.head) != -1) {
 			return this.destructRenderProp(line as any, issues)
 		}
 		if(['B'].indexOf(line.head) != -1) {
@@ -179,6 +181,7 @@ export class Destructor {
 		if(['L', 'Lc', 'Lw'].indexOf(line.head) != -1) {
 			return this.destructLyrics(line as any, issues, context)
 		}
+		throw new Error('Destructor got something very new! ' + line.head)
 	}
 	destructFlag(line: SparseLine & {head: 'B'}, issues: LinedIssue[]): DestructedLine {
 		return {

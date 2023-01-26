@@ -2,8 +2,9 @@ import nmnExamples from "./examples/examples"
 import { ColumnScore, LinedArticle } from "./parser/des2cols/types"
 import { LinedIssue, Parser } from "./parser/parser"
 import { getLanguageValue } from './util/template'
-import { I18n } from './i18n'
+import { I18n, LanguageArray } from './i18n'
 import { commandDefs } from "./parser/commands"
+import { EquifieldSection, Renderer } from "./renderer/renderer"
 
 /**
  * 渲染错误
@@ -16,16 +17,11 @@ class RenderError extends Error {}
  */
 class NoRendererError extends RenderError {}
 
-export class SparksNMN {
-	renderer: Window | null = null
-
+class SparksNMNClass {
 	/**
 	 * 创建 SparksNMN 解析器
-	 * @param rendererWindow 用于渲染的 window 对象。若解析器仅用于解析而不渲染，可以传入 null。
 	 */
-	constructor(rendererWindow: Window | null) {
-		this.renderer = rendererWindow
-	}
+	constructor() {}
 
 	/**
 	 * 解析 SparksNMN 文本文档
@@ -33,7 +29,25 @@ export class SparksNMN {
 	parse(doc: string) {
 		return Parser.parse(doc)
 	}
+
+	/**
+	 * 将解析结果渲染为 DOM
+	 *
+	 * 结果采用“精确渲染”型的格式。为了保证不同设备宽度（以及打印）下结果的一致性（像图片那样），应当使用 Equifield 模块进行展示。
+	 * 
+	 * 结果假设纸张的宽度是 120em，双侧页边距均为 10em。
+	 * 
+	 * @return `{element: HTMLElement, height: number}[]` element 为 DOM 元素，height 为以 em 为单位的高度。单个元素不应当在打印时截断，除非太长
+	 */
+	render(result: NMNResult['result'], lng: LanguageArray): EquifieldSection[] {
+		if(!window || !('document' in window)) {
+			throw new NoRendererError('Sparks NMN renderer cannot work without a DOM window.')
+		}
+		return Renderer.render(result, lng)
+	}
 }
+
+export const SparksNMN = new SparksNMNClass()
 
 class SparksNMNLanguageClass {
 	commandDefs = commandDefs
@@ -44,3 +58,4 @@ export const SparksNMNLanguage = new SparksNMNLanguageClass()
 export type NMNResult = {issues: LinedIssue[], result: ColumnScore<LinedArticle>}
 export type NMNIssue = LinedIssue
 export const NMNI18n = I18n
+export type NMNLanguageArray = LanguageArray

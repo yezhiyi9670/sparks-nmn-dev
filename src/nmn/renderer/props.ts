@@ -55,6 +55,10 @@ export interface RenderProps {
 	 */
 	font_subtitle?: string
 	/**
+	 * 字体-作者
+	 */
+	font_author?: string
+	/**
 	 * 字体-角落
 	 */
 	font_corner?: string
@@ -65,6 +69,7 @@ export interface RenderProps {
 	/**
 	 * 字体-文本标记
 	 */
+	font_attr?: string
 	font_annotation1?: string
 	font_annotation2?: string
 	font_annotation3?: string
@@ -90,16 +95,18 @@ export const renderPropsDefault: RenderProps = {
 	lyricsscale: 1.0,
 	grayout: false,
 	explicitmarkers: false,
-	font_part: 'Noto_Sans_SC/400',
+	font_part: 'SimSun/400',
 	font_props: 'SimHei/400',
 	font_section: 'SimSun/400',
 	font_title: 'SimSun/700',
 	font_subtitle: 'SimSun/400',
-	font_corner: 'Deng/700',
+	font_author: 'SimSun/400',
+	font_corner: 'Deng/400',
 	font_text: 'SimSun/400',
-	font_annotation1: 'Deng/600',
-	font_annotation2: 'Deng/600',
-	font_annotation3: 'Deng/600',
+	font_attr: 'SimSun/400',
+	font_annotation1: 'SimSun/400',
+	font_annotation2: 'SimSun/400',
+	font_annotation3: 'SimSun/400',
 	font_lyrics: 'Deng/600',
 	font_iter: 'SimSun/400',
 }

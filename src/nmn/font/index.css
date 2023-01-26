@@ -1,0 +1,24 @@
+@font-face {
+	font-family: 'SimSun';
+	src: url(./simsun/simsun.ttf);
+}
+@font-face {
+	font-family: 'SimHei';
+	src: url(./simhei/simhei.ttf);
+}
+@font-face {
+	font-family: 'Deng';
+	src: url(./deng/deng.ttf);
+}
+@font-face {
+	font-family: 'SparksNMN-EOPNumber';
+	src: url(./eop_number/eop_number.ttf);
+}
+@font-face {
+	font-family: 'SparksNMN-Bravura';
+	src: url(./bravura/bravura.otf);
+}
+@font-face {
+	font-family: 'SparksNMN-mscore-20';
+	src: url(./mscore-20/mscore-20.ttf)
+}

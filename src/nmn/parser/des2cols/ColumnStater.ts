@@ -9,6 +9,7 @@ import { ColumnScore, Jumper, LinedArticle, LinedLine, LinedLyricLine, LinedPart
 type ArticleBase = {
 	type: 'music'
 	musicalProps?: DestructedLine & {type: 'props'}
+	renderProps?: DestructedLine & {type: 'renderProps'}
 } | {
 	type: 'text'
 }
@@ -35,7 +36,10 @@ export class ColumnStater {
 		), input.musicalProps?.props)
 		return Object.assign({}, this.input, {
 			articles: input.articles.map((article) => {
-				return func(article, addMusicProp(oldContext, article.type == 'music' ? article.musicalProps?.props : undefined), issues)
+				return func(article, addMusicProp(
+					addRenderProp(oldContext, article.type == 'music' ? article.renderProps?.props : undefined),
+					article.type == 'music' ? article.musicalProps?.props : undefined
+				), issues)
 			})
 		})
 	}
@@ -148,6 +152,7 @@ export class ColumnStater {
 			sectionCount: sectionIndex,
 			title: article.title,
 			musicalProps: article.musicalProps,
+			renderProps: article.renderProps,
 			partSignatures: partSignatures,
 			jumpers: jumpers,
 			columns: [],

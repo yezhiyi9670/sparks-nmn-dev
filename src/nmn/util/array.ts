@@ -122,7 +122,10 @@ export function doIfNonNull<T>(func: (val: T) => void, item: T | null | undefine
  * inCheck
  */
 export function inCheck(item: string, thing: {[_: string]: unknown}) {
-	return item != '__proto__' && (item in thing)
+	if(item in {}) {
+		return false
+	}
+	return (item in thing)
 }
 
 export function expandArray<T>(arr: T[], length: number, element: T) {

@@ -39,7 +39,8 @@ const useStyles = createUseStyles({
 		},
 		previewSide: {
 			height: 'unset',
-			overflow: 'hidden'
+			overflow: 'hidden',
+			marginTop: '-2em',
 		}
 	}
 })
@@ -61,7 +62,7 @@ export function DemoEditor(props: DemoEditorProps) {
 	}, [])
 	const showContent = props.content ?? myContent
 	function parseNMN(content: string) {
-		const nmnResult = new SparksNMN(window).parse(content)
+		const nmnResult = SparksNMN.parse(content)
 		console.log(nmnResult)
 		setResult(nmnResult)
 	}

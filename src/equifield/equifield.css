@@ -1,3 +1,22 @@
+.wcl-equifield-root {
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+.wcl-equifield-field {
+	page-break-inside: avoid;
+	overflow: visible;
+	border-bottom: 1px dashed #00000033;
+}
+.wcl-equifield-content {
+	transform-origin: left top;
+	/* Bypass font size limit */
+	transform: scale(0.2);
+	font-size: 5em;
+	width: 500%;
+	margin-right: -400%;
+	overflow-x: visible;
+}
+
 @media print {
 	.wcl-equifield-root {
 		margin-left: 50%;
@@ -7,15 +26,12 @@
 		font-size: calc(98vw / 120) !important;
 		box-sizing: border-box;
 	}
-}
-
-.wcl-equifield-field {
-	page-break-inside: avoid;
-	overflow: hidden;
-}
-.wcl-equifield-content {
-	transform-origin: left top;
-	transform: scale(0.2);
-	font-size: 5em;
-	width: 500%;
+	.wcl-equifield-field {
+		border-bottom: none;
+	}
+	.wcl-equifield-content {
+		/* Avoid error-prone bounding when printing (due to scaling) */
+		margin-left: -1000vw;
+		transform: translateX(1000vw) scale(0.2);
+	}
 }

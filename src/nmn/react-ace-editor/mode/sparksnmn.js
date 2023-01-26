@@ -311,7 +311,7 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 		this.$rules = {
 			"start": [
 				...commonMode('start', true),
-				...lineStringMode(['Dt', 'Df', 'Dv', 'Dp', 'Ds', 'Da', 'P', 'Pi', 'Sp', 'Frp', 'Rp', 'T', 'S']),
+				...lineStringMode(['Dt', 'Df', 'Dv', 'Dp', 'Ds', 'Da', 'P', 'Pi', 'Sp', 'Frp', 'Rp', 'Srp', 'T', 'S']),
 				...lineNoneMode(['B']),
 				...lineGeneral(['J']),
 				...lineNotes(['N', 'Ns', 'F', 'C', 'A']),
@@ -327,7 +327,7 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 					regex: /^\s*(\-+|=+)\s*$/,
 				},
 				{
-					defaultToken: 'comment'
+					defaultToken: 'text'
 				}
 			],
 

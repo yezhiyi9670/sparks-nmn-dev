@@ -2,6 +2,7 @@ import React, { ReactNode } from "react"
 import { createUseStyles } from "react-jss"
 import { Box } from "../util/component"
 import { DemoEditor } from "./DemoEditor/DemoEditor"
+import testdata1 from "./test/testdata1"
 
 const useStyles = createUseStyles({
 	outer: {
@@ -60,6 +61,6 @@ export function PageHeader(props: PageHeaderProps) {
 
 export function TestApp() {
 	return <PageHeader text="Sparks NMN Dev Demo">
-		<DemoEditor initialContent='' />
+		<DemoEditor initialContent={testdata1} />
 	</PageHeader>
 }

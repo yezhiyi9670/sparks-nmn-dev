@@ -658,6 +658,10 @@ export type DestructedArticle = {
 	 */
 	musicalProps?: DestructedLine & {head: 'Sp'}
 	/**
+	 * 渲染属性
+	 */
+	renderProps?: DestructedLine & {head: 'Srp'}
+	/**
 	 * 片段
 	 */
 	fragments: DestructedFragment[]

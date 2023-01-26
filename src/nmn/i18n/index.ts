@@ -2,12 +2,15 @@ import { getCommandDef, lineLevelNames } from "../parser/commands"
 import { Issue } from "../parser/issue/issue"
 import { getLanguageValue } from "../util/template"
 
-type LanguageArray = {
+export type LanguageArray = {
 	levelNameKeys: {[_: string]: number[]}
 	levelNames: {[_: string]: string}
 	issues: {[_: string]: string}
 	notices: {[_: string]: string}
 	commands: {[_: string]: string}
+	updown: {[_: string]: string}
+	metrics: {[_: string]: string}
+	render: {[_: string]: string}
 }
 
 class I18nClass {
@@ -39,6 +42,12 @@ class I18nClass {
 			return val
 		}) ?? []
 		return getLanguageValue(issueText, ...args)
+	}
+	/**
+	 * 获取渲染字段
+	 */
+	renderToken(context: LanguageArray, key: string, ...args: string[]) {
+		return getLanguageValue(context.render[key] ?? key, ...args)
 	}
 }
 

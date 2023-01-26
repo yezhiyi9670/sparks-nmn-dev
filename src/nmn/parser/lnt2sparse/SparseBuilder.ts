@@ -98,7 +98,7 @@ export class SparseBuilder {
 				content: line.text
 			}
 		}
-		if(['P', 'Pi', 'Rp', 'Sp', 'Frp'].indexOf(line.head) != -1) {
+		if(['P', 'Pi', 'Rp', 'Sp', 'Srp', 'Frp'].indexOf(line.head) != -1) {
 			return {
 				lineNumber: line.lineNumber,
 				head: line.head as 'P',

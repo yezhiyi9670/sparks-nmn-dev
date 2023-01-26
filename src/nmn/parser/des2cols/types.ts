@@ -48,6 +48,7 @@ export type LinkedArticleBase<LrcType> = TextArticle | {
 	sectionCount: number
 	title?: DestructedLine & {head: 'S'}
 	musicalProps?: DestructedLine & {head: 'Sp'}
+	renderProps?: DestructedLine & {head: 'Srp'}
 	partSignatures: PartSignature[]
 	jumpers: Jumper[]
 	columns: Fraction[]
@@ -152,6 +153,7 @@ export type LinedArticle = TextArticle | {
 	type: 'music'
 	title?: DestructedLine & {head: 'S'}
 	musicalProps?: DestructedLine & {head: 'Sp'}
+	renderProps?: DestructedLine & {head: 'Srp'}
 	partSignatures: PartSignature[]
 	lines: LinedLine[]
 }

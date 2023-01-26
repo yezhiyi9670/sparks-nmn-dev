@@ -97,6 +97,7 @@ export default {
 		'T': '文本标注',
 		'S': '文段标题',
 		'Sp': '音乐属性',
+		'Srp': '渲染属性',
 		'B': '此前强制换行',
 		'J': '跳房子',
 		'Frp': '渲染属性',
@@ -108,5 +109,27 @@ export default {
 		'Lc': '歌词（字基）',
 		'Lw': '歌词（词基）',
 		'Ns': '替代小节'
+	},
+	'updown': {
+		'up': '升',
+		'down': '降'
+	},
+	'metrics': {
+		'key': '${0}Key',
+		'thd': '减${0}度',
+		'thm': '小${0}度',
+		'th': '大${0}度',
+		'thp': '完全${0}度',
+		'tha': '增${0}度'
+	},
+	'render': {
+		'transpose_prop': '移调${0}Key',
+		'shift_prop_a_1': '转1=',
+		'shift_prop_a_2': '',
+		'shift_prop_at_1': '转1=',
+		'shift_prop_at_2': '移',
+		'shift_prop_r': '${0}${1}',
+		'shift_prop_rt': '${0}${1}移',
+		'colon': '：'
 	}
 }

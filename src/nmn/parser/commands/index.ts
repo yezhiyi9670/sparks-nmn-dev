@@ -195,6 +195,16 @@ export const commandDefs: CommandDef[] = [
 		unique: 'S',
 		levels: [LineLevels.article]
 	},
+	// Srp Article 渲染属性
+	{
+		head: 'Srp',
+		headFull: 'SectionRenderProps',
+		contentType: 'text',
+		hasProps: 'none',
+		propsType: 'none',
+		unique: 'Srp',
+		levels: [LineLevels.article]
+	},
 	// Sp Article 音乐属性
 	{
 		head: 'Sp',

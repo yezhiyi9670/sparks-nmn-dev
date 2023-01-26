@@ -12,7 +12,6 @@ export class Equifield {
 	listener: () => void
 
 	constructor(element: HTMLDivElement) {
-		console.log('Init field', element)
 		this.element = element
 		jquery(this.element)
 			.addClass('wcl-equifield-root')
@@ -26,9 +25,9 @@ export class Equifield {
 
 	resize() {
 		const $element = jquery(this.element)
-		let width = $element.width()!
+		let width = $element[0].clientWidth
 		if(width > 0) {
-			$element.css('font-size', `${width / this.field}px`)
+			$element.css('font-size', `${width / (this.field - 0 * this.padding)}px`)
 		}
 	}
 	
