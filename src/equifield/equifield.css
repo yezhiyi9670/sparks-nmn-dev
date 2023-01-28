@@ -5,7 +5,7 @@
 .wcl-equifield-field {
 	page-break-inside: avoid;
 	overflow: visible;
-	border-bottom: 1px dashed #00000033;
+	border-bottom: 1px dashed #00000019;
 }
 .wcl-equifield-content {
 	transform-origin: left top;

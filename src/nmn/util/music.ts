@@ -33,7 +33,8 @@ export module MusicTheory {
 		if(value === undefined || !/^(\d*)$/.test(name.substring(1)) || octave > 12) {
 			return {
 				value: NaN,
-				baseValue: NaN
+				baseValue: NaN,
+				explicitOctave: false
 			}
 		}
 		if(name.length == 1) {
@@ -47,8 +48,23 @@ export module MusicTheory {
 		octave = 12 * (octave - 4)
 		return {
 			value: octave + value + delta,
-			baseValue: octave + value
+			baseValue: octave + value,
+			explicitOctave: name.length > 1
 		}
+	}
+
+	/**
+	 * 根据基调（BaseTune）给出绝对名称。
+	 */
+	export function pitch2AbsName(pitch: {baseValue: number, explicitOctave: boolean}) {
+		if(isNaN(pitch.baseValue)) {
+			return '?'
+		}
+		let octave = Math.floor(pitch.baseValue / 12)
+		let tune = pitch.baseValue - octave * 12
+		return [
+			'C', 'C', 'D', 'D', 'E', 'F', 'F', 'G', 'G', 'A', 'A', 'B'
+		][Math.floor(tune)] + (pitch.explicitOctave ? (octave + 4).toString() : '')
 	}
 
 	/**

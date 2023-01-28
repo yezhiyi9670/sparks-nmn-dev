@@ -23,7 +23,8 @@ const useStyles = createUseStyles({
 		height: '48px',
 		verticalAlign: 'middle',
 		fontSize: '18px',
-		opacity: 0.6
+		opacity: 0.6,
+		userSelect: 'none'
 	},
 	inner: {
 		flex: 'auto'

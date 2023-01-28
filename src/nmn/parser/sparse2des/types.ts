@@ -19,6 +19,7 @@ export type Qpm = {
 export type BaseTune = {
 	value: number
 	baseValue: number
+	explicitOctave: boolean
 }
 
 export type MusicProps = {
@@ -282,6 +283,10 @@ export type LyricChar = {
 	 * 延长线的形态是下划线字符“_”，不是连字符，以免混淆。显然这玩意不需要跨片段联合。
 	 */
 	extension: boolean
+	/**
+	 * 是否为字基
+	 */
+	isCharBased: boolean
 }
 
 /**
@@ -377,6 +382,7 @@ export const noteCharForceWeight = {
  */
 export type NoteCharChord = {
 	type: 'chord'
+	delta: number
 	root: string
 	suffix: string
 	base?: string
@@ -539,6 +545,14 @@ export type MusicSection<NoteChar> = {
 	 * 装饰符
 	 */
 	decoration: MusicDecoration[]
+	/**
+	 * 联合连音线从左侧断开
+	 */
+	leftSplit: boolean
+	/**
+	 * 延长连音线从左侧断开
+	 */
+	leftSplitVoid: boolean
 } | {
 	type: 'omit'
 	/**
@@ -570,7 +584,7 @@ export type DestructedLine = {
 	props: MusicProps
 } | {
 	type: 'renderProps' // 渲染属性
-	head: 'Frp' | 'Rp'
+	head: 'Rp' | 'Srp' | 'Frp'
 	props: RenderProps
 } | {
 	type: 'articleTitle' // 文段标题
@@ -667,6 +681,10 @@ export type DestructedArticle = {
 	fragments: DestructedFragment[]
 } | {
 	type: 'text'
+	/**
+	 * 渲染属性
+	 */
+	renderProps?: DestructedLine & {head: 'Srp'}
 	/**
 	 * 文本行
 	 */

@@ -1,16 +1,18 @@
 import { inCheck, pushIfNonNull } from "../../../util/array";
 import { Frac, Fraction } from "../../../util/frac";
-import { splitBy } from "../../../util/string";
+import { splitBy, withinCharRange } from "../../../util/string";
 import { addIssue, LinedIssue } from "../../parser";
-import { BracketToken, BracketTokenList, Tokens } from "../../tokenizer/tokens";
+import { BracketToken, BracketTokenList, TokenFilter, Tokens } from "../../tokenizer/tokens";
 import { AttrMatcher } from "../AttrMatcher";
 import { ScoreContext } from "../context";
-import { attrInsertCharCheck, MusicDecoration, MusicNote, MusicSection, NoteAttr, NoteCharAny, noteCharChecker, noteCharForceWeight } from "../types";
+import { attrInsertCharCheck, MusicDecoration, MusicNote, MusicSection, NoteAttr, NoteCharAny, noteCharChecker, NoteCharChord, noteCharForceWeight } from "../types";
 
 type SampledSectionBase<TypeSampler> = {
 	type: 'section'
 	notes: MusicNote<(NoteCharAny & {type: TypeSampler})>[]
 	decoration: MusicDecoration[]
+	leftSplit: boolean
+	leftSplitVoid: boolean
 }
 type SampledNoteChar<TypeSampler> = NoteCharAny & {type: TypeSampler}
 
@@ -133,12 +135,25 @@ export class NoteEater {
 		let tripletRemain = 0
 		var extendingNote: (MusicNote<NoteCharAny & {type: TypeSampler}>) | undefined = undefined as any;
 		(() => {
+			let leftSplitFlag = true
 			while(true) {
 				let token = this.peek()
 				// ===== 检测文末 =====
 				if(token === undefined) {
 					return
 				}
+				// ===== 检测连音线左分割符号 =====
+				if(new TokenFilter('symbol', '*').test(token)) {
+					this.pass()
+					section.leftSplit = true
+					continue
+				}
+				if(new TokenFilter('symbol', '~').test(token)) {
+					this.pass()
+					section.leftSplitVoid = true
+					continue
+				}
+				leftSplitFlag = false
 				// ===== 检测插入符 =====
 				if(!('bracket' in token) && token.type == 'symbol' && token.content == '&') {
 					this.pass()
@@ -532,12 +547,29 @@ export class NoteEater {
 					return undefined
 				}
 				const [ pref, base ] = splitBy(token1.content, '/')
-				return {
+				let prefSplitPos = 1
+				let accidentalDeltas = {'#': 1, 'b': -1, '$': 0, '^': 0.5, '%': -0.5}
+				while(prefSplitPos < pref.length && (
+					inCheck(pref[prefSplitPos - 1], accidentalDeltas) ||
+					withinCharRange(pref[prefSplitPos], 'A', 'Z')
+				)) {
+					prefSplitPos += 1
+				}
+				let prefRoot = pref.substring(0, prefSplitPos)
+				let prefSuffix = pref.substring(prefSplitPos)
+				let delta = 0
+				while(inCheck(prefRoot[0], accidentalDeltas)) {
+					delta += accidentalDeltas[prefRoot[0]]
+					prefRoot = prefRoot.substring(1)
+				}
+				const ret: NoteCharChord = {
 					type: typeSampler as any,
-					root: pref.substring(0, 1),
-					suffix: pref.substring(1),
+					delta: delta,
+					root: prefRoot,
+					suffix: prefSuffix,
 					base: base == '' ? undefined : base
 				}
+				return ret as any
 			}
 		}
 	}

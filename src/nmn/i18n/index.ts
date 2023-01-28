@@ -1,6 +1,7 @@
 import { getCommandDef, lineLevelNames } from "../parser/commands"
 import { Issue } from "../parser/issue/issue"
 import { getLanguageValue } from "../util/template"
+import languageArray_zh_cn from './zh_cn'
 
 export type LanguageArray = {
 	levelNameKeys: {[_: string]: number[]}
@@ -48,6 +49,16 @@ class I18nClass {
 	 */
 	renderToken(context: LanguageArray, key: string, ...args: string[]) {
 		return getLanguageValue(context.render[key] ?? key, ...args)
+	}
+
+	/**
+	 * 获取语言数据
+	 */
+	data(language: string | undefined): LanguageArray | undefined {
+		if(language == 'zh_cn') {
+			return languageArray_zh_cn
+		}
+		return undefined
 	}
 }
 

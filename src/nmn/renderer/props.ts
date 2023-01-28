@@ -39,13 +39,9 @@ export interface RenderProps {
 	 */
 	font_part?: string
 	/**
-	 * 字体-属性
-	 */
-	font_props?: string
-	/**
 	 * 字体-文段标题
 	 */
-	font_section?: string
+	font_article?: string
 	/**
 	 * 字体-标题
 	 */
@@ -66,6 +62,10 @@ export interface RenderProps {
 	 * 字体-文本
 	 */
 	font_text?: string
+	/**
+	 * 字体-脚注
+	 */
+	font_footnote?: string
 	/**
 	 * 字体-文本标记
 	 */
@@ -96,13 +96,13 @@ export const renderPropsDefault: RenderProps = {
 	grayout: false,
 	explicitmarkers: false,
 	font_part: 'SimSun/400',
-	font_props: 'SimHei/400',
-	font_section: 'SimSun/400',
+	font_article: 'SimSun/700',
 	font_title: 'SimSun/700',
 	font_subtitle: 'SimSun/400',
 	font_author: 'SimSun/400',
 	font_corner: 'Deng/400',
 	font_text: 'SimSun/400',
+	font_footnote: 'SimSun/400',
 	font_attr: 'SimSun/400',
 	font_annotation1: 'SimSun/400',
 	font_annotation2: 'SimSun/400',
@@ -143,7 +143,7 @@ export function renderPropConvert(key: string, val: string) {
 		}
 		return { error: 'value' }
 	}
-	if(key == 'lyricsscale' || key == 'scale') {
+	if(key == 'scale') {
 		let num = +val
 		if(num != num || num < 0 || num >= 65536) {
 			return { error: 'value' }

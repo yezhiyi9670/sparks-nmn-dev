@@ -4,7 +4,7 @@ import { SparksNMNLanguage, NMNI18n, NMNIssue } from ".."
 import { CodeEditor } from "./CodeEditor/CodeEditor"
 import AceEditor from 'react-ace'
 import languageArray_zh_cn from '../../nmn/i18n/zh_cn'
-import { TextHighlightRules } from 'ace-builds/src-noconflict/mode-text'
+import 'ace-builds/src-noconflict/mode-python'
 import './mode/sparksnmn'
 
 interface SparksNMNEditorProps {

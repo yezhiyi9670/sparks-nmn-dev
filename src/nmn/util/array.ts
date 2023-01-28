@@ -128,6 +128,16 @@ export function inCheck(item: string, thing: {[_: string]: unknown}) {
 	return (item in thing)
 }
 
+export function countArray<T>(arr: T[], element: T) {
+	let ret = 0
+	arr.forEach((x) => {
+		if(x == element) {
+			ret += 1
+		}
+	})
+	return ret
+}
+
 export function expandArray<T>(arr: T[], length: number, element: T) {
 	while(arr.length < length) {
 		arr.push(element)

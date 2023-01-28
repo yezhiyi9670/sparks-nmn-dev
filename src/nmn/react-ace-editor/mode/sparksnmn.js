@@ -4,7 +4,7 @@ import { getCommandDef } from "../../parser/commands";
 ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text_highlight_rules"], function (ace_require, exports, module) {
 	var oop = ace_require("../lib/oop");
 	var TextHighlightRules = ace_require("./text_highlight_rules").TextHighlightRules;
-	var SparksnmnHighlightRules = function () {
+	var SparksnmnHighlightRules = function () {		
 		var stringEscape = "\\\\(x[0-9A-Fa-f]{2}|[0-7]{3}|[\\\\rntx'\"]|u[0-9A-Fa-f]{4})";
 
 		let moreModes = {}
@@ -349,6 +349,7 @@ ace.define("ace/mode/sparksnmn", function (acequire, exports, module) {
 	const SparksnmnHighlightRules = acequire("./sparksnmn_highlight_rules").SparksnmnHighlightRules;
 
 	const SparksnmnMode = function () {
+		this.lineCommentStart = '//'
 		this.HighlightRules = SparksnmnHighlightRules;
 	};
 	oop.inherits(SparksnmnMode, TextMode);

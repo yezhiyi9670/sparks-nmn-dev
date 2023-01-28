@@ -150,7 +150,8 @@ export module AttrMatcher {
 		if(!isRelative) {
 			let tune = {
 				value: NaN,
-				baseValue: NaN
+				baseValue: NaN,
+				explicitOctave: false
 			}
 			if(rightPart != '?') {
 				tune = MusicTheory.absName2Pitch(rightPart)
@@ -301,7 +302,9 @@ export module AttrMatcher {
 			totalQuarters: {x: 0, y: 0},
 			validation: 'pass',
 			notes: [],
-			decoration: []
+			decoration: [],
+			leftSplit: false,
+			leftSplitVoid: false
 		}
 		const [ writtenQuarters ] = new NoteEater(tokenIn.tokens[0] ?? [], lineNumber, scoreContextDefault, 0).parse<'music'>(
 			section,

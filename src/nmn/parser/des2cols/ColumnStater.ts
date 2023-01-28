@@ -51,6 +51,7 @@ export class ColumnStater {
 			return {
 				lineNumber: article.lineNumber,
 				type: 'text',
+				renderProps: article.renderProps,
 				text: article.text
 			}
 		}
@@ -404,10 +405,21 @@ export class ColumnStater {
 						return
 					}
 					lrcSigs.push(lrcLine.signature)
-					const { force, chord, annotations, sections, indexMap, ...others } = lrcLine
+					const { force, chord, annotations, sections, indexMap, notesSubstitute, ...others } = lrcLine
 					lrcLines.push({
 						sections: sections.slice(sectionPtr, sectionPtr + sectionCount),
 						index: indexMap.slice(sectionPtr, sectionPtr + sectionCount),
+						notesSubstitute: notesSubstitute.filter((Ns) => {
+							return SectionStat.sectionRangeOverlaps([sectionPtr, sectionCount], [
+								Ns.substituteLocation,
+								Ns.sections.length
+							])
+						}).map((Ns) => {
+							return {
+								...Ns,
+								substituteLocation: Ns.substituteLocation - sectionPtr
+							}
+						}),
 						...this.subFCA({ force, chord, annotations }, sectionPtr, sectionCount),
 						...others
 					})
@@ -442,7 +454,8 @@ export class ColumnStater {
 						jumper.startSection,
 						jumper.endSection - jumper.startSection
 					])
-				})
+				}),
+				sectionFields: article.sectionFields.slice(sectionPtr, sectionPtr + sectionCount)
 			})
 
 			sectionPtr += sectionCount

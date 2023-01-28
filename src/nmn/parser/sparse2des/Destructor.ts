@@ -71,13 +71,16 @@ export class Destructor {
 		const newContext = addRenderProp(addMusicProp(context, musicalProps?.props), renderProps?.props)
 		const mutableContext = copyContext(newContext)
 		let isText = false
-		if(article.lines.length > 0 && article.lines[0].head == 'T') {
-			isText = true
-		}
+		article.lines.forEach((line) => {
+			if(line.head == 'T') {
+				isText = true
+			}
+		})
 		if(isText) {
 			return {
 				lineNumber: article.lineNumber,
 				type: 'text',
+				renderProps: renderProps as any,
 				text: article.lines.filter((line) => line.head == 'T').map((line) => {
 					return this.destruct(line, issues, newContext) as any
 				})
@@ -88,6 +91,7 @@ export class Destructor {
 				type: 'music',
 				musicalProps: musicalProps as any,
 				renderProps: renderProps as any,
+				title: this.destruct(article.uniqueLines['S'], issues, context) as any,
 				fragments: article.children.map((fragment) => {
 					return this.parseFragment(fragment, mutableContext, issues)
 				})
@@ -145,8 +149,11 @@ export class Destructor {
 		if(line === undefined) {
 			return undefined
 		}
-		if(['Dt', 'Dp', 'Dv', 'Ds', 'T', 'S'].indexOf(line.head) != -1) {
+		if(['Dt', 'Dp', 'Dv', 'Ds', 'S'].indexOf(line.head) != -1) {
 			return this.destructCopyTitle(line as any, issues)
+		}
+		if(['T'].indexOf(line.head) != -1) {
+			return this.destructText(line as any, issues)
 		}
 		if(['Da', 'Df'].indexOf(line.head) != -1) {
 			return this.destructCopyMeta(line as any, issues)
@@ -198,6 +205,18 @@ export class Destructor {
 			text: line.content
 		}
 	}
+	destructText(line: SparseLine & {head: 'T'}, issues: LinedIssue[]): DestructedLine {
+		let text = line.content
+		if(text[0] == '|') {
+			text = text.substring(1)
+		}
+		return {
+			lineNumber: line.lineNumber,
+			type: 'text',
+			head: line.head,
+			text: text
+		}
+	}
 	destructCopyMeta(line: SparseLine & {head: 'Da'}, issues: LinedIssue[]): DestructedLine {
 		return {
 			lineNumber: line.lineNumber,
@@ -224,7 +243,7 @@ export class Destructor {
 			*/
 			((item) => {
 				// transp
-				if(/^\+(\d+)$/.test(item) || /^\-(\d+)$/.test(item)) {
+				if(/^\+(\d+)\.?(\d*)$/.test(item) || /^\-(\d+)\.?(\d*)$/.test(item)) {
 					const val = +item.substring(1)
 					if(val <= 88) {
 						props.transp = +item
@@ -237,7 +256,8 @@ export class Destructor {
 					if(val == '?') {
 						props.base = {
 							value: NaN,
-							baseValue: NaN
+							baseValue: NaN,
+							explicitOctave: false
 						}
 					} else {
 						const valParsed = MusicTheory.absName2Pitch(val)

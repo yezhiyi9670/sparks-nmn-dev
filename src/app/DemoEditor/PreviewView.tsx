@@ -5,7 +5,7 @@ import { Equifield, EquifieldSection } from '../../equifield/equifield'
 import { NMNResult, SparksNMN } from '../../nmn'
 import languageArray_zh_cn from '../../nmn/i18n/zh_cn'
 
-const maxWidth = 1200
+const maxWidth = 1000
 const useStyles = createUseStyles({
 	previewContainer: {
 		margin: '16px auto',

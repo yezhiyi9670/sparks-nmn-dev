@@ -122,7 +122,8 @@ export class LyricsParser {
 						rolePrefix: rolePrefix,
 						occupiesSpace: occupiesSpace,
 						grouped: grouped,
-						extension: extension
+						extension: extension,
+						isCharBased: typeSampler == 'char'
 					})
 				}
 			}
@@ -325,7 +326,8 @@ export class LyricsParser {
 				prefix: prefix,
 				postfix: postfix,
 				rolePrefix: role,
-				extension: extend
+				extension: extend,
+				isCharBased: true
 			}
 		})
 		console.log('lrc words', words)

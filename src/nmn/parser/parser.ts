@@ -120,7 +120,7 @@ class ParserClass {
 				lineNumber,
 				tokens,
 				comment: commentText,
-				text: line.substring(startIndex, endIndex).trim()
+				text: line
 			})
 		}
 		

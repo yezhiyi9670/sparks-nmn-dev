@@ -104,6 +104,12 @@ export module SectionStat {
 				pendingNote = undefined
 				return
 			}
+			if(section.leftSplit) {
+				// 创建左分割的连音线
+				lastPlace = Frac.create(0, 0)
+				pendingNote = true as any
+				lastSection = undefined
+			}
 			let isFirst = true
 			section.notes.forEach((note) => {
 				if(!isFirst && noteList.length > 0) {
@@ -152,13 +158,22 @@ export module SectionStat {
 				pendingNote = undefined
 				return
 			}
+			if(section.leftSplitVoid) {
+				// 创建左分割的连音线
+				connectState = true
+				lastSection = undefined
+				pendingNote = undefined
+				lastPlace = Frac.create(0, 0)
+			}
 			section.notes.forEach((note) => {
 				if(note.type == 'extend') {
 					return
 				}
 				if(connectState) {
 					note.voided = true
-					pendingNote!.length = Frac.add(pendingNote!.length, note.length)
+					if(pendingNote) {
+						pendingNote!.length = Frac.add(pendingNote!.length, note.length)
+					}
 					const currPlace = Frac.add(section.startPos, note.startPos)
 					decorations.push({
 						type: 'range',

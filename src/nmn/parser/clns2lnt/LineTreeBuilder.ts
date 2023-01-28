@@ -150,6 +150,9 @@ export class LineTreeBuilder {
 				let wrongSpeciality = false
 				for(let line of currentTree.lines) {
 					const commandDef = getCommandDef(line.head)!
+					if(commandDef.special == 'none') {
+						continue
+					}
 					if(commandDef.special) {
 						if(speciality == 'false') {
 							wrongSpeciality = true

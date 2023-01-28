@@ -36,6 +36,7 @@ export type Jumper = {
 export type TextArticle = {
 	lineNumber: number
 	type: 'text'
+	renderProps?: DestructedLine & {head: 'Srp'}
 	text: (DestructedLine & {head: 'T'})[]
 }
 
@@ -181,6 +182,10 @@ export type LinedLine = {
 	jumpers: Jumper[]
 	partSignatures: PartSignature[]
 	parts: LinedPart[]
+	/**
+	 * 各小节的起始列和场宽
+	 */
+	sectionFields: [Fraction, Fraction][]
 }
 
 export type LinedPart = DestructedFCA & {

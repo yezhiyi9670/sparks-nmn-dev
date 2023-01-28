@@ -5,6 +5,7 @@ import { getLanguageValue } from './util/template'
 import { I18n, LanguageArray } from './i18n'
 import { commandDefs } from "./parser/commands"
 import { EquifieldSection, Renderer } from "./renderer/renderer"
+import { FontLoader } from "./renderer/FontLoader"
 
 /**
  * 渲染错误
@@ -44,6 +45,23 @@ class SparksNMNClass {
 			throw new NoRendererError('Sparks NMN renderer cannot work without a DOM window.')
 		}
 		return Renderer.render(result, lng)
+	}
+
+	/**
+	 * 加载需要的字体
+	 */
+	loadFonts(finishCallback?: () => void, loadCallback?: () => void) {
+		if(!window || !('document' in window)) {
+			throw new NoRendererError('Sparks NMN renderer cannot work without a DOM window.')
+		}
+		FontLoader.loadFonts([
+			{ name: 'SimSun', url: './nmn/font/simsun/simsun.ttf' },
+			{ name: 'SimHei', url: './nmn/font/simhei/simhei.ttf' },
+			{ name: 'Deng', url: './nmn/font/deng/deng.ttf' },
+			{ name: 'SparksNMN-EOPNumber', url: './nmn/font/eop_number/eop_number.ttf' },
+			{ name: 'SparksNMN-mscore-20', url: './nmn/font/mscore-20/mscore-20.ttf' },
+			{ name: 'SparksNMN-Bravura', url: './nmn/font/bravura/bravura.otf' },
+		], finishCallback)
 	}
 }
 

@@ -35,7 +35,7 @@ export interface CommandDef {
 	/**
 	 * 特殊形（Text）
 	 */
-	special?: boolean
+	special?: boolean | 'none'
 	/**
 	 * 当前级别内必须
 	 */
@@ -203,7 +203,8 @@ export const commandDefs: CommandDef[] = [
 		hasProps: 'none',
 		propsType: 'none',
 		unique: 'Srp',
-		levels: [LineLevels.article]
+		levels: [LineLevels.article],
+		special: 'none'
 	},
 	// Sp Article 音乐属性
 	{
@@ -213,7 +214,7 @@ export const commandDefs: CommandDef[] = [
 		hasProps: 'none',
 		propsType: 'none',
 		unique: 'Sp',
-		levels: [LineLevels.article]
+		levels: [LineLevels.article],
 	},
 	// B Fragment 前强制换行
 	{

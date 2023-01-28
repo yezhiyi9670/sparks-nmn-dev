@@ -118,3 +118,10 @@ export function splitBy(haystack: string, needle: string): [string, string] {
 		haystack.substring(split + 1)
 	]
 }
+
+/**
+ * 字符定界
+ */
+export function withinCharRange(char: string, lower: string, upper: string) {
+	return lower.charCodeAt(0) <= char.charCodeAt(0) && char.charCodeAt(0) <= upper.charCodeAt(0)
+}

@@ -11,7 +11,7 @@ export default {
 	},
 	levelNames: {
 		'document': '文档',
-		'article': '文段',
+		'article': '章节',
 		'fragment': '片段',
 		'part': '声部',
 		'lyricLine': '歌词行'
@@ -110,6 +110,13 @@ export default {
 		'Lw': '歌词（词基）',
 		'Ns': '替代小节'
 	},
+	'render_props': {
+		'n': '每行小节数',
+		'debug': '显示错误警告',
+		'sectionorder': '小节线序号模式',
+		'language': '曲谱渲染使用的语言',
+		
+	},
 	'updown': {
 		'up': '升',
 		'down': '降'
@@ -130,6 +137,7 @@ export default {
 		'shift_prop_at_2': '移',
 		'shift_prop_r': '${0}${1}',
 		'shift_prop_rt': '${0}${1}移',
-		'colon': '：'
+		'colon': '：',
+		'author_sep': ' '
 	}
 }
