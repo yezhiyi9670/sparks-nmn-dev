@@ -58,8 +58,10 @@ class ArticleRendererClass {
 		// 渲染章节头部
 		this.renderMusicArticleHeader(article, sections, context)
 		// 渲染内容行
+		let lastLine: NMNMusicArticle['lines'][0] | undefined = undefined as any
 		article.lines.forEach((line) => {
-			LineRenderer.renderLine(line, sections, context)
+			new LineRenderer().renderLine(line, sections, context, lastLine)
+			lastLine = line
 		})
 	}
 	/**
@@ -115,7 +117,8 @@ class ArticleRendererClass {
 
 		sections.push({
 			element: root.element,
-			height: currY * scale
+			height: currY * scale,
+			noBreakAfter: true
 		})
 	}
 }

@@ -212,7 +212,7 @@ export class NoteEater {
 						attrs: [],
 						suffix: [],
 						// 延音线在小节开头隐藏（此规则忽略 grayout），可用作弱起小节的 Spacer
-						voided: !!extendingNote
+						voided: !extendingNote
 					})
 					// 更新最后一列
 					lastColumn = Frac.copy(
@@ -240,6 +240,9 @@ export class NoteEater {
 				let reduction = 2
 				if(this.level == 0) {
 					reduction = this.context.musical.beats!.defaultReduction
+					if(tripletRemain > 0 && Frac.compare(Frac.create(1), tripletRatio) == 0) {
+						reduction = 2
+					}
 				}
 				let reducedRatio = Frac.create(1, reduction)
 				if(tripletRemain > 0) {
@@ -260,7 +263,7 @@ export class NoteEater {
 								type: 'range',
 								startPos: Frac.add(startPos, Frac.mul(ratio, position)),
 								endPos: writtenLastCol,
-								level: this.level,
+								level: this.level + 1,
 								char: '_'
 							})
 							lastColumn = Frac.copy(writtenLastCol)

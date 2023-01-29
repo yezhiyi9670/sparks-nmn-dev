@@ -50,6 +50,18 @@ class I18nClass {
 	renderToken(context: LanguageArray, key: string, ...args: string[]) {
 		return getLanguageValue(context.render[key] ?? key, ...args)
 	}
+	/**
+	 * 单位
+	 */
+	metricText(context: LanguageArray, key: string, ...args: string[]) {
+		return getLanguageValue(context.metrics[key] ?? key, ...args)
+	}
+	/**
+	 * 升/降
+	 */
+	upDownText(context: LanguageArray, key: 'up' | 'down') {
+		return context.updown[key]
+	}
 
 	/**
 	 * 获取语言数据

@@ -7,11 +7,31 @@ type ExtraStyles = {[_: string]: number | string}
 const measureCache: {[_: string]: [number, number]} = {}
 const measureCacheFast: {[_: string]: [number, number]} = {}
 
+const upScale = 5  // 将字体和图元大小数据调高，然后通过 transform scale 还原，一可以提高打印质量，二可以避免最小字体问题。
+
 export class DomPaint {
 	element: HTMLDivElement
 	
 	constructor() {
 		this.element = $<HTMLDivElement>('<div></div>').css({position: 'relative'})[0]
+	}
+	/**
+	 * 多边形模拟四分之一圆弧形状
+	 */
+	polygonQuarterCircle(innerRatio: number) {
+		let points: [number, number][] = []
+		let sides = 12
+		for(let i = 0; i <= sides; i++) {
+			let angle = Math.PI / 2 / sides * i
+			points.push([Math.cos(angle), Math.sin(angle)])
+		}
+		for(let i = sides; i >= 0; i--) {
+			let angle = Math.PI / 2 / sides * i
+			points.push([Math.cos(angle) * innerRatio, Math.sin(angle) * innerRatio])
+		}
+		return points.map((point) => {
+			return `${50 + point[0] * 50}% ${50 + point[1] * 50}%`
+		}).join(',')
 	}
 	/**
 	 * 测量文本框的宽度和高度（以 em 为单位）
@@ -105,11 +125,12 @@ export class DomPaint {
 			.css('position', 'absolute')
 			.css('text-align', align)
 			.css('font-family', font.fontFamily)
-			.css('font-size', `${fontSize * scale}em`)
+			.css('font-size', `${fontSize * scale * upScale}em`)
 			.css('font-weight', font.fontWeight)
-			.css('top', `${y}em`)
-			.css('left', `${x / scale}em`)
-			.css('transform', `translateX(${tx}) translateY(${ty})`)
+			.css('top', `0`)
+			.css('left', `0`)
+			.css('transform-origin', 'top left')
+			.css('transform', `scale(${1/upScale}) translateX(${x/scale}em) translateY(${y}em) translateX(${tx}) translateY(${ty})`)
 			.css(extraStyles)
 		)
 	}
@@ -153,14 +174,51 @@ export class DomPaint {
 		$(this.element).append(
 			$('<div></div>')
 			// .css('background-color', '#000')
-			.css('box-shadow', `inset 0 0 0 ${width}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
+			.css('box-shadow', `inset 0 0 0 ${width * upScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
 			.addClass('visible-print-block')
 			.css('position', 'absolute')
-			.css('width', `${lineLength + 2 * padding}em`)
-			.css('height', `${width}em`)
-			.css('transform', `translateX(-50%) translateY(-50%) rotate(${angle}deg)`)
-			.css('left', `${centerX}em`)
-			.css('top', `${centerY}em`)
+			.css('width', `${(lineLength + 2 * padding) * upScale}em`)
+			.css('height', `${width * upScale}em`)
+			.css('transform', `translateX(${centerX}em) translateY(${centerY}em) translateX(-50%) translateY(-50%) rotate(${angle}deg) scale(${1/upScale})`)
+			.css('left', `0`)
+			.css('top', `0`)
+			.css(extraStyles)
+		)
+	}
+	/**
+	 * 绘制圆弧线
+	 */
+	drawQuarterCircle(x: number, y: number, r: number, halfX: 'left' | 'right', halfY: 'top' | 'bottom', width: number, scale: number = 1, extraStyles: ExtraStyles = {}) {
+		y *= scale
+		r *= scale
+		width *= scale
+		r += width / 2
+		const ratio = 1 - width / r
+		let rotate = 0
+		if(halfX == 'left') {
+			if(halfY == 'top') {
+				rotate = 180
+			} else {
+				rotate = 90
+			}
+		} else {
+			if(halfY == 'top') {
+				rotate = 270
+			} else {
+				rotate = 0
+			}
+		}
+		$(this.element).append(
+			$('<div></div>')
+			.css('box-shadow', `inset 0 0 0 ${r * upScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
+			.css('clip-path', `polygon(${this.polygonQuarterCircle(ratio)})`)
+			.addClass('visible-print-block')
+			.css('position', 'absolute')
+			.css('width', `${r * 2 * upScale}em`)
+			.css('height', `${r * 2 * upScale}em`)
+			.css('transform', `translateX(${x}em) translateY(${y}em) translateX(-50%) translateY(-50%) rotate(${rotate}deg) scale(${1/upScale})`)
+			.css('left', `0`)
+			.css('top', `0`)
 			.css(extraStyles)
 		)
 	}

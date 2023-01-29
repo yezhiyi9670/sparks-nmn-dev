@@ -3,6 +3,7 @@ import jquery from 'jquery'
 export type EquifieldSection = {
 	element: HTMLElement
 	height: number
+	noBreakAfter?: boolean
 }
 
 export class Equifield {
@@ -40,14 +41,22 @@ export class Equifield {
 		const $element = jquery(this.element)
 		$element.children().remove()
 		
-		sections.forEach((section) => {
-			$element.append(
-				jquery('<div></div>').addClass('wcl-equifield-field').css({'height': `${section.height}em`})
+		let totalHeight = 0
+		sections.forEach((section, index) => {
+			const $content = jquery('<div></div>').addClass('wcl-equifield-content')
+			const targetElement = section.element
+			$content[0].appendChild(targetElement)
+			const $field = jquery('<div></div>').addClass('wcl-equifield-field').css({'height': `${section.height}em`})
 				.append(
-					jquery('<div></div>').addClass('wcl-equifield-content')
-					.append(section.element)
+					$content
 				)
+			if(section.noBreakAfter) {
+				$field.css('page-break-after', 'avoid')
+			}
+			$element.append(
+				$field
 			)
+			totalHeight += section.height
 		})
 	}
 }

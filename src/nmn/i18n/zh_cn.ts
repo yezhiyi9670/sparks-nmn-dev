@@ -125,7 +125,8 @@ export default {
 		'key': '${0}Key',
 		'thd': '减${0}度',
 		'thm': '小${0}度',
-		'th': '大${0}度',
+		'thM': '大${0}度',
+		'th': '${0}度',
 		'thp': '完全${0}度',
 		'tha': '增${0}度'
 	},
@@ -138,6 +139,8 @@ export default {
 		'shift_prop_r': '${0}${1}',
 		'shift_prop_rt': '${0}${1}移',
 		'colon': '：',
-		'author_sep': ' '
+		'author_sep': ' ',
+		'omit': '(后略)',
+		'omit_n': '(省略${0}小节)'
 	}
 }

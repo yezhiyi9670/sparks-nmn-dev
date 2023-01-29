@@ -1,15 +1,20 @@
 import { NMNResult } from "../../.."
 import { ScoreContext } from "../../../parser/sparse2des/context"
 import { MusicSection, NoteCharAny } from "../../../parser/sparse2des/types"
-import { countArray, findWithKey } from "../../../util/array"
+import { countArray, findIndexWithKey, findWithKey } from "../../../util/array"
 import { Frac, Fraction } from "../../../util/frac"
 import { DomPaint } from "../../backend/DomPaint"
+import { MusicPaint } from "../../paint/MusicPaint"
 import { RenderContext } from "../../renderer"
-import { getLineFont } from "./font/fontMetrics"
+import { addNotesScale, getLineFont } from "./font/fontMetrics"
 
 type NMNLine = (NMNResult['result']['articles'][0] & {type: 'music'})['lines'][0]
 
 type SectionPositions = {
+	/**
+	 * 原本的边界位置
+	 */
+	realRange: [number, number]
 	/**
 	 * 边界位置
 	 */
@@ -54,8 +59,6 @@ type ColumnPosition = {
 	position: number
 }
 
-/* TODO[Dev]: 添加滑音记号的布局空间 */
-
 /**
  * 列空间分配算法
  */
@@ -75,6 +78,69 @@ export class PositionDispatcher {
 	}
 
 	/**
+	 * 获取起始位置
+	 */
+	startPosition(sectionIndex: number) {
+		return this.data[sectionIndex].realRange[0]
+	}
+	/**
+	 * 获取起始位置
+	 */
+	paddedStartPosition(sectionIndex: number) {
+		return this.data[sectionIndex].realRange[0] + this.data[sectionIndex].padding[0]
+	}
+	/**
+	 * 获取结束位置
+	 */
+	endPosition(sectionIndex: number) {
+		return this.data[sectionIndex].realRange[1]
+	}
+	/**
+	 * 获取结束位置
+	 */
+	paddedEndPosition(sectionIndex: number) {
+		return this.data[sectionIndex].realRange[1] - this.data[sectionIndex].padding[1]
+	}
+	/**
+	 * 获取分数位置的位置
+	 */
+	fracPosition(sectionIndex: number, frac: Fraction) {
+		const columns = this.data[sectionIndex].columns
+		const col = findWithKey(columns, 'hash', Frac.repr(frac))
+		if(!col) {
+			throw new Error('Unknown column queried in PositionDispatcher')
+		}
+		return col.position
+	}
+	/**
+	 * 获取分数位置的前间隙位置
+	 */
+	fracInsertPosition(sectionIndex: number, frac: Fraction, symbolOrdinal: number, totalSymbols: number) {
+		const columns = this.data[sectionIndex].columns
+		const colIndex = findIndexWithKey(columns, 'hash', Frac.repr(frac))
+		const lastCol = columns[columns.length - 1]!
+		let pos0 = 0
+		let pos1 = 0
+		if(-1 == colIndex) {
+			if(Frac.compare(frac, lastCol.fraction) > 0) {
+				pos1 = this.data[sectionIndex].range[1]
+				pos0 = lastCol.position
+			} else {
+				throw new Error('Unknown column queried in PositionDispatcher')
+			}
+		} else {
+			const col = columns[colIndex]!
+			pos1 = col.position
+			if(colIndex > 0) {
+				pos0 = columns[colIndex - 1].position
+			} else {
+				pos0 = this.data[sectionIndex].range[0]
+			}
+		}
+		return pos0 + (pos1 - pos0) / (1 + totalSymbols) * (1 + symbolOrdinal)
+	}
+
+	/**
 	 * 分配位置
 	 */
 	dispatch() {
@@ -87,17 +153,45 @@ export class PositionDispatcher {
 	 * 分配位置 - 统计小节
 	 */
 	dispatch$setSections() {
-		const leftBoundary = 1 * this.scale
+		const msp = new MusicPaint(this.root)
+		const gutterLeft = this.context.render.gutter_left!
+		const leftBoundary = gutterLeft * this.scale
 		const rightBoundary = 100
-		const sectionPadding = 1 * this.scale
-		const oneWidth = (rightBoundary - leftBoundary) / this.line.sectionCount
+		const sectionPadding = gutterLeft * this.scale
+		const oneWidth = (rightBoundary - leftBoundary) / this.line.sectionCountShould
 		this.line.sectionFields.forEach((fields, index) => {
-			this.data.push({
-				range: [ leftBoundary + oneWidth * index, leftBoundary + oneWidth * (index + 1) ],
+			const [ rangeL, rangeR ] = [ leftBoundary + oneWidth * index, leftBoundary + oneWidth * (index + 1) ]
+			const newSec: SectionPositions = {
+				realRange: [rangeL, rangeR],
+				range: [rangeL, rangeR],
 				padding: [ sectionPadding, sectionPadding ],
 				fraction: [ Frac.sub(fields[0], Frac.create(1, 2)), Frac.add(fields[0], fields[1]) ], // 开头扩展半个四分音符的位置，以调和“极不自然”的不对称性
 				columns: []
+			}
+			let beforeBeatsWidth = 0
+			let afterBeatsWidth = 0
+			this.line.parts.forEach((part) => {
+				const section = part.notes.sections[index]
+				const beforeAttrs = section.separator.before.attrs
+				const afterAttrs = section.separator.after.attrs
+				const beforeBeats = findWithKey(beforeAttrs, 'type', 'beats')
+				if(beforeBeats) {
+					if(beforeBeats.type != 'beats') throw new Error('strange!')
+					beforeBeatsWidth = Math.max(beforeBeatsWidth,
+						msp.drawBeats(0, 0, beforeBeats.beats, 0.95, this.scale, {}, true)[0] + this.scale * 0.5
+					)
+				}
+				const afterBeats = findWithKey(afterAttrs, 'type', 'beats')
+				if(afterBeats) {
+					if(afterBeats.type != 'beats') throw new Error('strange!')
+					afterBeatsWidth = Math.max(afterBeatsWidth,
+						msp.drawBeats(0, 0, afterBeats.beats, 0.95, this.scale, {}, true)[0] + this.scale * 0.5
+					)
+				}
 			})
+			newSec.range[0] += beforeBeatsWidth
+			newSec.range[1] -= afterBeatsWidth
+			this.data.push(newSec)
 		})
 	}
 	/**
@@ -135,11 +229,10 @@ export class PositionDispatcher {
 				return
 			}
 			const noteCharMetric = getLineFont(isSmall ? 'noteSmall' : 'note', this.context)
-			const addNoteCharMetric = getLineFont(isSmall ? 'addNoteSmall' : 'addNote', this.context)
 			const accidentalCharMetric = getLineFont(isSmall ? 'noteSmall' : 'note', this.context)
 			const noteCharMeasure = this.root.measureTextFast('0', noteCharMetric, this.scale)
 			const accidentalMeasure = this.root.measureTextFast("\uE10E", accidentalCharMetric, this.scale)
-			const addNoteCharMeasure = this.root.measureTextFast('0', addNoteCharMetric, this.scale)
+			const addNoteCharMeasure = [noteCharMeasure[0] * addNotesScale, 0]
 			sections.forEach((section, sectionIndex) => {
 				const actualIndex = sectionIndex + rangeStart
 				if(actualIndex < 0 || actualIndex > this.line.sectionFields.length) {
@@ -152,6 +245,7 @@ export class PositionDispatcher {
 					const fracPos = Frac.add(this.line.sectionFields[actualIndex][0], note.startPos)
 					if(isMusic) {
 						let hasAccidental = false
+						let hasSlide = false
 						let leftAddCount = 0
 						let rightAddCount = 0
 						let dotCount = 0
@@ -170,18 +264,24 @@ export class PositionDispatcher {
 									} else if(attr.slot == 'postfix') {
 										rightAddCount = attr.notes.type == 'section' ? attr.notes.notes.length : 0
 									}
+								} else if(attr.type == 'slide') {
+									hasSlide = true
 								}
 							}
 							dotCount = countArray(note.suffix, '.')
 						}
+						const normalCharWidthRatio = 1.1
 						addConstraint(fracPos, actualIndex, [
-							noteCharMeasure[0] / 2,
-							noteCharMeasure[0] / 2
+							noteCharMeasure[0] / 2 * normalCharWidthRatio,
+							noteCharMeasure[0] / 2 * normalCharWidthRatio
 						], true) // 音符本身占据排版域
 						addConstraint(fracPos, actualIndex, [
-							noteCharMeasure[0] / 2 + (+hasAccidental) * accidentalMeasure[0] + leftAddCount * addNoteCharMeasure[0],
-							(noteCharMeasure[0] / 2) * (1 + dotCount) + rightAddCount * addNoteCharMeasure[0]
-						], false) // 音符的附加符号（升降调、装饰音、滑音）的排版空间必须满足，但不需要
+							noteCharMeasure[0] / 2 * normalCharWidthRatio + (+hasAccidental) * accidentalMeasure[0] + leftAddCount * addNoteCharMeasure[0] / 2 + noteCharMeasure[1] * 1.2,
+							noteCharMeasure[0] / 2 * normalCharWidthRatio + Math.max(
+								noteCharMeasure[0] / 2 * dotCount,
+								rightAddCount * addNoteCharMeasure[0] / 2 + noteCharMeasure[1] * 1.2,
+								(+hasSlide) * noteCharMeasure[1] * 0.45 * this.scale)
+						], false) // 音符的附加符号（升降调、装饰音、滑音）的排版空间必须满足，但不需要参与计算
 					} else {
 						addConstraint(fracPos, actualIndex, [0, 0], false) // 标记内容不参与自动排版，但是保留席位
 					}
@@ -241,11 +341,19 @@ export class PositionDispatcher {
 		})
 		// 排序以便后续布局
 		this.line.sectionFields.forEach((_, i) => {
+			const data = this.data[i]
 			// 若没有列，添加一个防止后续出现问题
-			if(this.data[i].columns.length == 0) {
-				addConstraint(this.data[i].fraction[1], i, [0, 0], true)
+			if(data.columns.length == 0) {
+				addConstraint(data.fraction[1], i, [0, 0], true)
 			}
-			this.data[i].columns.sort((x, y) => {
+			// 若最大列距离右边界有超过八分音符的距离，将右边界缩短一个八分音符
+			// let maxCol = Frac.max(...data.columns.map((x) => x.fraction))
+			// if(Frac.compare(Frac.sub(data.fraction[1], maxCol), Frac.create(1, 2)) > 0) {
+			// 	if(Frac.compare(Frac.sub(data.fraction[1], data.fraction[0]), Frac.create(1, 1)) > 0) {
+			// 		data.fraction[1] = Frac.sub(data.fraction[1], Frac.create(1, 2))
+			// 	}
+			// }
+			data.columns.sort((x, y) => {
 				return Frac.compare(x.fraction, y.fraction)
 			})
 		})
@@ -314,6 +422,7 @@ export class PositionDispatcher {
 						if(i == 0) {
 							currentPos += data.padding[0]
 						}
+						currentPos += data.columns[i].field[0]
 						currentPos += totalSpare / Frac.toFloat(totalWeight) * Frac.toFloat(weights[i])
 					}
 					data.columns[i].position = currentPos
@@ -380,7 +489,6 @@ export class PositionDispatcher {
 				if(ch == 'pass') {
 					return
 				} else if(ch == 'dead') {
-					console.log('Oh, nmsl')
 					clearRigid()
 					attempDispatch()
 					return

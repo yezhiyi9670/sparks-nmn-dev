@@ -58,7 +58,10 @@ export function PreviewView(props: PreviewViewProps) {
 		// }
 		// ef.render(testArr)
 		if(props.result) {
+			const startTime = +new Date()
 			const fields = SparksNMN.render(props.result.result, languageArray_zh_cn)
+			const endTime = +new Date()
+			console.log('Render took ', endTime - startTime, 'milliseconds')
 			ef.render(fields)
 		} else {
 			ef.render([{

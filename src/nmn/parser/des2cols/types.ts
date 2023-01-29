@@ -300,3 +300,12 @@ export function partSignature(tags: PartAttr[], index: number): PartSignature {
 		value: (tags.length > 0 ? tags[0] : index) as any
 	}
 }
+
+export function connectSigs(arr: {hash: string}[] | undefined) {
+	if(undefined === arr) {
+		return ''
+	}
+	return arr.map((sig) => {
+		return sig.hash
+	}).join('')
+}

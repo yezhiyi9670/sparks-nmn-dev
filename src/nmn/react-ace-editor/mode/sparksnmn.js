@@ -98,23 +98,34 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 				const def = getCommandDef(head)
 				return def.headFull
 			}))
-			return matcher.map((head) => {
+			let ret = []
+			matcher.forEach((head) => {
 				let propsType = textProps ? 'string' : 'variable'
 				if(getCommandDef(head).hasProps == 'none') {
 					propsType = 'invalid'
 				}
-				return {
+				ret.push({
+					token: ['keyword', 'bracket', propsType, 'bracket', 'operator'],
+					regex: "^(\\s*" + head + "\\b\\s*)(\\[)(.*?)(\\])(\\s*:\\s*)$",
+					next: 'start'
+				})
+				ret.push({
+					token: ['keyword', 'comment', 'operator'],
+					regex: "^(\\s*" + head + "\\b)(.*?)(:\\s*)$",
+					next: 'start'
+				})
+				ret.push({
 					token: ['keyword', 'bracket', propsType, 'bracket', 'operator'],
 					regex: "^(\\s*" + head + "\\b\\s*)(\\[)(.*?)(\\])(\\s*:\\s*)",
 					next: mode
-				}
-			}).concat(matcher.map((head) => {
-				return {
+				})
+				ret.push({
 					token: ['keyword', 'comment', 'operator'],
 					regex: "^(\\s*" + head + "\\b)(.*?)(:\\s*)",
 					next: mode
-				}
-			}))
+				})
+			})
+			return ret
 		}
 		function lineStringMode(matcher) {
 			const mode = 'line_string'

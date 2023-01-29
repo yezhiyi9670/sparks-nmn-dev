@@ -257,10 +257,17 @@ export module SectionStat {
 	 * 音符区间是否有重叠
 	 */
 	export function fieldOverlaps(windowRange: [Fraction, Fraction], symbolRange: [Fraction, Fraction]) {
-		const [ l1, r1 ] = [ windowRange[0], Frac.add(windowRange[0], windowRange[1]) ]
-		const [ l2, r2 ] = [ symbolRange[0], Frac.add(symbolRange[0], symbolRange[1]) ]
+		let [ l1, r1 ] = [ windowRange[0], Frac.add(windowRange[0], windowRange[1]) ]
+		let [ l2, r2 ] = [ symbolRange[0], symbolRange[1] ]
+		if(Frac.isIndeterminate(l2)) {
+			l2 = r2
+		}
 		if(Frac.equals(r2, l1)) {
 			return true
+		}
+		if(Frac.equals(l2, r2)) {
+			return Frac.compare(l1, l2) <= 0 &&
+				Frac.compare(l2, r1) < 0
 		}
 		return Frac.compare(Frac.sub(Frac.min(r1, r2), Frac.max(l1, l2)), Frac.create(0)) > 0
 	}
@@ -288,5 +295,44 @@ export module SectionStat {
 		})
 
 		return ret
+	}
+
+	/**
+	 * 定位位置所在的小节
+	 * 
+	 * 返回小节的索引，如果在系统之外，返回 -1
+	 */
+	export function locateSection<T>(pos: Fraction, sections: MusicSection<T>[]) {
+		for(let i = 0; i < sections.length; i++) {
+			const section = sections[i]
+			if(section.type != 'section') {
+				continue
+			}
+			const startPos = sections[i].startPos
+			const endPos = Frac.add(sections[i].startPos, section.totalQuarters)
+			if(Frac.compare(startPos, pos) <= 0 && Frac.compare(pos, endPos) < 0) {
+				return i
+			}
+		}
+		return -1
+	}
+	/**
+	 * 找出位置对应的音符
+	 */
+	export function locateNote<T>(pos: Fraction, sections: MusicSection<T>[]): MusicNote<T> | undefined {
+		const secIndex = locateSection(pos, sections)
+		if(secIndex == -1) {
+			return undefined
+		}
+		const section = sections[secIndex]
+		if(section.type != 'section') {
+			return undefined
+		}
+		for(let note of section.notes) {
+			if(Frac.equals(Frac.add(section.startPos, note.startPos), pos)) {
+				return note
+			}
+		}
+		return undefined
 	}
 }

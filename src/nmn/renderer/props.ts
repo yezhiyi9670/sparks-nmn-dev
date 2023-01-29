@@ -23,9 +23,9 @@ export interface RenderProps {
 	 */
 	scale?: number
 	/**
-	 * 歌词字体尺寸
+	 * 声部渲染左边距
 	 */
-	lyricsscale?: number
+	gutter_left?: number
 	/**
 	 * 延长连音线灰色提示
 	 */
@@ -80,7 +80,7 @@ export interface RenderProps {
 	/**
 	 * 字体-段落标记
 	 */
-	font_iter?: string
+	font_checkpoint?: string
 }
 
 /**
@@ -92,10 +92,10 @@ export const renderPropsDefault: RenderProps = {
 	sectionorder: 'paren',
 	language: 'en',
 	scale: 1.0,
-	lyricsscale: 1.0,
+	gutter_left: 1,
 	grayout: false,
-	explicitmarkers: false,
-	font_part: 'SimSun/400',
+	explicitmarkers: true,
+	font_part: 'SimSun/700',
 	font_article: 'SimSun/700',
 	font_title: 'SimSun/700',
 	font_subtitle: 'SimSun/400',
@@ -108,7 +108,7 @@ export const renderPropsDefault: RenderProps = {
 	font_annotation2: 'SimSun/400',
 	font_annotation3: 'SimSun/400',
 	font_lyrics: 'Deng/600',
-	font_iter: 'SimSun/400',
+	font_checkpoint: 'SimSun/700',
 }
 
 /**
@@ -143,7 +143,7 @@ export function renderPropConvert(key: string, val: string) {
 		}
 		return { error: 'value' }
 	}
-	if(key == 'scale') {
+	if(key == 'scale' || key == 'gutter_left') {
 		let num = +val
 		if(num != num || num < 0 || num >= 65536) {
 			return { error: 'value' }

@@ -102,14 +102,14 @@ class SectionsParserClass {
 				sep.range[1] += 1
 			}
 			if(isLargeBracket(tokens[sep.range[1]])) {
-				sep.after.attrs = this.matchSeparatorAttr(
+				sep.before.attrs = this.matchSeparatorAttr(
 					(tokens[sep.range[1]] as BracketPair).tokens,
 					lineNumber, issues
 				)
 				sep.range[1] += 1
 			}
 			if(isLargeBracket(tokens[sep.range[0] - 1])) {
-				sep.before.attrs = this.matchSeparatorAttr(
+				sep.after.attrs = this.matchSeparatorAttr(
 					(tokens[sep.range[0] - 1] as BracketPair).tokens,
 					lineNumber, issues
 				)
@@ -258,7 +258,8 @@ class SectionsParserClass {
 			const delta = MusicTheory.pitchInterval2dKey(attr.value, attr.metrics)
 			props.base = {
 				value: props.base!.value + delta,
-				baseValue: props.base!.value + delta
+				baseValue: props.base!.value + delta,
+				explicitOctave: true
 			}
 		}
 		props.transp = props.transp! + props.base.value - oldBase

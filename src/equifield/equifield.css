@@ -1,20 +1,23 @@
 .wcl-equifield-root {
 	overflow-x: hidden;
 	overflow-y: hidden;
+	position: relative;
 }
 .wcl-equifield-field {
+	position: relative;
 	page-break-inside: avoid;
-	overflow: visible;
+	page-break-after: auto;
+	overflow-x: visible;
 	border-bottom: 1px dashed #00000019;
 }
 .wcl-equifield-content {
 	transform-origin: left top;
-	/* Bypass font size limit */
-	transform: scale(0.2);
+	/* This will cause problem while printing, so don't use */
+	/* transform: scale(0.2);
 	font-size: 5em;
 	width: 500%;
-	margin-right: -400%;
-	overflow-x: visible;
+	margin-right: -400%; */
+	height: 0;
 }
 
 @media print {
@@ -32,6 +35,6 @@
 	.wcl-equifield-content {
 		/* Avoid error-prone bounding when printing (due to scaling) */
 		margin-left: -1000vw;
-		transform: translateX(1000vw) scale(0.2);
+		transform: translateX(1000vw) scale(1);
 	}
 }

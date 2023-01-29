@@ -1,6 +1,9 @@
 import { I18n } from '../../i18n'
-import { BaseTune, Beats, MusicProps, Qpm } from '../../parser/sparse2des/types'
+import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, MusicNote, MusicProps, MusicSection, noteCharChecker, NoteCharMusic, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
+import { findWithKey } from '../../util/array'
+import { Frac } from '../../util/frac'
 import { MusicTheory } from '../../util/music'
+import { addNotesScale, getLineFont, reductionLineSpace, topDecorSpace } from '../article/line/font/fontMetrics'
 import { DomPaint } from '../backend/DomPaint'
 import { FontMetric } from '../FontMetric'
 import { RenderContext } from '../renderer'
@@ -63,6 +66,575 @@ export class MusicPaint {
 		}
 		return ''
 	}
+	/**
+	 * 小节线符号
+	 */
+	symbolSectionSeparator(char: SectionSeparatorChar) {
+		return {
+			'/': "",
+			'/|': "\uE037",
+			'|': "\uE030",
+			'||': "\uE031",
+			'|||': "\uE032",
+			'||:': "\uE040",
+			':||': "\uE041",
+			':||:': "\uE042",
+			'/||': "\uE037 \uE030",
+			'/||:': "\uE037 \uE040",
+			':/||': "\uE041",
+			':/||:': "\uE042"
+		}[char]
+	}
+	/**
+	 * 音符属性符号
+	 */
+	symbolNoteDecor(char: string) {
+		const ret = {
+			'tr': "\uE171",
+			'tr+': "\uE171\uE183",
+			'wav': "\uE183",
+			'wav+': "\uE185",
+			'wavd': "\uE184",
+			'wavd+': "\uE186",
+			'echo': "\uE16F",
+			'recho': "\uE170",
+			'ext': "\uE158",
+			'hold': "\uE166",
+			'str': "\uE161",
+			'brk': "\uE1DB",
+			'brk+': "\uE1DC"
+		}[char]
+		if(ret === undefined) {
+			throw new Error('Unknown note decorator ' + char)
+		}
+		return ret
+	}
+	/**
+	 * 曲式结构反复记号
+	 */
+	symbolRepeat(char: string) {
+		if(char == 'D.S.') {
+			return "\uE045"
+		}
+		if(char == 'D.C.') {
+			return "\uE046"
+		}
+		if(char == '$') {
+			return "\uE047"
+		}
+		if(char == 'Fine.') {
+			return "Fine."
+		}
+		if(char == '@') {
+			return "\uE048"
+		}
+		return ''
+	}
+
+	/**
+	 * 绘制小节线
+	 * @param x 中心的横坐标
+	 * @param y 中心的纵坐标
+	 * @param sep 待绘制小节线
+	 */
+	drawSectionSeparator(context: RenderContext, x: number, y: number, sep: SectionSeparators, pos: 'before' | 'after' | 'next', fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}) {
+		const separatorText = this.symbolSectionSeparator(sep[pos].char)
+		const separatorMetric = new FontMetric('SparksNMN-Bravura/400' , 5.072 * fontScale) // 实际高度 5.184
+		const separatorSize = separatorMetric.fontScale * separatorMetric.fontSize
+		// 此处行首小节线定位方式取 left，避免与连谱号发生重叠
+		this.root.drawTextFast(x, y - separatorSize * 0.092, separatorText, separatorMetric, scale, pos == 'before' ? 'left' : 'center', 'top', extraStyles)
+
+		let topPosY = y - 3.75
+
+		if(pos != 'before') {
+			sep.next.attrs.forEach((attr) => {
+				if(attr.type == 'repeat') {
+					const measure = this.drawSeparatorAttrText(context, x, topPosY, attr, 1, scale, extraStyles, true)
+					this.drawSeparatorAttrText(context, x - measure[0] / 2, topPosY, attr, 1, scale, extraStyles, false)
+				}
+				if(attr.type == 'label') {
+					const rectTopY = topPosY - 3
+					const rectBottomY = topPosY + 0.5
+					const rectCenterY = (rectTopY + rectBottomY) / 2
+					const measure = this.drawSeparatorAttrText(context, x, rectCenterY, attr.label, 1, scale, extraStyles, true, true)
+					const rectWidth = Math.max(measure[0] + 1 * scale * 2, (rectBottomY - rectTopY) * scale)
+					const rectLeftX = x - rectWidth / 2
+					const rectRightX = x + rectWidth / 2
+					this.root.drawRectOutline(rectLeftX, rectTopY, rectRightX, rectBottomY, 0.15, scale, extraStyles)
+					this.drawSeparatorAttrText(context, x - measure[0] / 2, rectCenterY, attr.label, 1, scale, extraStyles, false, true)
+				}
+			})
+		}
+	}
+	/**
+	 * 绘制属性
+	 */
+	drawBeforeAfterAttrs(context: RenderContext, x: number, y: number, attrs: SeparatorAttr[], pos: 'before' | 'after', fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}) {
+		let sign = pos == 'before' ? 1 : -1
+		let currX = x
+		let attrY = y - 3.75
+		const margin = 0.7 * scale
+		currX += sign * 1 * scale
+		let hX = x + sign * 0.5 * scale
+		attrs.forEach((attr) => {
+			if(['iter', 'repeat', 'qpm', 'shift', 'durability', 'text', 'scriptedText'].indexOf(attr.type) != -1) {
+				const measure = this.drawSeparatorAttrText(context, currX, attrY, attr, fontScale, scale, extraStyles, true)
+				currX += sign * (this.drawSeparatorAttrText(context, currX - (sign > 0 ? 0 : measure[0]), attrY, attr, fontScale, scale, extraStyles, false)[0] + margin)
+			}
+			if(attr.type == 'beats') {
+				const measure = this.drawBeats(hX, y, attr.beats, fontScale * 0.95, scale, extraStyles, true)
+				this.drawBeats(hX - (sign > 0 ? 0 : measure[0]), y, attr.beats, fontScale * 0.95, scale, extraStyles, false)
+			}
+		})
+	}
+	/**
+	 * 绘制跳房子记号的属性
+	 */
+	drawJumperAttrs(context: RenderContext, startX: number, y: number, attrs: JumperAttr[], fontScale: number, scale: number) {
+		let currX = startX
+		attrs.forEach((attr) => {
+			currX += this.drawIterOrString(context, currX, y, attr, context.render.font_attr!, 2 * fontScale, scale)[0] + 0.5 * scale
+		})
+	}
+	/**
+	 * 绘制声部名称
+	 */
+	drawPartName(context: RenderContext, x: number, y: number, attrs: PartAttr[], fontScale: number, scale: number) {
+		if(attrs.length == 0) {
+			return
+		}
+		const attr = attrs[0]
+		const fontDesc = context.render.font_part!
+		const measure = this.drawIterOrString(context, x, y, attr, fontDesc, 2.16, scale, {}, true)
+		x -= measure[0]
+		this.drawIterOrString(context, x, y, attr, fontDesc, 2.16, scale, {}, false)
+	}
+	/**
+	 * 绘制单个类文本小节线属性
+	 */
+	drawSeparatorAttrText(context: RenderContext, x: number, y: number, attr: SeparatorAttrBase, fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false, isLabelCall: boolean = false) {
+		const fontMetricA = new FontMetric(context.render.font_attr!, 2.16 * fontScale)
+		const fontSize = fontMetricA.fontSize * fontMetricA.fontScale
+		const fontMetricB = new FontMetric('SimSun/400', fontSize)
+		const fontMetricC = new FontMetric('SparksNMN-Bravura/400', fontSize * 1.5)
+		const fontMetricLx = new FontMetric(context.render.font_checkpoint!, 2.3 * fontScale)
+		const extraStylesItalic = {
+			...extraStyles,
+			fontStyle: 'italic'
+		}
+		if(attr.type == 'durability' || attr.type == 'iter') {
+			let text = ''
+			if(attr.type == 'durability') {
+				text = 'x' + attr.value.toString()
+			} else if(attr.type == 'iter') {
+				text = attr.iter.toString() + '.'
+			}
+			const token = new PaintTextToken(
+				text, fontMetricB,
+				scale, extraStylesItalic
+			)
+			const measure = token.measureFast(this.root)
+			if(!dryRun) {
+				token.drawFast(this.root, x, y, 'left', 'middle')
+			}
+			return measure
+		}
+		if(attr.type == 'repeat') {
+			let metric = attr.char == 'Fine.' ? fontMetricB : fontMetricC
+			const text = this.symbolRepeat(attr.char)
+			const token = new PaintTextToken(
+				text, metric,
+				scale, {
+					...extraStyles,
+					fontWeight: attr.char == 'Fine.' ? 900 : 400
+				}
+			)
+			const measure = token.measureFast(this.root)
+			if(!dryRun) {
+				token.drawFast(this.root, x, y + (attr.char != 'Fine.' ? fontSize * 0.34: 0), 'left', 'middle')
+			}
+			return measure
+		}
+		if(attr.type == 'qpm') {
+			return this.drawSpeed(x, y, attr.qpm, fontScale, scale, extraStyles, dryRun)
+		}
+		if(attr.type == 'shift') {
+			return this.drawShift(context, x, y, attr, fontScale, scale, extraStyles, dryRun)
+		}
+		if(attr.type == 'scriptedText' || attr.type == 'text') {
+			let text = attr.text
+			let subs = ''
+			if(attr.type == 'scriptedText') {
+				subs = attr.sub
+			}
+			const token1 = new PaintTextToken(
+				text, isLabelCall ? fontMetricLx : fontMetricA,
+				scale, extraStyles
+			)
+			const fontMetricAs = isLabelCall ? new FontMetric(context.render.font_checkpoint!, 2.3 * 0.75 * fontScale) : new FontMetric(context.render.font_attr!, 2.16 * 0.75 * fontScale)
+			const token2 = new PaintTextToken(
+				subs, fontMetricAs,
+				scale, extraStyles
+			)
+			const measure1 = token1.measure(this.root)
+			const measure = [
+				measure1[0] + token2.measureFast(this.root)[0],
+				0
+			]
+			let currX = x
+			if(!dryRun) {
+				token1.drawFast(this.root, currX, y, 'left', 'middle')
+				currX += measure1[0]
+				token2.drawFast(this.root, currX, y - 0.2 * measure1[1], 'left', 'top')
+			}
+			return measure
+		}
+		return [0, 0]
+	}
+	/**
+	 * 绘制单个跳房子属性
+	 */
+	drawIterOrString(context: RenderContext, x: number, y: number, attr: JumperAttr, fontDesc: string, initialFontSize: number = 2, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
+		const fontMetricA = new FontMetric(fontDesc, initialFontSize)
+		const fontSize = fontMetricA.fontSize * fontMetricA.fontScale
+		const fontMetricB = new FontMetric('SimSun/700', 1 * fontSize)
+		const fontMetricC = new FontMetric('SparksNMN-Bravura/400', 1.5 * fontSize)
+		const extraStylesItalic = {
+			...extraStyles,
+			fontStyle: 'italic'
+		}
+		if(attr.type == 'iter') {
+			let text = attr.iter.toString() + '.'
+			const token = new PaintTextToken(
+				text, fontMetricB,
+				scale, extraStylesItalic
+			)
+			const measure = token.measureFast(this.root)
+			if(!dryRun) {
+				token.drawFast(this.root, x, y, 'left', 'middle')
+			}
+			return measure
+		}
+		if(attr.type == 'octave') {
+			let text = attr.sign > 0 ? "\uE511" : "\uE51C"
+			const token = new PaintTextToken(
+				text, fontMetricC,
+				scale, extraStyles
+			)
+			const measure = token.measureFast(this.root)
+			if(!dryRun) {
+				token.drawFast(this.root, x, y + fontSize * 0.35, 'left', 'middle')
+			}
+			return measure
+		}
+		if(attr.type == 'scriptedText' || attr.type == 'text') {
+			let text = attr.text
+			let subs = ''
+			if(attr.type == 'scriptedText') {
+				subs = attr.sub
+			}
+			const token1 = new PaintTextToken(
+				text, fontMetricA,
+				scale, extraStyles
+			)
+			const fontMetricAs = new FontMetric(context.render.font_attr!, 0.75 * initialFontSize)
+			const token2 = new PaintTextToken(
+				subs, fontMetricAs,
+				scale, extraStyles
+			)
+			const measure1 = token1.measure(this.root)
+			const measure = [
+				measure1[0] + token2.measureFast(this.root)[0],
+				0
+			]
+			let currX = x
+			if(!dryRun) {
+				token1.drawFast(this.root, currX, y, 'left', 'middle')
+				currX += measure1[0]
+				token2.drawFast(this.root, currX, y - 0.2 * measure1[1], 'left', 'top')
+			}
+			return measure
+		}
+		return [0, 0]
+	}
+
+	/**
+	 * 绘制插入符号
+	 */
+	drawInsert(context: RenderContext, pos: number, currY: number, char: AttrInsert, isSmall: boolean, scale: number) {
+		const noteMeasure = this.measureNoteChar(context, isSmall, scale)
+		const renderData = {
+			int: {
+				metric: new FontMetric('SparksNMN-mscore-20', noteMeasure[1] * 1.2),
+				text: "\uE16D",
+				shift: -0.7
+			},
+			lpr: {
+				metric: new FontMetric('SimHei/700', noteMeasure[1] * 1.1),
+				text: "(",
+				shift: 0
+			},
+			rpr: {
+				metric: new FontMetric('SimHei/700', noteMeasure[1] * 1.1),
+				text: ")",
+				shift: 0
+			},
+			cas: {
+				metric: new FontMetric('SparksNMN-Bravura', noteMeasure[1] * 1.3),
+				text: "\uE2E6",
+				shift: -0.7
+			}
+		}[char.char]
+		if(!renderData) {
+			throw new Error('Unknown insert token ' + char.char)
+		}
+		this.root.drawText(pos, currY + noteMeasure[1] * renderData.shift, renderData.text, renderData.metric, scale, 'center', 'middle')
+	}
+	/**
+	 * 绘制音乐音符的字符
+	 */
+	drawMusicNoteChar(context: RenderContext, x: number, y: number, note: MusicNote<NoteCharMusic>, reductionLevel: number, isSmall: boolean, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
+		const noteMetricA = getLineFont(isSmall ? 'noteSmall' : 'note', context)
+		const noteMetricB = getLineFont(isSmall ? 'noteAltSmall' : 'noteAlt', context)
+		const noteMeasure = this.root.measureText('0', noteMetricA, scale)
+
+		if(dryRun) {
+			return noteMeasure
+		}
+
+		let noteText = ''
+		if(note.type == 'extend') {
+			noteText = '-'
+			if(note.voided) {
+				noteText = ''
+			}
+		} else {
+			noteText = note.char.char
+		}
+		const metric = (noteText == '-' || noteCharChecker[noteText] == 0) ? noteMetricA : noteMetricB
+		this.root.drawTextFast(x, y, noteText, metric, scale, 'center', 'middle', extraStyles)
+
+		return noteMeasure
+	}
+	/**
+	 * 获取音符数字尺寸测量值
+	 */
+	measureNoteChar(context: RenderContext, isSmall: boolean, scale: number = 1) {
+		const noteMetricA = getLineFont(isSmall ? 'noteSmall' : 'note', context)
+		const noteMeasure = this.root.measureText('0', noteMetricA, scale)
+		return noteMeasure
+	}
+	/**
+	 * 绘制音乐音符
+	 */
+	drawMusicNote(context: RenderContext, x: number, y: number, note: MusicNote<NoteCharMusic>, reductionLevel: number, isSmall: boolean, scale: number = 1, extraStyles: ExtraStyles = {}) {
+		let grayoutStyle = {}
+		if(note.type == 'note' && note.voided && context.render.grayout!) {
+			grayoutStyle = {
+				opacity: 0.5
+			}
+		}
+		// ===== 音符 =====
+		const noteMeasure = this.drawMusicNoteChar(context, x, y, note, reductionLevel, isSmall, scale, grayoutStyle)
+		const noteMetric = getLineFont(isSmall ? 'noteSmall' : 'note', context)
+		let leftCur = x - noteMeasure[0] / 2
+		let rightCur = x + noteMeasure[0] / 2
+		if(note.type != 'note') {
+			return
+		}
+		// ===== 变化音符号 =====
+		if(note.char.delta == note.char.delta) {
+			const accidentalToken = new PaintTextToken(
+				this.symbolAccidental(note.char.delta), new FontMetric('SparksNMN-mscore-20/400', noteMetric.fontSize),
+				scale, { ...extraStyles, ...grayoutStyle }
+			)
+			accidentalToken.drawFast(this.root, leftCur, y, 'right', 'bottom')
+			leftCur -= accidentalToken.measureFast(this.root)[0]
+		}
+		// ===== 附点 =====
+		note.suffix.forEach((suf) => {
+			if(suf == '.') {
+				const dotToken = new PaintTextToken(
+					'.', noteMetric,
+					scale, extraStyles
+				)
+				dotToken.drawFast(this.root, rightCur, y, 'left', 'middle')
+				rightCur += dotToken.measureFast(this.root)[0]
+			}
+		})
+		// ===== 八度跨越 =====
+		let topCur = y - noteMeasure[1] / 2
+		let bottomCur = y + noteMeasure[1] / 2 + reductionLineSpace * reductionLevel
+		let octave = note.char.octave
+		const dotToken = new PaintTextToken(
+			'.', noteMetric,
+			scale, { ...extraStyles, ...grayoutStyle }
+		)
+		while(octave > 0) {
+			dotToken.drawFast(this.root, x, topCur + noteMeasure[1] * 0.2, 'center', 'bottom')
+			topCur -= noteMeasure[1] * 0.22
+			octave -= 1
+		}
+		while(octave < 0) {
+			dotToken.drawFast(this.root, x, bottomCur - noteMeasure[1] * 0.7, 'center', 'top')
+			bottomCur += noteMeasure[1] * 0.22
+			octave += 1
+		}
+		// ===== 顶部属性 =====
+		const decorMetric = new FontMetric('SparksNMN-mscore-20/400', noteMetric.fontSize * 1.5)
+		note.attrs.forEach((attr) => {
+			if(attr.type == 'decor') {
+				const decorText = this.symbolNoteDecor(attr.char)
+				const decorToken1 = new PaintTextToken(
+					decorText[0],
+					decorMetric,
+					scale, {}
+				)
+				let xShift = 0
+				if(['brk', 'brk+'].indexOf(attr.char) != -1) {
+					xShift = -0.3
+				} else if(attr.char == 'ext') {
+					xShift = +0.1
+				} else if(attr.char == 'hold') {
+					xShift = -0.1
+				} else if(attr.char == 'recho') {
+					xShift = -0.35
+				}
+				let currX = x + noteMeasure[0] * (0.3 + xShift)
+				decorToken1.drawFast(this.root, currX, topCur + noteMeasure[1] * 0.15, 'center', 'bottom')
+				currX += decorToken1.measureFast(this.root)[0]
+				if(decorText.length > 1) {
+					const decorToken2 = new PaintTextToken(
+						decorText.substring(1),
+						decorMetric,
+						scale, {}
+					)
+					decorToken2.drawFast(this.root, currX + noteMeasure[0] * 0.62, topCur - noteMeasure[1] * 0.1, 'left', 'bottom')
+				}
+				topCur -= topDecorSpace
+			}
+		})
+		// ===== 滑音 =====
+		rightCur = x + noteMeasure[0] / 2
+		note.attrs.forEach((attr) => {
+			if(attr.type == 'slide') {
+				const handleX = rightCur
+				const radius = noteMeasure[1] / 2 * 0.9
+				const handleY = y + (attr.direction == 'up' ? -1 : 1) * radius
+				this.root.drawQuarterCircle(handleX, handleY, radius, 'right', attr.direction == 'up' ? 'bottom' : 'top', 0.15, scale)
+				const arrowMetric = new FontMetric('SparksNMN-Bravura/400', noteMetric.fontSize * 1)
+				const arrowText = attr.direction == 'up' ? "\uEE57" : "\uEE56"
+				this.root.drawTextFast(handleX + radius * scale - noteMeasure[0] * 0.06, handleY + noteMeasure[1] * 0.15, arrowText, arrowMetric, scale, 'center', 'middle')
+			}
+		})
+		// ==== 装饰音符 ====
+		note.attrs.forEach((attr) => {
+			if(attr.type == 'notes') {
+				if(attr.notes.type != 'section') {
+					return
+				}
+				const handleX = attr.slot == 'postfix' ? rightCur : leftCur
+				const radius = noteMeasure[1] / 2 * 0.6
+				const handleY = y - radius * 1.15
+				this.root.drawQuarterCircle(handleX, handleY, radius, attr.slot == 'postfix' ? 'right' : 'left', 'bottom', 0.15, scale)
+				const topX = handleX + (attr.slot == 'postfix' ? 1 : -1) * scale * radius
+				const totalWidth = noteMeasure[0] * addNotesScale * attr.notes.notes.length
+				this.root.drawLine(topX - totalWidth / 2, handleY, topX + totalWidth / 2, handleY, 0.15, 0, scale)
+				this.drawAddNotes(context, topX, handleY - addNotesScale * reductionLineSpace, attr.notes, isSmall, scale, extraStyles)
+			}
+		})
+	}
+	/**
+	 * 绘制装饰音符
+	 */
+	drawAddNotes(context: RenderContext, x: number, y: number, section: (MusicSection<NoteCharMusic> & {type: 'section'}), isSmall: boolean, scale: number = 1, extraStyles: ExtraStyles = {}) {
+		// ==== 统计 ====
+		let maxReductionLevel = 0
+		section.decoration.forEach((decor) => {
+			if(decor.char == '_') {
+				maxReductionLevel = Math.max(maxReductionLevel, decor.level)
+			}
+		})
+		let maxOctaveDots = 0
+		section.notes.forEach((note) => {
+			if(note.type == 'note') {
+				maxOctaveDots = Math.max(maxOctaveDots, -note.char.octave)
+			}
+		})
+		let noteMetric = getLineFont(isSmall ? 'noteSmall' : 'note', context)
+		noteMetric.fontSize *= addNotesScale
+		let noteMeasure = this.measureNoteChar(context, isSmall, scale)
+		noteMeasure = [ noteMeasure[0] * addNotesScale, noteMeasure[1] * addNotesScale ]
+		let baseHeight = y - addNotesScale * reductionLineSpace * maxReductionLevel - Math.max((maxOctaveDots * 0.22 - 0.1) * noteMeasure[1], 0)
+		let currY = baseHeight - noteMeasure[1] * 0.4
+		let currX = x - noteMeasure[0] / 2 * section.notes.length
+		let positions: {hash: string, index: number}[] = []
+		section.notes.forEach((note, index) => {
+			positions.push({
+				hash: Frac.repr(note.startPos),
+				index: index
+			})
+		})
+		// ===== 画减时线 =====
+		section.decoration.forEach((decor) => {
+			if(decor.char == '_') {
+				const lineY = y - addNotesScale * reductionLineSpace * (maxReductionLevel - decor.level)
+				const startX = currX + noteMeasure[0] * (findWithKey(positions, 'hash', Frac.repr(decor.startPos))!.index)
+				const endX = currX + noteMeasure[0] * (findWithKey(positions, 'hash', Frac.repr(decor.endPos))!.index + 1)
+				this.root.drawLine(startX, lineY, endX, lineY, 0.15, 0, scale)
+			}
+		})
+		// ==== 画音符 ====
+		currX += noteMeasure[0] / 2
+		section.notes.forEach((note) => {
+			// ===== 音符 =====
+			this.drawMusicNoteChar(context, currX, currY / addNotesScale, note, 0, isSmall, scale * addNotesScale, extraStyles)
+			let leftCur = currX - noteMeasure[0] / 2
+			let rightCur = currX + noteMeasure[0] / 2
+			if(note.type != 'note') {
+				return
+			}
+			// ===== 变化音符号 =====
+			if(note.char.delta == note.char.delta) {
+				const accidentalToken = new PaintTextToken(
+					this.symbolAccidental(note.char.delta), new FontMetric('SparksNMN-mscore-20/400', noteMetric.fontSize),
+					scale, extraStyles
+				)
+				accidentalToken.drawFast(this.root, leftCur, currY, 'center', 'bottom')
+				leftCur -= accidentalToken.measureFast(this.root)[0]
+			}
+			// ===== 附点 =====
+			note.suffix.forEach((suf) => {
+				if(suf == '.') {
+					const dotToken = new PaintTextToken(
+						'.', noteMetric,
+						scale, extraStyles
+					)
+					dotToken.drawFast(this.root, rightCur, currY, 'left', 'middle')
+					rightCur += dotToken.measureFast(this.root)[0]
+				}
+			})
+			// ===== 八度跨越 =====
+			let topCur = currY - noteMeasure[1] / 2
+			let bottomCur = currY + noteMeasure[1] / 2
+			let octave = note.char.octave
+			const dotToken = new PaintTextToken(
+				'.', noteMetric,
+				scale, extraStyles
+			)
+			while(octave > 0) {
+				dotToken.drawFast(this.root, currX, topCur + noteMeasure[1] * 0.3, 'center', 'bottom')
+				topCur -= noteMeasure[1] * 0.22
+				octave -= 1
+			}
+			while(octave < 0) {
+				dotToken.drawFast(this.root, currX, bottomCur - noteMeasure[1] * 0.8, 'center', 'top')
+				bottomCur += noteMeasure[1] * 0.22
+				octave += 1
+			}
+			currX += noteMeasure[0]
+		})
+	}
 
 	/**
 	 * 绘制拍号符号
@@ -70,7 +642,7 @@ export class MusicPaint {
 	 * @param y 竖直中心位置所在的纵坐标
 	 * @param beats 拍号
 	 * @param fontScale 字体缩放
-	 * @returns 宽度为拍号符号的宽度，高度为分子部分高度的两倍
+	 * @returns 宽度为拍号符号的宽度，高度无效
 	 */
 	drawBeats(x: number, y: number, beats: Beats, fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
 		const numberMetrics = new FontMetric('SparksNMN-EOPNumber/400', 1.8 * fontScale)
@@ -109,7 +681,7 @@ export class MusicPaint {
 	 * @param y 竖直中心位置所在的纵坐标
 	 * @param base 基调
 	 * @param fontScale 字体缩放
-	 * @returns 测量值
+	 * @returns 测量值，高度无效
 	 */
 	drawBase(x: number, y: number, base: BaseTune, fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
 		const textMetrics = new FontMetric('Deng/700', 2.16 * fontScale)
@@ -139,6 +711,71 @@ export class MusicPaint {
 		currX += accidentalMeasure[0]
 		this.root.drawTextFast(currX, y, rootText, textMetrics, scale, 'left', 'middle', extraStyles)
 		currX += rootMeasure[0]
+
+		return totalMeasure
+	}
+	/**
+	 * 绘制转调符号
+	 */
+	drawShift(context: RenderContext, x: number, y: number, shift: AttrShift, fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
+		const textMetrics = new FontMetric('Deng/700', 2.0 * fontScale)
+		const accidentalMetrics = new FontMetric('SparksNMN-mscore-20', 2.0 * fontScale)
+
+		let text1 = '', accidental = '', text2 = ''
+		if(shift.metrics == 'absolute') {
+			if(shift.changeTranspose) {
+				text1 = I18n.renderToken(context.language, 'shift_prop_at_1')
+				text2 = I18n.renderToken(context.language, 'shift_prop_at_2')
+			} else {
+				text1 = I18n.renderToken(context.language, 'shift_prop_a_1')
+				text2 = I18n.renderToken(context.language, 'shift_prop_a_2')
+			}
+			const rootText = MusicTheory.pitch2AbsName(shift.value)
+			text2 = rootText + text2
+			const delta = shift.value.value - shift.value.baseValue
+			if(delta == delta && delta != 0) {
+				accidental = this.symbolAccidental(delta)
+			}
+		} else {
+			const absVal = Math.abs(shift.value)
+			let sign = 0
+			if(absVal != 0) {
+				sign = Math.round(shift.value / absVal)
+			}
+			text1 = I18n.renderToken(context.language, shift.changeTranspose ? 'shift_prop_rt' : 'shift_prop_r',
+				I18n.upDownText(context.language, sign >= 0 ? 'up' : 'down'),
+				I18n.metricText(context.language, shift.metrics, absVal.toString())
+			)
+		}
+
+		const textToken1 = new PaintTextToken(
+			text1, textMetrics, scale, extraStyles
+		)
+		const textMeasure1 = textToken1.measureFast(this.root)
+		const textToken2 = new PaintTextToken(
+			text2, textMetrics, scale, extraStyles
+		)
+		const textMeasure2 = textToken2.measureFast(this.root)
+		const accidentalToken = new PaintTextToken(
+			accidental, accidentalMetrics, scale, extraStyles
+		)
+		const accidentalMeasure = accidentalToken.measureFast(this.root)
+
+		const totalMeasure = [
+			textMeasure1[0] + textMeasure2[0] + accidentalMeasure[0],
+			0
+		]
+
+		if(dryRun) {
+			return totalMeasure
+		}
+
+		let currX = x
+		textToken1.drawFast(this.root, currX, y, 'left', 'middle')
+		currX += textMeasure1[0]
+		accidentalToken.drawFast(this.root, currX, y, 'left', 'bottom')
+		currX += accidentalMeasure[0]
+		textToken2.drawFast(this.root, currX, y, 'left', 'middle')
 
 		return totalMeasure
 	}

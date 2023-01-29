@@ -432,7 +432,7 @@ export class ColumnStater {
 					decorations: part.decorations.filter((decor) => {
 						return SectionStat.fieldOverlaps(field, [
 							decor.startPos,
-							Frac.sub(decor.endPos, decor.startPos)
+							decor.endPos
 						])
 					}),
 					index: part.indexMap.slice(sectionPtr, sectionPtr + sectionCount),

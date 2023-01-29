@@ -9,6 +9,7 @@ import { ArticleRenderer } from "./article/ArticleRenderer";
 export type EquifieldSection = {
 	element: HTMLElement
 	height: number
+	noBreakAfter?: boolean
 }
 
 export type RenderContext = ScoreContext & {
