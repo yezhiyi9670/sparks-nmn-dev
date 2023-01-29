@@ -22,11 +22,17 @@ export class PaintTextToken {
 			...extraStyles
 		})
 	}
+	measureFast(root: DomPaint) {
+		return root.measureTextFast(this.text, this.fontMetric, this.scale)
+	}
 
 	/**
 	 * 绘制文本
 	 */
 	draw(root: DomPaint, x: number, y: number, align: 'left' | 'center' | 'right', alignY: 'top' | 'middle' | 'bottom') {
 		return root.drawText(x, y, this.text, this.fontMetric, this.scale, align, alignY, this.extraStyles)
+	}
+	drawFast(root: DomPaint, x: number, y: number, align: 'left' | 'center' | 'right', alignY: 'top' | 'middle' | 'bottom') {
+		root.drawTextFast(x, y, this.text, this.fontMetric, this.scale, align, alignY, this.extraStyles)
 	}
 }

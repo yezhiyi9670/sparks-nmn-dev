@@ -75,8 +75,8 @@ export class MusicPaint {
 	drawBeats(x: number, y: number, beats: Beats, fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
 		const numberMetrics = new FontMetric('SparksNMN-EOPNumber/400', 1.8 * fontScale)
 		const textMetrics = new FontMetric('SimHei/700', 1.9 * fontScale)
-		const xMeasure = this.root.measureText(beats.value.x.toString(), numberMetrics, scale, extraStyles)
-		const yMeasure = this.root.measureText(beats.value.y.toString(), numberMetrics, scale, extraStyles)
+		const xMeasure = this.root.measureTextFast(beats.value.x.toString(), numberMetrics, scale)
+		const yMeasure = this.root.measureTextFast(beats.value.y.toString(), numberMetrics, scale)
 		const numberWidth = Math.max(xMeasure[0], yMeasure[0])
 		const numberHeight = Math.max(xMeasure[1], yMeasure[1])
 		const linePadding = fontScale * 0.5 * scale
@@ -84,7 +84,7 @@ export class MusicPaint {
 		const lineWidth = numberWidth + 2 * linePadding
 		const lineWeight = 0.2 * fontScale
 		const tMargin = fontScale * 0.35 * scale
-		const tMeasure = this.root.measureText('T', textMetrics, scale, extraStyles)
+		const tMeasure = this.root.measureTextFast('T', textMetrics, scale)
 		const totalMeasure = [
 			lineWidth + (beats.defaultReduction > 2 ? tMargin + tMeasure[0] : 0),
 			(lineSpacing + numberHeight) * 2
@@ -94,10 +94,10 @@ export class MusicPaint {
 		}
 		
 		this.root.drawLine(x, y, x + lineWidth, y, lineWeight, 0, scale, extraStyles)
-		this.root.drawText(x + lineWidth / 2, y - lineSpacing, beats.value.x.toString(), numberMetrics, scale, 'center', 'bottom', extraStyles)
-		this.root.drawText(x + lineWidth / 2, y + lineSpacing, beats.value.y.toString(), numberMetrics, scale, 'center', 'top', extraStyles)
+		this.root.drawTextFast(x + lineWidth / 2, y - lineSpacing, beats.value.x.toString(), numberMetrics, scale, 'center', 'bottom', extraStyles)
+		this.root.drawTextFast(x + lineWidth / 2, y + lineSpacing, beats.value.y.toString(), numberMetrics, scale, 'center', 'top', extraStyles)
 		if(beats.defaultReduction > 2) {
-			this.root.drawText(x + lineWidth + tMargin, y, 'T', textMetrics, scale, 'left', 'middle')
+			this.root.drawTextFast(x + lineWidth + tMargin, y, 'T', textMetrics, scale, 'left', 'middle')
 		}
 
 		return totalMeasure
@@ -115,15 +115,15 @@ export class MusicPaint {
 		const textMetrics = new FontMetric('Deng/700', 2.16 * fontScale)
 		const accidentalMetrics = new FontMetric('SparksNMN-mscore-20', 2.16 * fontScale)
 		
-		const text1Measure = this.root.measureText('1=', textMetrics, scale, extraStyles)
+		const text1Measure = this.root.measureTextFast('1=', textMetrics, scale)
 		const rootText = MusicTheory.pitch2AbsName(base)
 		const delta = base.value - base.baseValue
-		const rootMeasure = this.root.measureText(rootText, textMetrics, scale)
+		const rootMeasure = this.root.measureTextFast(rootText, textMetrics, scale)
 		let accidentalText = ''
 		if(delta == delta && delta != 0) {
 			accidentalText = this.symbolAccidental(delta)
 		}
-		const accidentalMeasure = this.root.measureText(accidentalText, accidentalMetrics, scale, extraStyles)
+		const accidentalMeasure = this.root.measureTextFast(accidentalText, accidentalMetrics, scale)
 		const totalMeasure = [
 			text1Measure[0] + rootMeasure[0] + accidentalMeasure[0],
 			Math.max(text1Measure[1], rootMeasure[1])
@@ -133,9 +133,12 @@ export class MusicPaint {
 		}
 
 		let currX = x
-		currX += this.root.drawText(currX, y, '1=', textMetrics, scale, 'left', 'middle', extraStyles)[0]
-		currX += this.root.drawText(currX, y, accidentalText, accidentalMetrics, scale, 'left', 'bottom', extraStyles)[0]
-		currX += this.root.drawText(currX, y, rootText, textMetrics, scale, 'left', 'middle', extraStyles)[0]
+		this.root.drawTextFast(currX, y, '1=', textMetrics, scale, 'left', 'middle', extraStyles)
+		currX += text1Measure[0]
+		this.root.drawTextFast(currX, y, accidentalText, accidentalMetrics, scale, 'left', 'bottom', extraStyles)
+		currX += accidentalMeasure[0]
+		this.root.drawTextFast(currX, y, rootText, textMetrics, scale, 'left', 'middle', extraStyles)
+		currX += rootMeasure[0]
 
 		return totalMeasure
 	}
@@ -152,7 +155,7 @@ export class MusicPaint {
 			new FontMetric('Deng/700', 2.0 * fontScale),
 			scale, extraStyles
 		)
-		const textMeasure = textToken.measure(this.root)
+		const textMeasure = textToken.measureFast(this.root)
 		
 		let symbolText = this.symbolBeats(speed.symbol)
 		if(speed.text) {
@@ -176,14 +179,16 @@ export class MusicPaint {
 
 		let currX = x
 		if(symbolText) {
-			currX += symbolToken.draw(this.root, currX, y + symbolMeasure[1] * 0.08, 'left', 'middle')[0]
+			symbolToken.drawFast(this.root, currX, y + symbolMeasure[1] * 0.08, 'left', 'middle')
+			currX += symbolMeasure[0]
 			if(speed.symbol != 'spm') {
 				currX -= symbolMeasure[0] * 0.35
 			} else {
 				currX -= symbolMeasure[0] * 0.08
 			}
 		}
-		currX += textToken.draw(this.root, currX, y, 'left', 'middle')[0]
+		textToken.drawFast(this.root, currX, y, 'left', 'middle')
+		currX += textMeasure[0]
 
 		return totalMeasure
 	}
@@ -200,13 +205,13 @@ export class MusicPaint {
 			new FontMetric('Deng/700', 2.0 * fontScale),
 			scale, extraStyles
 		)
-		const measure = textToken.measure(this.root)
+		const measure = textToken.measureFast(this.root)
 
 		if(dryRun) {
 			return measure
 		}
 
-		textToken.draw(this.root, x, y, 'left', 'middle')
+		textToken.drawFast(this.root, x, y, 'left', 'middle')
 
 		return measure
 	}
@@ -219,13 +224,13 @@ export class MusicPaint {
 			new FontMetric('Deng/700', 2.0 * fontScale),
 			scale, extraStyles
 		)
-		const measure = textToken.measure(this.root)
+		const measure = textToken.measureFast(this.root)
 
 		if(dryRun) {
 			return measure
 		}
 
-		textToken.draw(this.root, x, y, 'left', 'middle')
+		textToken.drawFast(this.root, x, y, 'left', 'middle')
 
 		return measure
 	}
@@ -260,7 +265,7 @@ export class MusicPaint {
 		}
 		// ==== 其他参数 ====
 		musicalProps.extras.forEach((str) => {
-			currX += this.drawOther(currX, y, str, fontScale, scale, extraStyles)[0] + spacer * scale
+			currX += this.drawOther(currX, y, str, fontScale, scale, extraStyles)[0] + 1 * fontScale * scale
 		})
 
 		return currX - x

@@ -1,7 +1,11 @@
 import $ from 'jquery'
 import { FontMetric } from '../FontMetric'
+import { md5 } from '../../util/md5'
 
 type ExtraStyles = {[_: string]: number | string}
+
+const measureCache: {[_: string]: [number, number]} = {}
+const measureCacheFast: {[_: string]: [number, number]} = {}
 
 export class DomPaint {
 	element: HTMLDivElement
@@ -16,11 +20,25 @@ export class DomPaint {
 	 * @returns 
 	 */
 	measureText(text: string, font: FontMetric, widthScale: number = 1, extraStyles: ExtraStyles = {}) {
+		if(text == '') {
+			return [0, 0]
+		}
+		const hash = md5(JSON.stringify({
+			text: text,
+			font: font.fontFamily + '/' + font.fontWeight + '/' + (font.fontSize * font.fontScale),
+			extraStyles: extraStyles
+		}))
+		if(hash in measureCache) {
+			const [ width, height ] = measureCache[hash]
+			return [ width * widthScale, height ]
+		}
 		let fontSize = font.fontSize * font.fontScale
 		const $measure = $('<span></span>').text(text)
 		.css('white-space', 'pre')
 		.css('display', 'inline-block')
-		.css('position', 'absolute')
+		.css('position', 'fixed')
+		.css('top', 0)
+		.css('left', 0)
 		.css('font-family', font.fontFamily)
 		.css('font-size', `${fontSize * 100}px`)  // 100 倍的尺寸减小最小字体限制造成的影响
 		.css('font-weight', font.fontWeight)
@@ -29,7 +47,38 @@ export class DomPaint {
 		const width = $measure[0].clientWidth / 100
 		const height = $measure[0].clientHeight / 100
 		$measure.remove()
+		measureCache[hash] = [ width, height ]
 		return [ width * widthScale, height ]
+	}
+	/**
+	 * 测量文本框的宽度和高度（仅适用单行简单文本）
+	 * @param text 文本内容
+	 * @param font 字体，类型为 FontMetric
+	 * @returns 
+	 */
+	measureTextFast(text: string, font: FontMetric, widthScale: number = 1) {
+		if(text == '') {
+			return [0, 0]
+		}
+		const hash = md5(JSON.stringify({
+			text: text,
+			font: font.fontFamily + '/' + font.fontWeight + '/' + (font.fontSize * font.fontScale),
+		}))
+		if(hash in measureCacheFast) {
+			const [ width, height ] = measureCacheFast[hash]
+			return [ width * widthScale, height ]
+		}
+		let canvas = document.createElement('canvas')
+		let context = canvas.getContext('2d')
+		let fontSize = font.fontSize * font.fontScale
+		if(context == null) {
+			return [0, 0]
+		}
+		context.font = `${font.fontWeight >= 550 ? 'bold ' : ''}${fontSize}px "${font.fontFamily}"`
+		let width = context.measureText(text).width
+		canvas.remove()
+		measureCacheFast[hash] = [ width, 0 ]
+		return [width * widthScale, 0]
 	}
 	/**
 	 * 绘制文本框
@@ -43,7 +92,7 @@ export class DomPaint {
 	 * @param extraStyles 应用在 <span> 元素上的额外样式
 	 * @returns 文本的尺寸测量数据，不受 scale 参数影响，但受 fontScale 影响
 	 */
-	drawText(x: number, y: number, text: string, font: FontMetric, scale: number, align: 'left' | 'center' | 'right' = 'left', alignY: 'top' | 'middle' | 'bottom' = 'top', extraStyles: ExtraStyles = {}) {
+	drawTextFast(x: number, y: number, text: string, font: FontMetric, scale: number, align: 'left' | 'center' | 'right' = 'left', alignY: 'top' | 'middle' | 'bottom' = 'top', extraStyles: ExtraStyles = {}) {
 		let fontSize = font.fontSize * font.fontScale
 		x /= fontSize
 		y /= fontSize
@@ -63,6 +112,21 @@ export class DomPaint {
 			.css('transform', `translateX(${tx}) translateY(${ty})`)
 			.css(extraStyles)
 		)
+	}
+	/**
+	 * 绘制文本框
+	 * @param x 到页面左基线的距离（以 em 为单位，页面宽度是 100em）
+	 * @param y 到页面上基线的距离（以 em 为单位）
+	 * @param text 文本内容
+	 * @param font 字体，类型为 FontMetric
+	 * @param scale 尺寸缩放，应用于字体大小和
+	 * @param align 文本的水平贴靠方式，同时是定位锚点的方位
+	 * @param alignY 竖直定位锚点的方位
+	 * @param extraStyles 应用在 <span> 元素上的额外样式
+	 * @returns 文本的尺寸测量数据，不受 scale 参数影响，但受 fontScale 影响
+	 */
+	drawText(x: number, y: number, text: string, font: FontMetric, scale: number, align: 'left' | 'center' | 'right' = 'left', alignY: 'top' | 'middle' | 'bottom' = 'top', extraStyles: ExtraStyles = {}) {
+		this.drawTextFast(x, y, text, font, scale, align, alignY, extraStyles)
 		return this.measureText(text, font, scale, extraStyles)
 	}
 	/**

@@ -388,6 +388,7 @@ export class ColumnStater {
 					return article.sectionFields[idx][1]
 				}))
 			] as [Fraction, Fraction]
+			article.jumpers = SectionStat.connectJumpers(article.jumpers)
 			// 确定需要的声部
 			const sigs: PartSignature[] = []
 			const parts: LinedPart[] = []

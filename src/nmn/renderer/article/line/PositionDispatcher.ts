@@ -81,6 +81,7 @@ export class PositionDispatcher {
 		this.dispatch$setSections()
 		this.dispatch$statColumns()
 		this.dispatch$compute()
+		console.log('Column slot', this.data)
 	}
 	/**
 	 * 分配位置 - 统计小节
@@ -136,9 +137,9 @@ export class PositionDispatcher {
 			const noteCharMetric = getLineFont(isSmall ? 'noteSmall' : 'note', this.context)
 			const addNoteCharMetric = getLineFont(isSmall ? 'addNoteSmall' : 'addNote', this.context)
 			const accidentalCharMetric = getLineFont(isSmall ? 'noteSmall' : 'note', this.context)
-			const noteCharMeasure = this.root.measureText('0', noteCharMetric, this.scale)
-			const accidentalMeasure = this.root.measureText("\uE10E", accidentalCharMetric, this.scale)
-			const addNoteCharMeasure = this.root.measureText('0', addNoteCharMetric, this.scale)
+			const noteCharMeasure = this.root.measureTextFast('0', noteCharMetric, this.scale)
+			const accidentalMeasure = this.root.measureTextFast("\uE10E", accidentalCharMetric, this.scale)
+			const addNoteCharMeasure = this.root.measureTextFast('0', addNoteCharMetric, this.scale)
 			sections.forEach((section, sectionIndex) => {
 				const actualIndex = sectionIndex + rangeStart
 				if(actualIndex < 0 || actualIndex > this.line.sectionFields.length) {
@@ -195,6 +196,39 @@ export class PositionDispatcher {
 				handleSections(ann.sections, false, false)
 			})
 			part.lyricLines.forEach((lrcLine) => {
+				// 歌词占位推断
+				lrcLine.sections.forEach((lrcSection, sectionIndex) => {
+					if(lrcSection.type != 'section') {
+						return
+					}
+					lrcSection.chars.forEach((char) => {
+						const lrcMetric = getLineFont('lyrics', this.context)
+						let roleString = ''
+						if(char.rolePrefix !== undefined) {
+							roleString = '(' + char.rolePrefix + ')'
+						}
+						const leftMeasure = this.root.measureTextFast(char.prefix, lrcMetric, this.scale)
+						const rightMeasure = this.root.measureTextFast(char.postfix, lrcMetric, this.scale)
+						const roleMeasure = this.root.measureTextFast(roleString, lrcMetric, this.scale)
+						const textMeasure = this.root.measureTextFast(char.text, lrcMetric, this.scale)
+						let lm = 0
+						let rm = 0
+						const dm = this.root.measureTextFast('a', lrcMetric, this.scale)[0]
+						// 词基歌词的单词左右需要留空位，防止单词粘连。
+						if(!char.isCharBased) {
+							if(!roleString && !char.prefix) {
+								lm = dm
+							}
+							if(!char.postfix) {
+								rm = dm
+							}
+						}
+						addConstraint(Frac.add(lrcSection.startPos, char.startPos), sectionIndex, [
+							textMeasure[0] / 2 + leftMeasure[0] + roleMeasure[0] + lm,
+							textMeasure[0] / 2 + rightMeasure[0] + rm
+						], false)
+					})
+				})
 				handleSections(lrcLine.force?.sections, false, false)
 				handleSections(lrcLine.chord?.sections, false, false)
 				lrcLine.annotations.forEach((ann) => {
@@ -207,16 +241,151 @@ export class PositionDispatcher {
 		})
 		// 排序以便后续布局
 		this.line.sectionFields.forEach((_, i) => {
+			// 若没有列，添加一个防止后续出现问题
+			if(this.data[i].columns.length == 0) {
+				addConstraint(this.data[i].fraction[1], i, [0, 0], true)
+			}
 			this.data[i].columns.sort((x, y) => {
 				return Frac.compare(x.fraction, y.fraction)
 			})
 		})
-		console.log('Column slot', this.data)
 	}
 	/**
 	 * 分配位置 - 计算布局
 	 */
 	dispatch$compute() {
-
+		this.line.sectionFields.forEach((_, sectionIndex) => {
+			const attempDispatch = () => {
+				const data = this.data[sectionIndex]
+				
+				// ===== 统计权重 =====
+				let totalSpare = data.range[1] - data.range[0]
+				const weights: Fraction[] = []
+				for(let i = 0; i < data.columns.length; i++) {
+					// 间隙 0 ~ L - 1
+					let prevFrac = data.fraction[0]
+					const isRigid = data.columns[i].rigid[0]
+					if(i > 0) {
+						prevFrac = data.columns[i - 1].fraction
+					}
+					if(isRigid) {
+						weights.push(Frac.create(0))
+					} else {
+						weights.push(Frac.sub(data.columns[i].fraction, prevFrac))
+					}
+					// 计算总空间
+					if(i > 0) {
+						if(isRigid) {
+							totalSpare -= Math.max(data.columns[i].field[0], data.columns[i].requiredField[0])
+							totalSpare -= Math.max(data.columns[i - 1].field[1], data.columns[i - 1].requiredField[1])
+						} else {
+							totalSpare -= data.columns[i].field[0] + data.columns[i - 1].field[1]
+						}
+					} else {
+						if(isRigid) {
+							// 左边沿已经固化，不计算边距空间
+							totalSpare -= Math.max(data.padding[0] + data.columns[i].field[0], data.columns[i].requiredField[0])
+						} else {
+							totalSpare -= data.padding[0] + data.columns[i].field[0]
+						}
+					}
+				}
+				// 间隙 L
+				let lastColumn = data.columns[data.columns.length - 1]!
+				if(lastColumn.rigid[1]) {
+					totalSpare -= Math.max(data.padding[1] + lastColumn.field[1], lastColumn.requiredField[1])
+					weights.push(Frac.create(0))
+				} else {
+					totalSpare -= data.padding[1] + lastColumn.field[1]
+					weights.push(Frac.sub(data.fraction[1], lastColumn.fraction))
+				}
+				const totalWeight = Frac.sum(...weights)
+				// ===== 分配位置 =====
+				let currentPos = data.range[0]
+				for(let i = 0; i < data.columns.length; i++) {
+					const isRigid = data.columns[i].rigid[0]
+					if(isRigid) {
+						if(i > 0) {
+							currentPos += 0
+						} else {
+							currentPos += Math.max(data.padding[0] + data.columns[i].field[0], data.columns[i].requiredField[0])
+						}
+					} else {
+						if(i == 0) {
+							currentPos += data.padding[0]
+						}
+						currentPos += totalSpare / Frac.toFloat(totalWeight) * Frac.toFloat(weights[i])
+					}
+					data.columns[i].position = currentPos
+					if(isRigid) {
+						currentPos += data.columns[i].requiredField[1]
+					} else {
+						currentPos += data.columns[i].field[1]
+					}
+				}
+			}
+			const checkRequired = (): 'pass' | 'dead' | 'continue' => {
+				const data = this.data[sectionIndex]
+				
+				// 完成：所有条件被满足
+				// 没救了：被固化的条件仍然无法满足（此时在不固化任何条件的情况下再分配一次即结束）
+				let needContinue = false
+				let lastPos = data.range[0]
+				for(let i = 0; i < data.columns.length; i++) {
+					const isRigid = data.columns[i].rigid[0]
+					let requiredField = data.columns[i].requiredField[0]
+					if(i > 0) {
+						requiredField += data.columns[i - 1].requiredField[1]
+					}
+					const currPos = data.columns[i].position
+					if(currPos - lastPos < requiredField) {
+						if(isRigid) {
+							return 'dead'
+						} else {
+							data.columns[i].rigid[0] = true
+							if(i > 0) {
+								data.columns[i - 1].rigid[1] = true
+							}
+							needContinue = true
+						}
+					}
+					lastPos = currPos
+				}
+				const currPos = data.range[1]
+				let lastColumn = data.columns[data.columns.length - 1]!
+				const isRigid = lastColumn.rigid[1]
+				if(currPos - lastPos < lastColumn.requiredField[1]) {
+					if(isRigid) {
+						return 'dead'
+					} else {
+						lastColumn.rigid[1] = true
+						needContinue = true
+					}
+				}
+				if(needContinue) {
+					return 'continue'
+				} else {
+					return 'pass'
+				}
+			}
+			const clearRigid = () => {
+				const data = this.data[sectionIndex]
+				data.columns.forEach((col) => {
+					col.rigid[0] = col.rigid[1] = false
+				})
+			}
+			while(true) {
+				attempDispatch()
+				const ch = checkRequired()
+				if(ch == 'pass') {
+					return
+				} else if(ch == 'dead') {
+					console.log('Oh, nmsl')
+					clearRigid()
+					attempDispatch()
+					return
+				}
+			}
+		})
 	}
 }

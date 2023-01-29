@@ -89,7 +89,7 @@ class ArticleRendererClass {
 				new FontMetric(context.render.font_article!, 2.4),
 				scale, {}
 			)
-			const headerMeasure = headerToken.measure(root)
+			const headerMeasure = headerToken.measureFast(root)
 			const headerPadding = 1.1 * scale
 
 			const rectHeight = 4.0

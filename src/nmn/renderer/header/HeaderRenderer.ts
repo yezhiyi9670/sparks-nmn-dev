@@ -20,10 +20,10 @@ class HeaderRendererClass {
 		// 角标题
 		const cornerMetric = new FontMetric(context.render.font_corner!, 2.0)
 		if(score.scoreProps.prescript) {
-			root.drawText(0, currY, score.scoreProps.prescript.text, cornerMetric, scale, 'left')
+			root.drawTextFast(0, currY, score.scoreProps.prescript.text, cornerMetric, scale, 'left')
 		}
 		if(score.scoreProps.version) {
-			root.drawText(100, currY, score.scoreProps.version.text, cornerMetric, scale, 'right')
+			root.drawTextFast(100, currY, score.scoreProps.version.text, cornerMetric, scale, 'right')
 		}
 		currY += 2
 		
@@ -34,13 +34,13 @@ class HeaderRendererClass {
 		// 大标题
 		if(score.scoreProps.title) {
 			const titleMetric = new FontMetric(context.render.font_title!, 3.5)
-			root.drawText(50, currY, score.scoreProps.title.text, titleMetric, scale, 'center')
+			root.drawTextFast(50, currY, score.scoreProps.title.text, titleMetric, scale, 'center')
 			currY += 1.25 + 3.5 * titleMetric.fontScale
 		}
 		// 副标题
 		if(score.scoreProps.subtitle) {
 			const titleMetric = new FontMetric(context.render.font_subtitle!, 2.3)
-			root.drawText(50, currY, score.scoreProps.subtitle.text, titleMetric, scale, 'center')
+			root.drawTextFast(50, currY, score.scoreProps.subtitle.text, titleMetric, scale, 'center')
 			currY += 1.25 + 2.3 * titleMetric.fontScale
 		}
 
@@ -66,11 +66,11 @@ class HeaderRendererClass {
 			if(author.tag) {
 				text = author.text + I18n.renderToken(I18n.data(context.render.language) ?? context.language, 'author_sep') + author.tag
 			}
-			root.drawText(100, currY, text, authorMetric, scale, 'right')
+			root.drawTextFast(100, currY, text, authorMetric, scale, 'right')
 			currY += 1.2 + 2.16 * authorMetric.fontScale
 		})
 
-		if(score.musicalProps) {
+		if(score.musicalProps && score.musicalProps.head as string != 'Pi') {
 			currY += 1
 			const propsThreshold = 4.8
 			if(currY < propsThreshold + 1) {
@@ -83,9 +83,6 @@ class HeaderRendererClass {
 
 			// 音乐属性
 			;((musicalProps) => {
-				if(score.musicalProps.head as string == 'Pi') {
-					return
-				}
 				msp.drawMusicalProps(context, true, 0, currY, musicalProps, 1, scale)
 			})(score.musicalProps.props)
 

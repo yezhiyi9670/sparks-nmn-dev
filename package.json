@@ -41,8 +41,10 @@
     "react-ace": "^10.1.0",
     "react-jss": "^10.9.2"
   },
-  "staticFiles": [{
-    "staticPath": "src/nmn/font",
-    "staticOutPath": "nmn/font"
-  }]
+  "staticFiles": [
+    {
+      "staticPath": "src/nmn/font",
+      "staticOutPath": "nmn/font"
+    }
+  ]
 }

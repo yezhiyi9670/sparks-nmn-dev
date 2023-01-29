@@ -1,6 +1,7 @@
 import { Frac, Fraction } from "../../../util/frac";
 import { ScoreContext, scoreContextDefault } from "../../sparse2des/context";
 import { MusicDecorationRange, MusicNote, MusicSection, NoteCharAny } from "../../sparse2des/types";
+import { Jumper } from "../types";
 
 export module SectionStat {
 	export const nullish: MusicSection<never> = {
@@ -262,5 +263,30 @@ export module SectionStat {
 			return true
 		}
 		return Frac.compare(Frac.sub(Frac.min(r1, r2), Frac.max(l1, l2)), Frac.create(0)) > 0
+	}
+	
+	/**
+	 * 连接跳房子符号（这一操作对原始数据有破坏）
+	 */
+	export function connectJumpers(jumpers: Jumper[]): Jumper[] {
+		const ret: Jumper[] = []
+
+		jumpers.sort((x, y) => {
+			return x.startSection - y.startSection
+		})
+
+		let lastSig = ''
+		let lastPushed: Jumper | undefined = undefined as any
+		jumpers.forEach((jumper) => {
+			const currSig = JSON.stringify(jumper.attrs)
+			if(lastPushed && currSig == lastSig && lastPushed.endSection == jumper.startSection) {
+				lastPushed.endSection = jumper.endSection
+			} else {
+				ret.push(lastPushed = jumper)
+			}
+			lastSig = currSig
+		})
+
+		return ret
 	}
 }
