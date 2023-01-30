@@ -212,6 +212,22 @@ export module SectionStat {
 		return true
 	}
 	/**
+	 * 统计小节是否全部无音符，若是，说明标记或歌词行的渲染空间可以被省略
+	 */
+	export function allEmpty(sections: MusicSection<NoteCharAny>[], startSection: number, sectionCount: number) {
+		for(let i = startSection; i < startSection + sectionCount; i++) {
+			const section = sections[i]
+			if(section.type == 'section') {
+				for(let note of section.notes) {
+					if(note.type == 'note' && !note.voided) {
+						return false
+					}
+				}
+			}
+		}
+		return true
+	}
+	/**
 	 * 含小节行切取
 	 */
 	export function subLine<T extends {sections: MusicSection<unknown>[]}>(line: T, startSection: number, sectionCount: number): T {

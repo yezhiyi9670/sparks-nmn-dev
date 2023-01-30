@@ -240,7 +240,7 @@ export class NoteEater {
 				let reduction = 2
 				if(this.level == 0) {
 					reduction = this.context.musical.beats!.defaultReduction
-					if(tripletRemain > 0 && Frac.compare(Frac.create(1), tripletRatio) == 0) {
+					if(tripletRemain > 0 /*&& Frac.compare(Frac.create(1), tripletRatio) == 0*/) {
 						reduction = 2
 					}
 				}

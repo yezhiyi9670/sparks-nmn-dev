@@ -59,6 +59,7 @@ export class LineRenderer {
 			element: new DomPaint().element,
 			height: 2 * scale
 		})
+		/* TODO[Dev]: 文末不保留空白 */
 	}
 
 	/**
@@ -71,7 +72,7 @@ export class LineRenderer {
 		const msp = new MusicPaint(root)
 
 		// ===== 渲染FCA =====
-		currY += this.renderLineFCA(currY, part, root, context)
+		currY += this.renderLineFCA(currY, part, false, root, context)
 		// ===== 渲染跳房子 =====
 		if(isFirst) {
 			currY += this.renderJumpers(currY, line, root, context)
@@ -86,17 +87,20 @@ export class LineRenderer {
 
 		currY += 2
 
+		/* TODO[Dev]: 歌词行 */
+
 		return currY - startY
 	}
 
 	/**
 	 * 渲染 FCA 标记
 	 */
-	renderLineFCA(startY: number, line: DestructedFCA, root: DomPaint, context: RenderContext) {
+	renderLineFCA(startY: number, line: DestructedFCA, isSmall: boolean, root: DomPaint, context: RenderContext) {
 		let currY = startY
 		const msp = new MusicPaint(root)
 		const scale = context.render.scale!
-		const noteMeasure = msp.measureNoteChar(context, false, scale)
+		const noteMeasure = msp.measureNoteChar(context, isSmall, scale)
+		const FCALineField = 2.5
 
 		function handleSections<T>(sections: MusicSection<T>[], noteHandler: (note: MusicNote<T>, sectionIndex: number, section: MusicSection<T>) => void) {
 			sections.forEach((section, sectionIndex) => {
@@ -123,35 +127,44 @@ export class LineRenderer {
 			}
 		}
 
-		if(line.force) {
+		// ===== 文本标记 =====
+		for(let i = line.annotations.length - 1; i >= 0; i--){
+			let ann = line.annotations[i]
+			if(SectionStat.allEmpty(ann.sections, 0, ann.sections.length)) {
+				continue
+			}
+			currY += FCALineField / 2
+			handleSections<NoteCharText>(ann.sections, createNoteHandler((note, fracPos, pos) => {
+				msp.drawFCANote(context, pos, 0, currY, ann.index, note.char, isSmall, scale)
+			}))
+			currY += FCALineField / 2
+		}
+		// ===== 和弦 =====
+		if(line.chord && !SectionStat.allEmpty(line.chord.sections, 0, line.chord.sections.length)) {
+			currY += FCALineField / 2
+			handleSections<NoteCharChord>(line.chord.sections, createNoteHandler((note, fracPos, pos) => {
+				if(note.voided) {
+					return
+				}
+				msp.drawFCANote(context, pos, 0, currY, -1, note.char, isSmall, scale)
+			}))
+			currY += FCALineField / 2
+		}
+		// ===== 力度 =====
+		if(line.force && !SectionStat.allEmpty(line.force.sections, 0, line.force.sections.length)) {
+			currY += FCALineField / 2
 			handleSections<NoteCharForce>(line.force.sections, createNoteHandler((note, fracPos, pos) => {
 				if(note.voided) {
 					return
 				}
 				const endFracPos = Frac.add(fracPos, note.length)
-				let sectionIndex = SectionStat.locateSection(endFracPos, line.force!.sections)
-				let endPos = 0
-				if(sectionIndex == -1) {
-					/* TODO[Dev]: Force endpos rendering */
-				}
+				let endPos = this.columns.fracEndPosition(endFracPos)
+				msp.drawFCANote(context, pos, endPos, currY, -1, note.char, isSmall, scale)
 			}))
+			currY += FCALineField / 2
 		}
-		if(line.chord) {
-			handleSections<NoteCharChord>(line.chord.sections, createNoteHandler((note, fracPos, pos) => {
-				if(note.voided) {
-					return
-				}
-			}))
-		}
-		line.annotations.forEach((ann) => {
-			handleSections<NoteCharText>(ann.sections, createNoteHandler((note, fracPos, pos) => {
-				if(note.voided) {
-					return
-				}
-			}))
-		})
 
-		currY -= 1
+		currY -= 1.5
 		currY = Math.max(currY, startY)
 		return currY - startY
 	}

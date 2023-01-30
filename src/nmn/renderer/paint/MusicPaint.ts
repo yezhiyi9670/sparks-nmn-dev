@@ -1,5 +1,5 @@
 import { I18n } from '../../i18n'
-import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, MusicNote, MusicProps, MusicSection, noteCharChecker, NoteCharMusic, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
+import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, MusicNote, MusicProps, MusicSection, NoteCharAny, noteCharChecker, NoteCharChord, NoteCharForce, NoteCharMusic, NoteCharText, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
 import { findWithKey } from '../../util/array'
 import { Frac } from '../../util/frac'
 import { MusicTheory } from '../../util/music'
@@ -290,6 +290,80 @@ export class MusicPaint {
 			return measure
 		}
 		return [0, 0]
+	}
+	/**
+	 * 绘制标记音符
+	 */
+	drawFCANote(context: RenderContext, startX: number, endX: number, y: number, annotationIndex: number, note: NoteCharForce | NoteCharChord | NoteCharText, isSmall: boolean, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
+		if('void' in note) {
+			return
+		}
+		const annotationScale = 0.75
+		const forceScale = 0.7
+		const noteMeasure = this.measureNoteChar(context, isSmall, scale)
+		const annotationMetric = (() => {
+			if(annotationIndex == -1) {
+				if(note.type == 'force') {
+					return new FontMetric(context.render.font_force!, noteMeasure[1] * annotationScale)
+				} else {
+					return new FontMetric(context.render.font_chord!, noteMeasure[1] * annotationScale)
+				}
+			} else {
+				return [
+					new FontMetric(context.render.font_annotation1!, noteMeasure[1] * annotationScale),
+					new FontMetric(context.render.font_annotation2!, noteMeasure[1] * annotationScale),
+					new FontMetric(context.render.font_annotation3!, noteMeasure[1] * annotationScale),
+				][Math.min(annotationIndex, 2)]
+			}
+		})()
+		startX -= noteMeasure[0] / 2
+		endX -= noteMeasure[0] / 2
+		if(note.type == 'force') {
+			const forceTextMetric = new FontMetric('SparksNMN-mscore-20/400', noteMeasure[1] * forceScale)
+			if(note.isText) {
+				this.root.drawTextFast(startX, y, note.char, annotationMetric, scale, 'left', 'middle', extraStyles)
+			} else {
+				if(note.char == '<' || note.char == '>') {
+					const topY = y - noteMeasure[1] * 0.28
+					const bottomY = y + noteMeasure[1] * 0.28
+					const centerY = y
+					const lessX = note.char == '<' ? startX : endX
+					const moreX = note.char == '<' ? endX : startX
+					this.root.drawLine(lessX, centerY, moreX, topY, 0.15, 0.15 / 2, scale, extraStyles)
+					this.root.drawLine(lessX, centerY, moreX, bottomY, 0.15, 0.15 / 2, scale, extraStyles)
+				} else {
+					this.root.drawTextFast(startX, y, note.char, forceTextMetric, scale, 'left', 'middle', extraStyles)
+				}
+			}
+		} else if(note.type == 'chord') {
+			const metric0 = new FontMetric('SparksNMN-mscore-20/400', noteMeasure[1] * annotationScale)
+			const token0 = new PaintTextToken(
+				(note.delta != note.delta || note.delta == 0) ? '' : this.symbolAccidental(note.delta),
+				metric0, scale, extraStyles
+			)
+			const token1 = new PaintTextToken(
+				note.root,
+				annotationMetric, scale, extraStyles
+			)
+			const token2 = new PaintTextToken(
+				note.suffix, new FontMetric(context.render.font_chord!, noteMeasure[1] * annotationScale * 0.75),
+				scale, extraStyles
+			)
+			const token3 = new PaintTextToken(
+				note.base === undefined ? '' : '/' + note.base,
+				annotationMetric, scale, extraStyles
+			)
+			let currX = startX
+			token0.drawFast(this.root, currX, y, 'left', 'bottom')
+			currX += token0.measureFast(this.root)[0]
+			token1.drawFast(this.root, currX, y, 'left', 'middle')
+			currX += token1.measureFast(this.root)[0]
+			token2.drawFast(this.root, currX, y + noteMeasure[1] * 0.2, 'left', 'bottom')
+			currX += token2.measureFast(this.root)[0]
+			token3.drawFast(this.root, currX, y, 'left', 'middle')
+		} else {
+			this.root.drawTextFast(startX, y, note.text, annotationMetric, scale, 'left', 'middle', extraStyles)
+		}
 	}
 	/**
 	 * 绘制单个跳房子属性

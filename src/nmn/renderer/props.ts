@@ -70,6 +70,8 @@ export interface RenderProps {
 	 * 字体-文本标记
 	 */
 	font_attr?: string
+	font_force?: string
+	font_chord?: string
 	font_annotation1?: string
 	font_annotation2?: string
 	font_annotation3?: string
@@ -104,6 +106,8 @@ export const renderPropsDefault: RenderProps = {
 	font_text: 'SimSun/400',
 	font_footnote: 'SimSun/400',
 	font_attr: 'SimSun/400',
+	font_force: 'Deng/700',
+	font_chord: 'Deng/700',
 	font_annotation1: 'SimSun/400',
 	font_annotation2: 'SimSun/400',
 	font_annotation3: 'SimSun/400',

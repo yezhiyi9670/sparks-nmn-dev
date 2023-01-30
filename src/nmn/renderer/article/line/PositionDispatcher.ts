@@ -113,6 +113,23 @@ export class PositionDispatcher {
 		return col.position
 	}
 	/**
+	 * 获取分数位置（或者其后的任意位置）在渲染行中的位置，如果不存在，返回最后一小节右边界位置
+	 */
+	fracEndPosition(frac: Fraction) {
+		for(let section of this.data) {
+			for(let column of section.columns) {
+				if(Frac.compare(frac, column.fraction) <= 0) {
+					return column.position
+				}
+			}
+			// 这里使用右边界分数位置是不对的，因为它可能被修改过。好在目前没有。
+			if(Frac.compare(frac, section.fraction[1]) <= 0) {
+				return section.realRange[1]
+			}
+		}
+		return this.endPosition(this.data.length - 1)
+	}
+	/**
 	 * 获取分数位置的前间隙位置
 	 */
 	fracInsertPosition(sectionIndex: number, frac: Fraction, symbolOrdinal: number, totalSymbols: number) {

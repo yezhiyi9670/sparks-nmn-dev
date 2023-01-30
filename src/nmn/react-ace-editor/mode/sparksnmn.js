@@ -50,6 +50,11 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 				},
 				{
 					token: isInvalid ? 'comment' : "string",
+					regex: /"$/,
+					next: 'start'
+				},
+				{
+					token: isInvalid ? 'comment' : "string",
 					regex: /"/,
 					next: modeName
 				},
