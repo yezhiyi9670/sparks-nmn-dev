@@ -1,7 +1,7 @@
 import { Frac, Fraction } from "../../../util/frac";
 import { ScoreContext, scoreContextDefault } from "../../sparse2des/context";
-import { MusicDecorationRange, MusicNote, MusicSection, NoteCharAny } from "../../sparse2des/types";
-import { Jumper } from "../types";
+import { DestructedFCA, MusicDecorationRange, MusicNote, MusicSection, NoteCharAny } from "../../sparse2des/types";
+import { Jumper, LinedPart } from "../types";
 
 export module SectionStat {
 	export const nullish: MusicSection<never> = {
@@ -348,6 +348,29 @@ export module SectionStat {
 			if(Frac.equals(Frac.add(section.startPos, note.startPos), pos)) {
 				return note
 			}
+		}
+		return undefined
+	}
+
+	/**
+	 * 小节是否包含前置/后置小节线属性
+	 */
+	export function hasSeparatorAttrs(section: MusicSection<unknown>) {
+		return section.separator.before.attrs.length || section.separator.after.attrs.length
+	}
+
+	/**
+	 * 获取 FCA 中的第一标记行的小节
+	 */
+	export function fcaPrimary(section: DestructedFCA) {
+		if(section.chord) {
+			return section.chord.sections
+		}
+		if(section.force) {
+			return section.force.sections
+		}
+		if(section.annotations.length > 0) {
+			return section.annotations[0].sections
 		}
 		return undefined
 	}

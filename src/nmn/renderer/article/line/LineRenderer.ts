@@ -1,7 +1,7 @@
 import { NMNResult } from "../../.."
 import { I18n } from "../../../i18n"
 import { SectionStat } from "../../../parser/des2cols/section/SectionStat"
-import { connectSigs } from "../../../parser/des2cols/types"
+import { connectSigs, Linked2LyricChar } from "../../../parser/des2cols/types"
 import { DestructedFCA, MusicNote, MusicSection, NoteCharChord, NoteCharForce, NoteCharText } from "../../../parser/sparse2des/types"
 import { Frac, Fraction } from "../../../util/frac"
 import { DomPaint } from "../../backend/DomPaint"
@@ -15,6 +15,14 @@ import { SectionsRenderer } from "./SectionsRenderer"
 
 type NMNLine = (NMNResult['result']['articles'][0] & {type: 'music'})['lines'][0]
 type NMNPart = NMNLine['parts'][0]
+type NMNLrcLine = NMNPart['lyricLines'][0]
+
+type LrcSymbol = {
+	char: Linked2LyricChar,
+	boundaries: [number, number],
+	startX: number,
+	endX: number
+}
 
 export class LineRenderer {
 	columns: PositionDispatcher
@@ -43,7 +51,7 @@ export class LineRenderer {
 		if(line.parts.length > 1) {
 			const upperY = this.musicLineYs[0].top
 			const lowerY = this.musicLineYs[this.musicLineYs.length - 1].bottom
-			const leftX = 0 * scale
+			const leftX = context.render.connector_left! * scale
 			const rightX = leftX + 1 * scale
 			root.drawLine(leftX, upperY, leftX, lowerY, 0.2, 0.1, scale)
 			root.drawLine(leftX, upperY, rightX, upperY, 0.2, 0.1, scale)
@@ -57,9 +65,9 @@ export class LineRenderer {
 
 		sections.push({
 			element: new DomPaint().element,
-			height: 2 * scale
+			height: 2 * scale,
+			isMargin: true
 		})
-		/* TODO[Dev]: 文末不保留空白 */
 	}
 
 	/**
@@ -82,13 +90,118 @@ export class LineRenderer {
 		const lastYs = this.musicLineYs[this.musicLineYs.length - 1]
 		// ===== 标记声部名称 =====
 		if(shouldLabel) {
-			msp.drawPartName(context, this.columns.startPosition(0) - scale * 1.5, lastYs.middle, part.notes.tags, 1, scale)
+			msp.drawPartName(context, scale * (-0.5 + context.render.connector_left!), lastYs.middle, part.notes.tags, 1, scale)
 		}
 
 		currY += 2
 
-		/* TODO[Dev]: 歌词行 */
+		// ===== 渲染歌词行 =====
+		part.lyricLines.forEach((lyricLine) => {
+			currY += this.renderLyricLine(currY, lyricLine, part, root, context)
+		})
 
+		return currY - startY
+	}
+
+	/**
+	 * 渲染歌词行
+	 */
+	renderLyricLine(startY: number, lyricLine: NMNLrcLine, part: NMNPart, root: DomPaint, context: RenderContext) {
+		let currY = startY
+		const scale = context.render.scale!
+		const lrcLineField = 2.5
+		const lrcLineMarginBottom = 1.0
+		const msp = new MusicPaint(root)
+		const noteMeasure = msp.measureNoteChar(context, false, scale)
+		const lrcCharMeasure = root.measureText('0我', new FontMetric(context.render.font_lyrics!, 2.16), scale)
+
+		currY += this.renderLineFCA(startY, lyricLine, true, root, context)
+
+		currY += lrcLineField / 2
+
+		const lrcSymbols: LrcSymbol[] = []
+		// 统计此行歌词字符
+		lyricLine.sections.forEach((section, sectionIndex) => {
+			if(section.type != 'section') {
+				return
+			}
+			section.chars.forEach((note) => {
+				const startFrac = Frac.add(section.startPos, note.startPos)
+				const endFrac = Frac.add(startFrac, note.length)
+				const pos = this.columns.fracPosition(sectionIndex, startFrac)
+				const endPos = this.columns.fracEndPosition(endFrac)
+				lrcSymbols.push({
+					char: note,
+					startX: pos,
+					endX: endPos,
+					boundaries: [0, 0]
+				})
+			})
+		})
+		// 渲染不需要推断位置的符号
+		lrcSymbols.forEach((symbol, index) => {
+			if(symbol.char.occupiesSpace) {
+				symbol.boundaries = msp.drawLyricChar(context, symbol.startX, symbol.endX, currY, symbol.char, 'center')
+			}
+		})
+		// 渲染需要推断位置的符号
+		lrcSymbols.forEach((symbol, index) => {
+			if(!symbol.char.occupiesSpace) {
+				let indexLpt = index
+				while(indexLpt >= 0 && !lrcSymbols[indexLpt].char.occupiesSpace) {
+					indexLpt -= 1
+				}
+				let indexRpt = index
+				while(indexRpt < lrcSymbols.length && !lrcSymbols[indexRpt].char.occupiesSpace) {
+					indexRpt += 1
+				}
+				let leftSymbol = lrcSymbols[indexLpt]
+				let rightSymbol = lrcSymbols[indexRpt]
+				if(!leftSymbol && !rightSymbol) {
+					return
+				}
+				if(!leftSymbol) {
+					// 左端孤儿
+					const anchor = rightSymbol.boundaries[0]
+					symbol.boundaries = msp.drawLyricChar(context, anchor, 0, currY, symbol.char, 'right')
+				} else if(!rightSymbol) {
+					// 右端孤儿
+					const anchor = leftSymbol.boundaries[1]
+					symbol.boundaries = msp.drawLyricChar(context, anchor, 0, currY, symbol.char, 'left')
+				} else {
+					// 双端
+					let dispY = indexRpt - indexLpt
+					let dispX = index - indexLpt
+					let leftAnchor = leftSymbol.boundaries[1]
+					let rightAnchor = rightSymbol.boundaries[0]
+					const anchor = (rightAnchor - leftAnchor) * (dispX / dispY) + leftAnchor
+					symbol.boundaries = msp.drawLyricChar(context, anchor, 0, currY, symbol.char, 'center')
+				}
+			}
+		})
+		// 绘制延长线
+		lrcSymbols.forEach((symbol, index) => {
+			if(symbol.char.extension) {
+				const startX = symbol.boundaries[1]
+				let nextSymbol = lrcSymbols[index + 1]
+				let endX = 0
+				if(!nextSymbol) {
+					endX = this.columns.endPosition(this.columns.data.length - 1)
+				} else {
+					endX = nextSymbol.boundaries[0]
+				}
+				endX = Math.min(endX, symbol.endX - noteMeasure[0] / 2)
+				if(endX <= startX) {
+					return
+				}
+				const lineY = currY + lrcCharMeasure[1] / 2
+				root.drawLine(startX, lineY, endX, lineY, 0.15, 0, scale)
+			}
+		})
+
+		currY += lrcLineField / 2
+
+		currY += lrcLineMarginBottom
 		return currY - startY
 	}
 
@@ -100,7 +213,7 @@ export class LineRenderer {
 		const msp = new MusicPaint(root)
 		const scale = context.render.scale!
 		const noteMeasure = msp.measureNoteChar(context, isSmall, scale)
-		const FCALineField = 2.5
+		const FCALineField = 0.9 * noteMeasure[1]
 
 		function handleSections<T>(sections: MusicSection<T>[], noteHandler: (note: MusicNote<T>, sectionIndex: number, section: MusicSection<T>) => void) {
 			sections.forEach((section, sectionIndex) => {
@@ -139,17 +252,6 @@ export class LineRenderer {
 			}))
 			currY += FCALineField / 2
 		}
-		// ===== 和弦 =====
-		if(line.chord && !SectionStat.allEmpty(line.chord.sections, 0, line.chord.sections.length)) {
-			currY += FCALineField / 2
-			handleSections<NoteCharChord>(line.chord.sections, createNoteHandler((note, fracPos, pos) => {
-				if(note.voided) {
-					return
-				}
-				msp.drawFCANote(context, pos, 0, currY, -1, note.char, isSmall, scale)
-			}))
-			currY += FCALineField / 2
-		}
 		// ===== 力度 =====
 		if(line.force && !SectionStat.allEmpty(line.force.sections, 0, line.force.sections.length)) {
 			currY += FCALineField / 2
@@ -163,26 +265,43 @@ export class LineRenderer {
 			}))
 			currY += FCALineField / 2
 		}
+		// ===== 和弦 =====
+		if(line.chord && !SectionStat.allEmpty(line.chord.sections, 0, line.chord.sections.length)) {
+			currY += FCALineField / 2
+			handleSections<NoteCharChord>(line.chord.sections, createNoteHandler((note, fracPos, pos) => {
+				if(note.voided) {
+					return
+				}
+				msp.drawFCANote(context, pos, 0, currY, -1, note.char, isSmall, scale)
+			}))
+			currY += FCALineField / 2
+		}
 
-		currY -= 1.5
+		if(!isSmall) {
+			currY -= 1.5
+		}
 		currY = Math.max(currY, startY)
 		return currY - startY
 	}
 
 	/**
-	 * 渲染跳房子符号
+	 * 渲染跳房子符号，并统计是否出现标记与属性、跳房子与属性的重叠
 	 */
 	renderJumpers(startY: number, line: NMNLine, root: DomPaint, context: RenderContext) {
 		const scale = context.render.scale!
 		const msp = new MusicPaint(root)
+		const firstPart = line.parts[0]!
 		let currY = startY
 
-		const fieldHeight = 3
+		const fieldHeight = 2.1
+		const overlapField = 2.2
+		const shift = 0.6
+		let attrOverlaps = false
 		if(line.jumpers.length > 0) {
 			let successCount = 0
 			currY += fieldHeight
-			const topY = currY - 1.3
-			const bottomY = currY + 1
+			const topY = currY - 1.17 + shift
+			const bottomY = currY + 0.90 + shift
 			const centerY = (topY + bottomY) / 2
 			line.jumpers.forEach((jumper) => {
 				let startX = 0
@@ -218,6 +337,10 @@ export class LineRenderer {
 				root.drawLine(startX, topY, endX, topY, 0.14, 0.07, scale)
 				if(startIn) {
 					root.drawLine(startX, bottomY, startX, topY, 0.14, 0.07, scale)
+					const sectionIndex = jumper.startSection - line.startSection
+					if(SectionStat.hasSeparatorAttrs(firstPart.notes.sections[sectionIndex])) {
+						attrOverlaps = true
+					}
 				}
 				if(endIn) {
 					root.drawLine(endX, bottomY, endX, topY, 0.14, 0.07, scale)
@@ -230,6 +353,19 @@ export class LineRenderer {
 				// rnm，退钱！
 				currY -= fieldHeight
 			}
+		}
+
+		const firstAnnotation = SectionStat.fcaPrimary(firstPart)
+		for(let i = 0; i < line.sectionCount; i++) {
+			if(firstAnnotation) {
+				if(!SectionStat.allEmpty(firstAnnotation, i, 1) && SectionStat.hasSeparatorAttrs(firstPart.notes.sections[i])) {
+					attrOverlaps = true
+				}
+			}
+		}
+		// 如有重叠情况，增加下边距，给小节线属性留出空间
+		if(attrOverlaps) {
+			currY += overlapField
 		}
 
 		return currY - startY

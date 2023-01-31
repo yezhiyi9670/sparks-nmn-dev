@@ -1,10 +1,10 @@
 .wcl-equifield-root {
 	overflow-x: hidden;
 	overflow-y: hidden;
-	position: relative;
+	/* position: relative; */
 }
 .wcl-equifield-field {
-	position: relative;
+	/* position: relative; */
 	page-break-inside: avoid;
 	page-break-after: auto;
 	overflow-x: visible;
@@ -17,7 +17,6 @@
 	font-size: 5em;
 	width: 500%;
 	margin-right: -400%; */
-	height: 0;
 }
 
 @media print {

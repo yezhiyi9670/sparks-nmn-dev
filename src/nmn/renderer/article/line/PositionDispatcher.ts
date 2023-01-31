@@ -124,10 +124,10 @@ export class PositionDispatcher {
 			}
 			// 这里使用右边界分数位置是不对的，因为它可能被修改过。好在目前没有。
 			if(Frac.compare(frac, section.fraction[1]) <= 0) {
-				return section.realRange[1]
+				return section.realRange[1] - section.padding[1]
 			}
 		}
-		return this.endPosition(this.data.length - 1)
+		return this.paddedEndPosition(this.data.length - 1)
 	}
 	/**
 	 * 获取分数位置的前间隙位置
@@ -154,6 +154,7 @@ export class PositionDispatcher {
 				pos0 = this.data[sectionIndex].range[0]
 			}
 		}
+		console.log('index', symbolOrdinal, 'total', totalSymbols)
 		return pos0 + (pos1 - pos0) / (1 + totalSymbols) * (1 + symbolOrdinal)
 	}
 
@@ -300,11 +301,14 @@ export class PositionDispatcher {
 								(+hasSlide) * noteCharMeasure[1] * 0.45 * this.scale)
 						], false) // 音符的附加符号（升降调、装饰音、滑音）的排版空间必须满足，但不需要参与计算
 					} else {
-						addConstraint(fracPos, actualIndex, [0, 0], false) // 标记内容不参与自动排版，但是保留席位
+						if(note.type != 'extend') {
+							addConstraint(fracPos, actualIndex, [0, 0], false) // 标记内容不参与自动排版，但是保留席位
+						}
 					}
 				})
 			})
 		}
+		const msp = new MusicPaint(this.root)
 		this.line.parts.forEach((part) => {
 			handleSections(part.notes.sections, true, false)
 			handleSections(part.force?.sections, false, false)
@@ -318,32 +322,42 @@ export class PositionDispatcher {
 					if(lrcSection.type != 'section') {
 						return
 					}
-					lrcSection.chars.forEach((char) => {
+					const chars = lrcSection.chars
+					chars.forEach((char, charIndex) => {
 						const lrcMetric = getLineFont('lyrics', this.context)
-						let roleString = ''
-						if(char.rolePrefix !== undefined) {
-							roleString = '(' + char.rolePrefix + ')'
-						}
-						const leftMeasure = this.root.measureTextFast(char.prefix, lrcMetric, this.scale)
-						const rightMeasure = this.root.measureTextFast(char.postfix, lrcMetric, this.scale)
-						const roleMeasure = this.root.measureTextFast(roleString, lrcMetric, this.scale)
-						const textMeasure = this.root.measureTextFast(char.text, lrcMetric, this.scale)
-						let lm = 0
-						let rm = 0
-						const dm = this.root.measureTextFast('a', lrcMetric, this.scale)[0]
-						// 词基歌词的单词左右需要留空位，防止单词粘连。
-						if(!char.isCharBased) {
-							if(!roleString && !char.prefix) {
-								lm = dm
+						if(char.occupiesSpace) {
+							const boundaries = msp.drawLyricChar(this.context, 0, 0, 0, char, 'center', this.scale, {}, true)
+							let rpt = charIndex + 1
+							while(true) {
+								const rChar = chars[rpt]
+								if(rChar === undefined || rChar.occupiesSpace) {
+									break
+								}
+								rpt += 1
 							}
-							if(!char.postfix) {
-								rm = dm
+							for(let i = charIndex + 1; i < rpt; i++) {
+								const char2 = chars[i]
+								boundaries[1] += msp.drawLyricChar(this.context, 0, 0, 0, char2, 'left', this.scale, {}, true)[1]
 							}
+							let lm = 0
+							let rm = 0
+							const dm = this.root.measureTextFast('a', lrcMetric, this.scale)[0] / 4
+							// 词基歌词的单词左右需要留空位，防止单词粘连。
+							if(!char.isCharBased) {
+								const preChar = chars[charIndex - 1]
+								if(!char.prefix && preChar && preChar.occupiesSpace) {
+									lm = dm
+								}
+								const postChar = chars[charIndex - 1]
+								if(!char.postfix && postChar && postChar.occupiesSpace) {
+									rm = dm
+								}
+							}
+							addConstraint(Frac.add(lrcSection.startPos, char.startPos), sectionIndex, [
+								-boundaries[0] + lm,
+								boundaries[1] + rm
+							], false)
 						}
-						addConstraint(Frac.add(lrcSection.startPos, char.startPos), sectionIndex, [
-							textMeasure[0] / 2 + leftMeasure[0] + roleMeasure[0] + lm,
-							textMeasure[0] / 2 + rightMeasure[0] + rm
-						], false)
 					})
 				})
 				handleSections(lrcLine.force?.sections, false, false)
@@ -431,7 +445,7 @@ export class PositionDispatcher {
 					const isRigid = data.columns[i].rigid[0]
 					if(isRigid) {
 						if(i > 0) {
-							currentPos += 0
+							currentPos += data.columns[i].requiredField[0]
 						} else {
 							currentPos += Math.max(data.padding[0] + data.columns[i].field[0], data.columns[i].requiredField[0])
 						}
@@ -497,12 +511,17 @@ export class PositionDispatcher {
 			const clearRigid = () => {
 				const data = this.data[sectionIndex]
 				data.columns.forEach((col) => {
-					col.rigid[0] = col.rigid[1] = false
+					col.rigid[0] = col.rigid[1] = true
 				})
 			}
+			/* TODO[Dev]: Debug this fucking thing. Field width is right, but something wrong with spare calculation */
+			console.log('begin', this.data)
+			let iters = 0
+			clearRigid()
 			while(true) {
 				attempDispatch()
 				const ch = checkRequired()
+				console.log(ch)
 				if(ch == 'pass') {
 					return
 				} else if(ch == 'dead') {

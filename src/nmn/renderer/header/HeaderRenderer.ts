@@ -125,10 +125,12 @@ class HeaderRendererClass {
 			currY += textToken.draw(root, 0, currY, 'left', 'top')[1] * 1.2
 		})
 
-		sections.push({
-			element: root.element,
-			height: currY * scale
-		})
+		if(score.scoreProps.footnotes.length > 0) {
+			sections.push({
+				element: root.element,
+				height: currY * scale
+			})
+		}
 	}
 }
 

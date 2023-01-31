@@ -27,6 +27,10 @@ export interface RenderProps {
 	 */
 	gutter_left?: number
 	/**
+	 * 连谱号渲染左边距
+	 */
+	connector_left?: number
+	/**
 	 * 延长连音线灰色提示
 	 */
 	grayout?: boolean
@@ -95,6 +99,7 @@ export const renderPropsDefault: RenderProps = {
 	language: 'en',
 	scale: 1.0,
 	gutter_left: 1,
+	connector_left: 0,
 	grayout: false,
 	explicitmarkers: true,
 	font_part: 'SimSun/700',
@@ -108,10 +113,10 @@ export const renderPropsDefault: RenderProps = {
 	font_attr: 'SimSun/400',
 	font_force: 'Deng/700',
 	font_chord: 'Deng/700',
-	font_annotation1: 'SimSun/400',
-	font_annotation2: 'SimSun/400',
-	font_annotation3: 'SimSun/400',
-	font_lyrics: 'Deng/600',
+	font_annotation1: 'SimSun/600',
+	font_annotation2: 'SimSun/600',
+	font_annotation3: 'SimSun/600',
+	font_lyrics: 'SimSun/600',
 	font_checkpoint: 'SimSun/700',
 }
 
@@ -147,7 +152,7 @@ export function renderPropConvert(key: string, val: string) {
 		}
 		return { error: 'value' }
 	}
-	if(key == 'scale' || key == 'gutter_left') {
+	if(key == 'scale' || key == 'gutter_left' || key == 'connector_left') {
 		let num = +val
 		if(num != num || num < 0 || num >= 65536) {
 			return { error: 'value' }

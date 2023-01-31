@@ -348,10 +348,24 @@ export class ColumnStater {
 				if(tokenPtr >= chars.length) {
 					break
 				}
-				matchedChars.push(Object.assign({}, chars[tokenPtr++], {
-					startPos: Frac.copy(note.startPos),
-					length: note.length
-				}))
+				let readMine = false
+				while(true) {
+					const myChar = chars[tokenPtr++]
+					if(myChar === undefined) {
+						break
+					}
+					if(myChar.occupiesSpace && readMine) {
+						tokenPtr--
+						break
+					}
+					matchedChars.push(Object.assign({}, myChar, {
+						startPos: Frac.copy(note.startPos),
+						length: note.length
+					}))
+					if(myChar.occupiesSpace) {
+						readMine = true
+					}
+				}
 			}
 			ret.push({
 				ordinal: section0.ordinal,

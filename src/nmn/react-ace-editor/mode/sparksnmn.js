@@ -192,7 +192,7 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 				...continueOrRestart(mode + '_brace'),
 				{
 					token: 'keyword',
-					regex: /\]/,
+					regex: /\}/,
 					next: mode
 				},
 				{

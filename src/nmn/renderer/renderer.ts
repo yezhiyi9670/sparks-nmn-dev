@@ -10,6 +10,7 @@ export type EquifieldSection = {
 	element: HTMLElement
 	height: number
 	noBreakAfter?: boolean
+	isMargin?: boolean
 }
 
 export type RenderContext = ScoreContext & {
@@ -45,6 +46,11 @@ class RendererClass {
 		})
 		// ==== 脚注 ====
 		HeaderRenderer.renderFooter(score, sections, context)
+
+		// ==== 移除末尾空白 ====
+		while(sections.length > 0 && sections[sections.length - 1].isMargin) {
+			sections.pop()
+		}
 
 		return sections
 	}

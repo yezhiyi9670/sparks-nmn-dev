@@ -1,4 +1,5 @@
 import { I18n } from '../../i18n'
+import { Linked2LyricChar } from '../../parser/des2cols/types'
 import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, MusicNote, MusicProps, MusicSection, NoteCharAny, noteCharChecker, NoteCharChord, NoteCharForce, NoteCharMusic, NoteCharText, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
 import { findWithKey } from '../../util/array'
 import { Frac } from '../../util/frac'
@@ -172,7 +173,7 @@ export class MusicPaint {
 	drawBeforeAfterAttrs(context: RenderContext, x: number, y: number, attrs: SeparatorAttr[], pos: 'before' | 'after', fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}) {
 		let sign = pos == 'before' ? 1 : -1
 		let currX = x
-		let attrY = y - 3.75
+		let attrY = y - 4.5
 		const margin = 0.7 * scale
 		currX += sign * 1 * scale
 		let hX = x + sign * 0.5 * scale
@@ -193,7 +194,7 @@ export class MusicPaint {
 	drawJumperAttrs(context: RenderContext, startX: number, y: number, attrs: JumperAttr[], fontScale: number, scale: number) {
 		let currX = startX
 		attrs.forEach((attr) => {
-			currX += this.drawIterOrString(context, currX, y, attr, context.render.font_attr!, 2 * fontScale, scale)[0] + 0.5 * scale
+			currX += this.drawIterOrString(context, currX, y, attr, context.render.font_attr!, 1.79 * fontScale, scale)[0] + 0.5 * scale
 		})
 	}
 	/**
@@ -292,9 +293,64 @@ export class MusicPaint {
 		return [0, 0]
 	}
 	/**
+	 * 绘制歌词字符
+	 */
+	drawLyricChar(context: RenderContext, startX: number, endX: number, y: number, note: Linked2LyricChar, baseAnchor: 'left' | 'center' | 'right', scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false): [number, number] {
+		const lrcMetric = new FontMetric(context.render.font_lyrics!, 2.16)
+		const underlineExtraStyles = {
+			...extraStyles,
+			textDecoration: 'underline'
+		}
+		const tokenMain = new PaintTextToken(
+			note.text, lrcMetric,
+			scale, note.grouped ? underlineExtraStyles : extraStyles
+		)
+		const mainWidth = tokenMain.measureFast(this.root)[0]
+		let baseX = startX
+		if(baseAnchor == 'center') {
+			if(note.grouped && note.text.length > 0) {
+				const firstWidth = this.root.measureTextFast(note.text[0], lrcMetric)[0]
+				baseX += mainWidth / 2 - firstWidth / 2
+			}
+		} else if(baseAnchor == 'left') {
+			baseX += mainWidth / 2
+		} else if(baseAnchor == 'right') {
+			baseX -= mainWidth / 2
+		}
+		if(!dryRun) tokenMain.drawFast(this.root, baseX, y, 'center', 'middle')
+		let currLeft = baseX - mainWidth / 2
+		let currRight = baseX + mainWidth / 2
+		
+		const tokenLeft = new PaintTextToken(
+			note.prefix, lrcMetric,
+			scale
+		)
+		if(!dryRun) tokenLeft.drawFast(this.root, currLeft, y, 'right', 'middle')
+		currLeft -= tokenLeft.measureFast(this.root)[0]
+
+		if(note.rolePrefix) {
+			let prefixText = '(' + note.rolePrefix + ')'
+			const tokenRole = new PaintTextToken(
+				prefixText, lrcMetric,
+				scale
+			)
+			if(!dryRun) tokenRole.drawFast(this.root, currLeft, y, 'right', 'middle')
+			currLeft -= tokenRole.measureFast(this.root)[0]
+		}
+
+		const tokenRight = new PaintTextToken(
+			note.postfix, lrcMetric,
+			scale
+		)
+		if(!dryRun) tokenRight.drawFast(this.root, currRight, y, 'left', 'middle')
+		currRight += tokenRight.measureFast(this.root)[0]
+
+		return [currLeft, currRight]
+	}
+	/**
 	 * 绘制标记音符
 	 */
-	drawFCANote(context: RenderContext, startX: number, endX: number, y: number, annotationIndex: number, note: NoteCharForce | NoteCharChord | NoteCharText, isSmall: boolean, scale: number = 1, extraStyles: ExtraStyles = {}, dryRun: boolean = false) {
+	drawFCANote(context: RenderContext, startX: number, endX: number, y: number, annotationIndex: number, note: NoteCharForce | NoteCharChord | NoteCharText, isSmall: boolean, scale: number = 1, extraStyles: ExtraStyles = {}) {
 		if('void' in note) {
 			return
 		}

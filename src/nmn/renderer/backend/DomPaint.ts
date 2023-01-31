@@ -7,7 +7,7 @@ type ExtraStyles = {[_: string]: number | string}
 const measureCache: {[_: string]: [number, number]} = {}
 const measureCacheFast: {[_: string]: [number, number]} = {}
 
-const upScale = window.navigator.userAgent.indexOf('Edg') != -1 ? 100 : 5  // 将字体和图元大小数据调高，然后通过 transform scale 还原，一可以提高打印质量，二可以避免最小字体问题。
+const upScale = window.navigator.userAgent.indexOf('Edg') != -1 ? 2.5 : 5  // 将字体和图元大小数据调高，然后通过 transform scale 还原，一可以提高打印质量，二可以避免最小字体问题。
 // upScale 小了会出事情，现在暂时不管为什么
 
 export class DomPaint {
@@ -117,8 +117,8 @@ export class DomPaint {
 		let fontSize = font.fontSize * font.fontScale
 		x /= fontSize
 		y /= fontSize
-		const tx = {left: '0', center: '-50%', right: '-100%'}[align]
-		const ty = {top: '0', middle: '-50%', bottom: '-100%'}[alignY]
+		const tx = {left: 0, center: -50, right: -100}[align]
+		const ty = {top: 0, middle: -50, bottom: -100}[alignY]
 		$(this.element).append(
 			$('<span></span>').text(text).css('color', '#000')
 			.css('white-space', 'pre')
@@ -131,7 +131,7 @@ export class DomPaint {
 			.css('top', `0`)
 			.css('left', `0`)
 			.css('transform-origin', 'top left')
-			.css('transform', ` translateX(${x/scale/upScale}em) translateY(${y / upScale}em) scale(${1/upScale}) translateX(${tx}) translateY(${ty})`)
+			.css('transform', `translateX(${x/scale/upScale}em) translateY(${y / upScale}em) scale(${1/upScale}) translateX(${tx}%) translateY(${ty}%) `)
 			.css(extraStyles)
 		)
 	}
