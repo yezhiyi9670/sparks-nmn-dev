@@ -1,6 +1,7 @@
 import { I18n } from '../../i18n'
 import { Linked2LyricChar } from '../../parser/des2cols/types'
-import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, MusicNote, MusicProps, MusicSection, NoteCharAny, noteCharChecker, NoteCharChord, NoteCharForce, NoteCharMusic, NoteCharText, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
+import { getLrcSymbolEquivalent } from '../../parser/sparse2des/lyrics/symbols'
+import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, LrcAttr, MusicNote, MusicProps, MusicSection, NoteCharAny, noteCharChecker, NoteCharChord, NoteCharForce, NoteCharMusic, NoteCharText, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
 import { findWithKey } from '../../util/array'
 import { Frac } from '../../util/frac'
 import { MusicTheory } from '../../util/music'
@@ -189,6 +190,30 @@ export class MusicPaint {
 		})
 	}
 	/**
+	 * 绘制歌词迭代数
+	 */
+	drawLyricLabel(context: RenderContext, x: number, y: number, attrs: LrcAttr[], scale: number = 1, extraStyles: ExtraStyles = {}) {
+		let currX = x
+		let attrY = y
+		const margin = 0.5 * scale
+		let totalWidth = 0
+		const fontDesc = context.render.font_lyrics!
+		attrs.forEach((attr) => {
+			if(attr.type == 'iter') {
+				const measure = this.drawIterOrString(context, currX, attrY, attr, fontDesc, 2.16, scale, {}, true)
+				totalWidth += measure[0] + margin
+			}
+		})
+		currX -= totalWidth
+		attrs.forEach((attr) => {
+			if(attr.type == 'iter') {
+				currX += margin
+				const measure = this.drawIterOrString(context, currX, attrY, attr, fontDesc, 2.16, scale, {}, false)
+				currX += measure[0]
+			}
+		})
+	}
+	/**
 	 * 绘制跳房子记号的属性
 	 */
 	drawJumperAttrs(context: RenderContext, startX: number, y: number, attrs: JumperAttr[], fontScale: number, scale: number) {
@@ -308,7 +333,7 @@ export class MusicPaint {
 		const mainWidth = tokenMain.measureFast(this.root)[0]
 		let baseX = startX
 		if(baseAnchor == 'center') {
-			if(note.grouped && note.text.length > 0) {
+			if(note.isCharBased && note.text.length > 0) {
 				const firstWidth = this.root.measureTextFast(note.text[0], lrcMetric)[0]
 				baseX += mainWidth / 2 - firstWidth / 2
 			}
@@ -321,12 +346,16 @@ export class MusicPaint {
 		let currLeft = baseX - mainWidth / 2
 		let currRight = baseX + mainWidth / 2
 		
-		const tokenLeft = new PaintTextToken(
-			note.prefix, lrcMetric,
-			scale
-		)
-		if(!dryRun) tokenLeft.drawFast(this.root, currLeft, y, 'right', 'middle')
-		currLeft -= tokenLeft.measureFast(this.root)[0]
+		for(let i = note.prefix.length - 1; i >= 0; i--) {
+			const leftText = note.prefix[i]
+			const tokenLeft = new PaintTextToken(
+				leftText, lrcMetric,
+				scale
+			)
+			if(!dryRun) tokenLeft.drawFast(this.root, currLeft, y, 'right', 'middle')
+			tokenLeft.text = getLrcSymbolEquivalent(tokenLeft.text)
+			currLeft -= tokenLeft.measureFast(this.root)[0]
+		}
 
 		if(note.rolePrefix) {
 			let prefixText = '(' + note.rolePrefix + ')'
@@ -338,12 +367,16 @@ export class MusicPaint {
 			currLeft -= tokenRole.measureFast(this.root)[0]
 		}
 
-		const tokenRight = new PaintTextToken(
-			note.postfix, lrcMetric,
-			scale
-		)
-		if(!dryRun) tokenRight.drawFast(this.root, currRight, y, 'left', 'middle')
-		currRight += tokenRight.measureFast(this.root)[0]
+		for(let i = 0; i < note.postfix.length; i++) {
+			const rightText = note.postfix[i]
+			const tokenRight = new PaintTextToken(
+				rightText, lrcMetric,
+				scale
+			)
+			if(!dryRun) tokenRight.drawFast(this.root, currRight, y, 'left', 'middle')
+			tokenRight.text = getLrcSymbolEquivalent(tokenRight.text)
+			currRight += tokenRight.measureFast(this.root)[0]
+		}
 
 		return [currLeft, currRight]
 	}

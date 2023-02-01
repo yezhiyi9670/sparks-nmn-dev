@@ -101,7 +101,7 @@ export class LyricsParser {
 						checks[rpt] = true
 						const token = lrcTokens[rpt]!
 						if(token.type == 'symbol' && token.slot == 'after') {
-							postfix = token.char + postfix
+							postfix = postfix + token.char
 						} else {
 							checks[rpt] = false
 							break

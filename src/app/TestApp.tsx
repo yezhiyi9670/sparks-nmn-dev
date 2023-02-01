@@ -61,7 +61,12 @@ export function PageHeader(props: PageHeaderProps) {
 }
 
 export function TestApp() {
+	let storedData = localStorage.getItem('sparks-nmn-demo-src')
+	function handleChange(src: string) {
+		localStorage.setItem('sparks-nmn-demo-src', src)
+	}
+
 	return <PageHeader text="Sparks NMN Dev Demo">
-		<DemoEditor initialContent={testdata1} />
+		<DemoEditor initialContent={storedData ?? testdata1} onChange={handleChange} />
 	</PageHeader>
 }

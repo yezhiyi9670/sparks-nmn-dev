@@ -1,3 +1,4 @@
+import { inCheck } from "../../../util/array";
 import { LyricDestructionType } from "../types";
 
 export type LrcSymbolType = 'word' | 'prefix' | 'postfix' | 'divide' | 'placeholder'
@@ -46,4 +47,34 @@ export function getLrcSymbolType(symbol: string, typeSampler: LyricDestructionTy
 		return 'divide'
 	}
 	return 'word'
+}
+
+/**
+ * 查找歌词前后缀字符的测量等价类
+ */
+export function getLrcSymbolEquivalent(symbol: string) {
+	let symbolMap = {
+		'，': ',',
+		'。': '.',
+		'！': '!',
+		'？': '?',
+		'：': ':',
+		'；': ';',
+		'『': '(',
+		'「': '(',
+		'』': ')',
+		'」': ')',
+		'《': '⟪',
+		'》': '⟫',
+		'〈': '⟨',
+		'〉': '⟩',
+		'“': '"',
+		'”': '"',
+		'‘': '"',
+		'’': '"'
+	}
+	if(inCheck(symbol, symbolMap)) {
+		return symbolMap[symbol]
+	}
+	return symbol
 }

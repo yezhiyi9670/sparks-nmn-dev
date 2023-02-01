@@ -42,14 +42,16 @@ export class SectionsRenderer {
 				msp.drawSectionSeparator(
 					context, this.columns.startPosition(index), currY,
 					section.separator, 'before',
-					1, scale
+					isSmall ? 0.6 : 1, scale
 				)
 			}
-			msp.drawSectionSeparator(
-				context, this.columns.endPosition(index), currY,
-				section.separator, isLast ? 'after' : 'next',
-				1, scale
-			)
+			if(!isSmall || index < sections.length - 1) {
+				msp.drawSectionSeparator(
+					context, this.columns.endPosition(index), currY,
+					section.separator, isLast ? 'after' : 'next',
+					isSmall ? 0.6 : 1, scale
+				)
+			}
 		})
 
 		// ===== 小节序号 =====
@@ -123,8 +125,9 @@ export class SectionsRenderer {
 					}
 					return this.columns.fracPosition(sectionIndex, frac)
 				})
+				const heightScale = isSmall ? 0.7 : 1
 				let topY = currY - noteMeasure[1] / 2 - noteMeasure[1] * (0.22 * maxTopOctave + 0.1)
-				let maxHeight = [noteMeasure[1] * 0.55, noteMeasure[1] * 0.65, noteMeasure[1] * 0.75][decor.level]
+				let maxHeight = [noteMeasure[1] * 0.55, noteMeasure[1] * 0.65, noteMeasure[1] * 0.75][decor.level] * heightScale
 				
 				if(startX != startX) {
 					startX = this.columns.startPosition(0)
@@ -166,27 +169,29 @@ export class SectionsRenderer {
 					}
 				})
 				// 画三连音
-				section.decoration.forEach((decor) => {
-					if(decor.char == 'T') {
-						const startX = this.columns.fracPosition(sectionIndex, Frac.add(section.startPos, decor.startPos)) - noteMeasure[0] / 2
-						const endX = this.columns.fracPosition(sectionIndex, Frac.add(section.startPos, decor.endPos)) + noteMeasure[0] / 2
-						const lowY = currY - noteMeasure[1] / 2 - 0.5
-						const highY = currY - noteMeasure[1] / 2 - 2
-						const midX = (startX + endX) / 2
-						const threeToken = new PaintTextToken(
-							'3', new FontMetric('SparksNMN-mscore-20/400', 3),
-							scale, {fontStyle: 'italic'}
-						)
-						const threeMeasure = threeToken.measureFast(root)
-						const midLX = midX - threeMeasure[0]
-						const midRX = midX + threeMeasure[0]
-						root.drawLine(startX, lowY, startX, highY, 0.2, 0.1, scale)
-						root.drawLine(startX, highY, midLX, highY, 0.2, 0.1, scale)
-						threeToken.drawFast(root, midX, highY, 'center', 'middle')
-						root.drawLine(midRX, highY, endX, highY, 0.2, 0.1, scale)
-						root.drawLine(endX, lowY, endX, highY, 0.2, 0.1, scale)
-					}
-				})
+				if(!isSmall) {
+					section.decoration.forEach((decor) => {
+						if(decor.char == 'T') {
+							const startX = this.columns.fracPosition(sectionIndex, Frac.add(section.startPos, decor.startPos)) - noteMeasure[0] / 2
+							const endX = this.columns.fracPosition(sectionIndex, Frac.add(section.startPos, decor.endPos)) + noteMeasure[0] / 2
+							const lowY = currY - noteMeasure[1] / 2 - 0.5
+							const highY = currY - noteMeasure[1] / 2 - 2
+							const midX = (startX + endX) / 2
+							const threeToken = new PaintTextToken(
+								'3', new FontMetric('SparksNMN-mscore-20/400', 3),
+								scale, {fontStyle: 'italic'}
+							)
+							const threeMeasure = threeToken.measureFast(root)
+							const midLX = midX - threeMeasure[0]
+							const midRX = midX + threeMeasure[0]
+							root.drawLine(startX, lowY, startX, highY, 0.2, 0.1, scale)
+							root.drawLine(startX, highY, midLX, highY, 0.2, 0.1, scale)
+							threeToken.drawFast(root, midX, highY, 'center', 'middle')
+							root.drawLine(midRX, highY, endX, highY, 0.2, 0.1, scale)
+							root.drawLine(endX, lowY, endX, highY, 0.2, 0.1, scale)
+						}
+					})
+				}
 				// 画插入符号
 				const insertCount: {[_: string]: number} = {}
 				section.decoration.forEach((decor) => {

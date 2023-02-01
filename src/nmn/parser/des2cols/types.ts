@@ -115,6 +115,10 @@ export type Linked2LyricLineBase = DestructedFCA & {
 }
 export type Linked2LyricLine = Linked2LyricLineBase & {
 	indexMap: number[]
+	/**
+	 * 标签属性
+	 */
+	attrsMap: LrcAttr[][]
 }
 
 export type Linked2LyricSection = {
@@ -199,6 +203,7 @@ export type LinedPart = DestructedFCA & {
 }
 export type LinedLyricLine = Linked2LyricLineBase & {
 	index: number[]
+	attrs: LrcAttr[]
 }
 
 // =====================================================================

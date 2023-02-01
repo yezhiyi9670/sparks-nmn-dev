@@ -275,6 +275,7 @@ export class ColumnStater {
 								head: 'C',
 								sections: []
 							},
+							attrsMap: [],
 							annotations: [],
 							indexMap: [],
 							signature: sig
@@ -288,8 +289,15 @@ export class ColumnStater {
 					this.mergeFCA(frontier, lyricLine, lyricLine.offset, -1)
 					// 合并 indexMap
 					fillArray(frontier.indexMap, lyricLine.offset, sectionCount - lyricLine.offset, lyricLine.index, -1)
+					// 合并 attrsMap
+					fillArray(frontier.attrsMap, lyricLine.offset, sectionCount - lyricLine.offset, lyricLine.lyric.tags, [])
 					// 合并替代段落
 					lyricLine.notesSubstitute.forEach((Ns) => {
+						Ns.sections.forEach((section, index) => {
+							const myIndex = index + Ns.substituteLocation
+							const mySection = part.notes.sections[myIndex]
+							section.startPos = mySection.startPos
+						})
 						SectionStat.interLink(Ns.sections, Ns.decorations)
 						frontier.notesSubstitute.push(Ns)
 					})
@@ -415,26 +423,46 @@ export class ColumnStater {
 				const lrcSigs: LyricLineSignature[] = []
 				const lrcLines: LinedLyricLine[] = []
 				part.lyricLines.forEach((lrcLine) => {
-					if(SectionStat.allNullish(lrcLine.sections, sectionPtr, sectionCount)) {
+					const mappedNs = lrcLine.notesSubstitute.filter((Ns) => {
+						return SectionStat.sectionRangeOverlaps([sectionPtr, sectionCount], [
+							Ns.substituteLocation,
+							Ns.sections.length
+						])
+					}).map((Ns) => {
+						return {
+							...Ns,
+							substituteLocation: Ns.substituteLocation - sectionPtr
+						}
+					}).map((Ns) => {
+						// Clipping
+						if(Ns.substituteLocation < 0) {
+							Ns.sections = Ns.sections.slice(-Ns.substituteLocation)
+							Ns.substituteLocation = 0
+						}
+						const leftLength = sectionCount - Ns.substituteLocation
+						if(Ns.sections.length > leftLength) {
+							Ns.sections = Ns.sections.slice(0, leftLength)
+						}
+						console.log('clipped', Ns)
+						Ns.decorations = Ns.decorations.filter((decor) => {
+							return SectionStat.fieldOverlaps(
+								field,
+								[decor.startPos, decor.endPos]
+							)
+						})
+						return Ns
+					})
+					if(SectionStat.allNullish(lrcLine.sections, sectionPtr, sectionCount) && mappedNs.length == 0) {
 						// 此行声部可以不包含这一歌词行
 						return
 					}
 					lrcSigs.push(lrcLine.signature)
-					const { force, chord, annotations, sections, indexMap, notesSubstitute, ...others } = lrcLine
+					const { force, chord, annotations, sections, indexMap, attrsMap, notesSubstitute, ...others } = lrcLine
 					lrcLines.push({
 						sections: sections.slice(sectionPtr, sectionPtr + sectionCount),
 						index: indexMap.slice(sectionPtr, sectionPtr + sectionCount),
-						notesSubstitute: notesSubstitute.filter((Ns) => {
-							return SectionStat.sectionRangeOverlaps([sectionPtr, sectionCount], [
-								Ns.substituteLocation,
-								Ns.sections.length
-							])
-						}).map((Ns) => {
-							return {
-								...Ns,
-								substituteLocation: Ns.substituteLocation - sectionPtr
-							}
-						}),
+						attrs: attrsMap[sectionPtr],
+						notesSubstitute: mappedNs,
 						...this.subFCA({ force, chord, annotations }, sectionPtr, sectionCount),
 						...others
 					})

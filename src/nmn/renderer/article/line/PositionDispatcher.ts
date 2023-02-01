@@ -9,6 +9,7 @@ import { RenderContext } from "../../renderer"
 import { addNotesScale, getLineFont } from "./font/fontMetrics"
 
 type NMNLine = (NMNResult['result']['articles'][0] & {type: 'music'})['lines'][0]
+const checkEps = 0.001
 
 type SectionPositions = {
 	/**
@@ -69,12 +70,14 @@ export class PositionDispatcher {
 	scale: number
 	data: SectionPositions[] = []
 
-	constructor(root: DomPaint, line: NMNLine, context: RenderContext) {
+	constructor(root: DomPaint, line: NMNLine, context: RenderContext, dispatch: boolean = true) {
 		this.root = root
 		this.line = line
 		this.context = context
 		this.scale = context.render.scale!
-		this.dispatch()
+		if(dispatch) {
+			this.dispatch()
+		}
 	}
 
 	/**
@@ -341,7 +344,7 @@ export class PositionDispatcher {
 							}
 							let lm = 0
 							let rm = 0
-							const dm = this.root.measureTextFast('a', lrcMetric, this.scale)[0] / 4
+							const dm = this.root.measureTextFast('a', lrcMetric, this.scale)[0] / 3
 							// 词基歌词的单词左右需要留空位，防止单词粘连。
 							if(!char.isCharBased) {
 								const preChar = chars[charIndex - 1]
@@ -442,7 +445,7 @@ export class PositionDispatcher {
 				// ===== 分配位置 =====
 				let currentPos = data.range[0]
 				for(let i = 0; i < data.columns.length; i++) {
-					const isRigid = data.columns[i].rigid[0]
+					let isRigid = data.columns[i].rigid[0]
 					if(isRigid) {
 						if(i > 0) {
 							currentPos += data.columns[i].requiredField[0]
@@ -457,6 +460,7 @@ export class PositionDispatcher {
 						currentPos += totalSpare / Frac.toFloat(totalWeight) * Frac.toFloat(weights[i])
 					}
 					data.columns[i].position = currentPos
+					isRigid = data.columns[i].rigid[1]
 					if(isRigid) {
 						currentPos += data.columns[i].requiredField[1]
 					} else {
@@ -478,7 +482,7 @@ export class PositionDispatcher {
 						requiredField += data.columns[i - 1].requiredField[1]
 					}
 					const currPos = data.columns[i].position
-					if(currPos - lastPos < requiredField) {
+					if(currPos - lastPos + checkEps < requiredField) {
 						if(isRigid) {
 							return 'dead'
 						} else {
@@ -494,7 +498,7 @@ export class PositionDispatcher {
 				const currPos = data.range[1]
 				let lastColumn = data.columns[data.columns.length - 1]!
 				const isRigid = lastColumn.rigid[1]
-				if(currPos - lastPos < lastColumn.requiredField[1]) {
+				if(currPos - lastPos + checkEps < lastColumn.requiredField[1]) {
 					if(isRigid) {
 						return 'dead'
 					} else {
@@ -511,17 +515,14 @@ export class PositionDispatcher {
 			const clearRigid = () => {
 				const data = this.data[sectionIndex]
 				data.columns.forEach((col) => {
-					col.rigid[0] = col.rigid[1] = true
+					col.rigid[0] = col.rigid[1] = false
 				})
 			}
-			/* TODO[Dev]: Debug this fucking thing. Field width is right, but something wrong with spare calculation */
-			console.log('begin', this.data)
 			let iters = 0
 			clearRigid()
 			while(true) {
 				attempDispatch()
 				const ch = checkRequired()
-				console.log(ch)
 				if(ch == 'pass') {
 					return
 				} else if(ch == 'dead') {
