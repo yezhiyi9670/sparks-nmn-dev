@@ -1,20 +1,27 @@
 import { Ace } from "ace-builds"
-import React from "react"
+import React, { useImperativeHandle } from "react"
 import { SparksNMNLanguage, NMNI18n, NMNIssue } from ".."
 import { CodeEditor } from "./CodeEditor/CodeEditor"
 import AceEditor from 'react-ace'
 import languageArray_zh_cn from '../../nmn/i18n/zh_cn'
-import 'ace-builds/src-noconflict/mode-python'
+import 'ace-builds/src-noconflict/mode-plain_text'
 import './mode/sparksnmn'
+import { renderPropsDefault } from "../renderer/props"
+import { iterateMap } from "../util/array"
 
 interface SparksNMNEditorProps {
 	name: string
 	value?: string
 	onChange?: (_: string) => void
 	issues?: NMNIssue[]
+	ref?: React.Ref<AceEditor>
 }
-export const SparksNMNEditor = (props: SparksNMNEditorProps) => {
+export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, parentRef: React.Ref<AceEditor>) => {
 	const ref = React.useRef<AceEditor>(null)
+
+	useImperativeHandle(parentRef, () => {
+		return ref.current!
+	})
 
 	const languageArray = languageArray_zh_cn
 
@@ -41,8 +48,9 @@ export const SparksNMNEditor = (props: SparksNMNEditorProps) => {
 		editor.completers.push({
 			getCompletions: (editor, session, pos, prefix, callback) => {
 				const lineText = session.getLine(pos.row)
+				let linePrefixText = lineText.substring(0, pos.column).trim()
 				// ===== 行首标识符自动补全 =====
-				if(lineText.substring(0, pos.column).trim() == prefix) {
+				if(linePrefixText == prefix) {
 					const completes: Ace.Completion[] = SparksNMNLanguage.commandDefs.map((val): Ace.Completion => {
 						return {
 							name: val.head,
@@ -64,6 +72,19 @@ export const SparksNMNEditor = (props: SparksNMNEditorProps) => {
 						return false
 					})
 					callback(null, completes)
+					return
+				}
+				// ===== 渲染属性自动补全 =====
+				if(/^Rp(.*?):/.test(linePrefixText) && !/=(\S*)$/.test(linePrefixText)) {
+					const completes = iterateMap(renderPropsDefault as any, (value, key): Ace.Completion => {
+						return {
+							name: key,
+							value: key + '=',
+							score: 100,
+							meta: NMNI18n.renderPropsDesc(languageArray, key)
+						}
+					})
+					callback(null, completes)
 				}
 			}
 		})
@@ -78,4 +99,4 @@ export const SparksNMNEditor = (props: SparksNMNEditorProps) => {
 		lineWrap={false}
 		onLoad={handleLoad}
 	/>
-}
+})

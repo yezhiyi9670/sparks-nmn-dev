@@ -7,7 +7,7 @@ import { LinedIssue, addIssue } from "../parser";
 import { BracketFilter, BracketPairFilters, BracketTokenList, TokenFilter, Tokens } from "../tokenizer/tokens";
 import { scoreContextDefault } from "./context";
 import { NoteEater } from "./sections/NoteEater";
-import { AttrBeats, AttrDecor, attrDecorCheck, attrDecorPriority, AttrDelta, AttrDurability, AttrIter, AttrLabel, AttrNotes, AttrOctave, AttrOpenRange, AttrQpm, AttrRepeat, AttrScriptedText, AttrShift, AttrSlide, AttrText, Beats, MusicSection, NoteCharMusic, Qpm } from "./types";
+import { AttrBeats, AttrDecor, attrDecorCheck, attrDecorPriority, AttrDelta, AttrDurability, AttrIter, AttrLabel, AttrNotes, AttrOctave, AttrOpenRange, AttrQpm, AttrRepeat, AttrScriptedText, AttrShift, AttrSlide, AttrText, AttrWeight, Beats, MusicSection, NoteCharMusic, Qpm } from "./types";
 
 export module AttrMatcher {
 	export function matchIter(tokens: BracketTokenList): AttrIter | undefined {
@@ -20,6 +20,21 @@ export module AttrMatcher {
 				iter: +(result[0] as string)
 			}
 		})
+	}
+	export function matchWeight(tokens: BracketTokenList): AttrWeight | undefined {
+		const str = Tokens.stringify(tokens, '', ',')
+		const matched = str.match(/^w=(.*?)$/)
+		if(matched) {
+			const val = +matched[1]
+			if(val == val && 0 < val && val < 65536) {
+				console.log('section weight', val)
+				return {
+					type: 'weight',
+					weight: val
+				}
+			}
+		}
+		return undefined
 	}
 	export function matchOpenRange(tokens: BracketTokenList): AttrOpenRange | undefined {
 		return new BracketPairFilters(

@@ -31,6 +31,10 @@ export interface RenderProps {
 	 */
 	connector_left?: number
 	/**
+	 * 渲染每声部起始小节的小节线
+	 */
+	left_separator?: boolean
+	/**
 	 * 延长连音线灰色提示
 	 */
 	grayout?: boolean
@@ -100,6 +104,7 @@ export const renderPropsDefault: RenderProps = {
 	scale: 1.0,
 	gutter_left: 1,
 	connector_left: 0,
+	left_separator: false,
 	grayout: false,
 	explicitmarkers: true,
 	font_part: 'SimSun/700',
@@ -131,7 +136,7 @@ export function renderPropConvert(key: string, val: string) {
 		}
 		return { error: 'value' }
 	}
-	if(key == 'debug' || key == 'grayout' || key == 'explicitmarkers') {
+	if(key == 'debug' || key == 'grayout' || key == 'explicitmarkers' || key == 'left_separator') {
 		if(val == 'true') {
 			return true
 		}

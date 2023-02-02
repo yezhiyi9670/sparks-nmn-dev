@@ -65,7 +65,7 @@ export class LineRenderer {
 
 		sections.push({
 			element: new DomPaint().element,
-			height: 2 * scale,
+			height: 3 * scale,
 			isMargin: true
 		})
 	}
@@ -96,8 +96,10 @@ export class LineRenderer {
 		currY += 2
 
 		// ===== 渲染歌词行 =====
+		isFirst = true
 		part.lyricLines.forEach((lyricLine) => {
-			currY += this.renderLyricLine(currY, lyricLine, part, line, root, context)
+			currY += this.renderLyricLine(currY, lyricLine, part, line, isFirst, root, context)
+			isFirst = false
 		})
 
 		return currY - startY
@@ -106,7 +108,7 @@ export class LineRenderer {
 	/**
 	 * 渲染歌词行
 	 */
-	renderLyricLine(startY: number, lyricLine: NMNLrcLine, part: NMNPart, line: NMNLine, root: DomPaint, context: RenderContext) {
+	renderLyricLine(startY: number, lyricLine: NMNLrcLine, part: NMNPart, line: NMNLine, isFirst: boolean, root: DomPaint, context: RenderContext) {
 		let currY = startY
 		const scale = context.render.scale!
 		const lrcLineField = 2.2 * new FontMetric(context.render.font_lyrics!, 2.16).fontScale
@@ -119,9 +121,14 @@ export class LineRenderer {
 		currY += this.renderLineFCA(startY, lyricLine, true, root, context)
 
 		const shouldDrawLyrics = !SectionStat.allNullish(lyricLine.sections, 0, lyricLine.sections.length)
+		const shouldDrawSubstitute = lyricLine.notesSubstitute.length > 0
+
+		if(isFirst) {
+			currY -= 1.3 // 减小间距方便歌词阅读
+		}
 
 		// ===== 替代旋律 =====
-		if(lyricLine.notesSubstitute.length > 0) {
+		if(shouldDrawSubstitute) {
 			const substituteField = 4.4
 			currY += substituteField / 2
 

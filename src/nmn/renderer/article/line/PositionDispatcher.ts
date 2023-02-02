@@ -178,10 +178,19 @@ export class PositionDispatcher {
 		const gutterLeft = this.context.render.gutter_left!
 		const leftBoundary = gutterLeft * this.scale
 		const rightBoundary = 100
-		const sectionPadding = gutterLeft * this.scale
-		const oneWidth = (rightBoundary - leftBoundary) / this.line.sectionCountShould
+		const sectionPadding = 1 * this.scale
+		
+		let currentStart = leftBoundary
+		let totalWeights = 0
+		this.line.sectionWeights.forEach((weight) => {
+			totalWeights += weight
+		})
+		totalWeights += this.line.sectionCountShould - this.line.sectionCount
+		
 		this.line.sectionFields.forEach((fields, index) => {
-			const [ rangeL, rangeR ] = [ leftBoundary + oneWidth * index, leftBoundary + oneWidth * (index + 1) ]
+			let currentEnd = currentStart + (rightBoundary - leftBoundary) / totalWeights * this.line.sectionWeights[index]
+			const [ rangeL, rangeR ] = [ currentStart, currentEnd ]
+			currentStart = currentEnd
 			const newSec: SectionPositions = {
 				realRange: [rangeL, rangeR],
 				range: [rangeL, rangeR],
@@ -344,7 +353,7 @@ export class PositionDispatcher {
 							}
 							let lm = 0
 							let rm = 0
-							const dm = this.root.measureTextFast('a', lrcMetric, this.scale)[0] / 3
+							const dm = this.root.measureTextFast('a', lrcMetric, this.scale)[0] / 2
 							// 词基歌词的单词左右需要留空位，防止单词粘连。
 							if(!char.isCharBased) {
 								const preChar = chars[charIndex - 1]

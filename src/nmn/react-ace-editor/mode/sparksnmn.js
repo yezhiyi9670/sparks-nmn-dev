@@ -180,6 +180,11 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 				...continueOrRestart(mode + '_bracket'),
 				{
 					token: 'constant.numeric',
+					regex: /\]$/,
+					next: 'start'
+				},
+				{
+					token: 'constant.numeric',
 					regex: /\]/,
 					next: mode
 				},
@@ -190,6 +195,11 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 			addMode(mode + '_brace', [
 				...commonMode(mode + '_brace', false),
 				...continueOrRestart(mode + '_brace'),
+				{
+					token: 'keyword',
+					regex: /\}$/,
+					next: 'start'
+				},
 				{
 					token: 'keyword',
 					regex: /\}/,
@@ -233,6 +243,11 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 				...continueOrRestart(mode + '_bracket'),
 				{
 					token: 'constant.numeric',
+					regex: /\]\]$/,
+					next: 'start'
+				},
+				{
+					token: 'constant.numeric',
 					regex: /\]\]/,
 					next: mode
 				},
@@ -243,6 +258,11 @@ ace.define("ace/mode/sparksnmn_highlight_rules", ["require", "exports", "module"
 			addMode(mode + '_brace', [
 				...commonMode(mode + '_brace', false),
 				...continueOrRestart(mode + '_brace'),
+				{
+					token: 'keyword',
+					regex: /\}$/,
+					next: 'start'
+				},
 				{
 					token: 'keyword',
 					regex: /\}/,
@@ -367,6 +387,7 @@ ace.define("ace/mode/sparksnmn", function (acequire, exports, module) {
 	const SparksnmnMode = function () {
 		this.lineCommentStart = '//'
 		this.HighlightRules = SparksnmnHighlightRules;
+		this.$behaviour = this.$defaultBehaviour;
 	};
 	oop.inherits(SparksnmnMode, TextMode);
 	exports.Mode = SparksnmnMode;

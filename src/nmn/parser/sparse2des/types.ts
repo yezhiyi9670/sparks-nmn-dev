@@ -40,6 +40,13 @@ export type AttrIter = {
 	iter: number
 }
 /**
+ * 小节的布局权重属性
+ */
+export type AttrWeight = {
+	type: 'weight'
+	weight: number
+}
+/**
  * 开放区间属性
  * 
  * 用在小节线属性上，表示属性渲染时强制换行
@@ -211,6 +218,7 @@ export type SeparatorAttr = {
 } & SeparatorAttrBase
 export type SeparatorAttrBase =
 	AttrIter |
+	AttrWeight |
 	AttrRepeat |
 	AttrOpenRange |
 	AttrQpm |
@@ -410,6 +418,10 @@ export type NoteCharAny =
  * 广义音符
  */
 export type MusicNote<NoteChar> = {
+	/**
+	 * 行号
+	 */
+	lineNumber: number
 	/**
 	 * 字符范围
 	 */

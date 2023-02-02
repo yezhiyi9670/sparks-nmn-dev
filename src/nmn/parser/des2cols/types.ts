@@ -169,6 +169,10 @@ export type LinedLine = {
 	 */
 	field: [Fraction, Fraction]
 	/**
+	 * 各小节的权重
+	 */
+	sectionWeights: number[]
+	/**
 	 * 起始小节编号
 	 */
 	startSection: number

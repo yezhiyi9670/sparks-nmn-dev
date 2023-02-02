@@ -38,10 +38,32 @@ const useStyles = createUseStyles({
 
 type PreviewViewProps = {
 	result: NMNResult | undefined
+	onPosition?: (row: number, col: number) => void
 }
 export function PreviewView(props: PreviewViewProps) {
 	const classes = useStyles()
 	const divRef = React.createRef<HTMLDivElement>()
+
+	const positionCallback = (row: number, col: number) => {
+		if(props.onPosition) {
+			props.onPosition(row, col)
+		}
+	}
+
+	const renderResultFields = React.useMemo(() => {
+		if(props.result) {
+			const startTime = +new Date()
+			const fields = SparksNMN.render(props.result.result, languageArray_zh_cn, positionCallback)
+			const endTime = +new Date()
+			console.log('Render took ', endTime - startTime, 'milliseconds')
+			return fields
+		} else {
+			return [{
+				element: jquery('<span style="font-size: 2em">Loading preview...</span>')[0],
+				height: 3
+			}]
+		}
+	}, [props.result])
 	
 	React.useEffect(() => {
 		const element = divRef.current
@@ -49,26 +71,7 @@ export function PreviewView(props: PreviewViewProps) {
 			return
 		}
 		const ef = new Equifield(element)
-		// let testArr: EquifieldSection[] = []
-		// for(let i = 0; i < 10; i++) {
-		// 	testArr.push({
-		// 		element: jquery('<span style="font-size: ' + (3 * Math.pow(0.9, i)) + 'em">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</span>')[0],
-		// 		height: 26 * Math.pow(0.9 * 0.9, i)
-		// 	})
-		// }
-		// ef.render(testArr)
-		if(props.result) {
-			const startTime = +new Date()
-			const fields = SparksNMN.render(props.result.result, languageArray_zh_cn)
-			const endTime = +new Date()
-			console.log('Render took ', endTime - startTime, 'milliseconds')
-			ef.render(fields)
-		} else {
-			ef.render([{
-				element: jquery('<span style="font-size: 2em">Loading preview...</span>')[0],
-				height: 3
-			}])
-		}
+		ef.render(renderResultFields)
 		return () => {
 			ef.destroy()
 		}

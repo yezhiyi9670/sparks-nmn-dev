@@ -140,7 +140,13 @@ export class MusicPaint {
 	 * @param sep 待绘制小节线
 	 */
 	drawSectionSeparator(context: RenderContext, x: number, y: number, sep: SectionSeparators, pos: 'before' | 'after' | 'next', fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}) {
-		const separatorText = this.symbolSectionSeparator(sep[pos].char)
+		let ch = sep[pos].char
+		if(pos == 'before' && context.render.left_separator!) {
+			if(ch == '/') {
+				ch = '|'
+			}
+		}
+		const separatorText = this.symbolSectionSeparator(ch)
 		const separatorMetric = new FontMetric('SparksNMN-Bravura/400' , 5.072 * fontScale) // 实际高度 5.184
 		const separatorSize = separatorMetric.fontScale * separatorMetric.fontSize
 		// 此处行首小节线定位方式取 left，避免与连谱号发生重叠
@@ -575,7 +581,11 @@ export class MusicPaint {
 			noteText = note.char.char
 		}
 		const metric = (noteText == '-' || noteCharChecker[noteText] == 0) ? noteMetricA : noteMetricB
-		this.root.drawTextFast(x, y, noteText, metric, scale, 'center', 'middle', extraStyles)
+		this.root.drawTextFast(x, y, noteText, metric, scale, 'center', 'middle', extraStyles, () => {
+			if(context.positionCallback) {
+				context.positionCallback(note.lineNumber, note.range[0])
+			}
+		})
 
 		return noteMeasure
 	}

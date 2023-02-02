@@ -12,6 +12,7 @@ export type LanguageArray = {
 	updown: {[_: string]: string}
 	metrics: {[_: string]: string}
 	render: {[_: string]: string}
+	render_props: {[_: string]: string}
 }
 
 class I18nClass {
@@ -29,6 +30,12 @@ class I18nClass {
 		const star = (commandDef.unique !== undefined && commandDef.required !== undefined) ? '★' : ''
 		const commandDesc = context.commands[commandDef.head] ?? ''
 		return `${star}[${levelNamesDesc}] ${commandDesc}`
+	}
+	/**
+	 * 获取渲染属性的描述
+	 */
+	renderPropsDesc(context: LanguageArray, key: string) {
+		return context.render_props[key] ?? ''
 	}
 	/**
 	 * 获取问题说明

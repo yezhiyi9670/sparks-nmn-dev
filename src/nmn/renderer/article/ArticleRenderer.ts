@@ -98,7 +98,11 @@ class ArticleRendererClass {
 			const rectWidth = Math.max(rectHeight * scale, headerMeasure[0] + headerPadding * 2)
 
 			root.drawRectOutline(currX, currY - rectHeight / 2, currX + rectWidth, currY + rectHeight / 2, 0.15, scale)
-			headerToken.draw(root, currX + rectWidth / 2, currY, 'center', 'middle')
+			headerToken.draw(root, currX + rectWidth / 2, currY, 'center', 'middle', () => {
+				if(context.positionCallback) {
+					context.positionCallback(article.title!.lineNumber, 0)
+				}
+			})
 			
 			currX += rectWidth
 

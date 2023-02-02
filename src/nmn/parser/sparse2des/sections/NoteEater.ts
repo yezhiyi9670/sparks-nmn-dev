@@ -206,6 +206,7 @@ export class NoteEater {
 					// 推入延音线
 					section.notes.push({
 						type: 'extend',
+						lineNumber: this.lineNumber,
 						range: token.range,
 						startPos: Frac.add(startPos, Frac.mul(ratio, position)),
 						length: Frac.mul(ratio, Frac.create(1)),
@@ -342,6 +343,7 @@ export class NoteEater {
 				const noteStartPos = Frac.add(startPos, Frac.mul(ratio, position))
 				extendingNote = {
 					type: 'note',
+					lineNumber: this.lineNumber,
 					range: [range0, Tokens.rangeSafe(this.input, this.tokenPtr, 0)],
 					startPos: noteStartPos,
 					length: Frac.mul(ratio, Frac.mul(length, tripletRatio)),

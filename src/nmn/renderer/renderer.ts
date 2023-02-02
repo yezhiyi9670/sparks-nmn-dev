@@ -15,13 +15,16 @@ export type EquifieldSection = {
 
 export type RenderContext = ScoreContext & {
 	language: LanguageArray
+	positionCallback: RenderPositionCallback | undefined
 }
+export type RenderPositionCallback = (lineNumber: number, charPos: number) => void
 
 class RendererClass {
-	render(score: NMNResult['result'], lng: LanguageArray): EquifieldSection[] {
+	render(score: NMNResult['result'], lng: LanguageArray, positionCallback: RenderPositionCallback | undefined): EquifieldSection[] {
 		let sections: EquifieldSection[] = []
 		const context = {
 			language: lng,
+			positionCallback: positionCallback,
 			...addMusicProp(addRenderProp(
 				scoreContextDefault, score.renderProps?.props
 			), score.musicalProps?.props)
@@ -40,6 +43,7 @@ class RendererClass {
 			}
 			const context = {
 				language: lng,
+				positionCallback: positionCallback,
 				...contextPre
 			}
 			ArticleRenderer.renderArticle(article, sections, context)

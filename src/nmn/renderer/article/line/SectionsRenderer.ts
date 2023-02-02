@@ -28,17 +28,17 @@ export class SectionsRenderer {
 		this.columns = columns
 	}
 
-	render(currY: number, part: SectionsRenderData, root: DomPaint, context: RenderContext, isFirst: boolean, isSmall: boolean) {
+	render(currY: number, part: SectionsRenderData, root: DomPaint, context: RenderContext, isFirstPart: boolean, isSmall: boolean) {
 		const sections = part.notes.sections
 		const msp = new MusicPaint(root)
 		const scale = context.render.scale!
 		const fieldHeight = isSmall ? 5.5 : 4.5
 
 		// ===== 小节线 =====
+		let firstSection = true
 		sections.forEach((section, index) => {
-			const isFirst = index == 0
 			const isLast = index == sections.length - 1
-			if(isFirst) {
+			if(firstSection) {
 				msp.drawSectionSeparator(
 					context, this.columns.startPosition(index), currY,
 					section.separator, 'before',
@@ -52,11 +52,12 @@ export class SectionsRenderer {
 					isSmall ? 0.6 : 1, scale
 				)
 			}
+			firstSection = false
 		})
 
 		// ===== 小节序号 =====
 		const ordinalMode = context.render!.sectionorder
-		if(isFirst && ordinalMode != 'none' && sections.length > 0) {
+		if(isFirstPart && ordinalMode != 'none' && sections.length > 0) {
 			let ordinalText = (sections[0]!.ordinal + 1).toString()
 			if(ordinalMode == 'paren') {
 				ordinalText = '(' + ordinalText + ')'
@@ -66,7 +67,7 @@ export class SectionsRenderer {
 			}
 			const ordinalX = this.columns.startPosition(0) - 0.5 * scale
 			const ordinalMetric = new FontMetric('Deng/400', 2.0)
-			root.drawText(ordinalX, currY - fieldHeight / 2, ordinalText, ordinalMetric, scale, 'left', 'bottom', {
+			root.drawText(ordinalX, currY - fieldHeight * 0.7, ordinalText, ordinalMetric, scale, 'left', 'bottom', {
 				fontStyle: ordinalMode == 'plain' ? 'italic' : 'normal'
 			})
 		}

@@ -29,10 +29,10 @@ export class PaintTextToken {
 	/**
 	 * 绘制文本
 	 */
-	draw(root: DomPaint, x: number, y: number, align: 'left' | 'center' | 'right', alignY: 'top' | 'middle' | 'bottom') {
-		return root.drawText(x, y, this.text, this.fontMetric, this.scale, align, alignY, this.extraStyles)
+	draw(root: DomPaint, x: number, y: number, align: 'left' | 'center' | 'right', alignY: 'top' | 'middle' | 'bottom', clickHandler?: () => void) {
+		return root.drawText(x, y, this.text, this.fontMetric, this.scale, align, alignY, this.extraStyles, clickHandler)
 	}
-	drawFast(root: DomPaint, x: number, y: number, align: 'left' | 'center' | 'right', alignY: 'top' | 'middle' | 'bottom') {
-		root.drawTextFast(x, y, this.text, this.fontMetric, this.scale, align, alignY, this.extraStyles)
+	drawFast(root: DomPaint, x: number, y: number, align: 'left' | 'center' | 'right', alignY: 'top' | 'middle' | 'bottom', clickHandler?: () => void) {
+		root.drawTextFast(x, y, this.text, this.fontMetric, this.scale, align, alignY, this.extraStyles, clickHandler)
 	}
 }

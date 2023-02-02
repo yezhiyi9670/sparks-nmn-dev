@@ -4,7 +4,7 @@ import { LinedIssue, Parser } from "./parser/parser"
 import { getLanguageValue } from './util/template'
 import { I18n, LanguageArray } from './i18n'
 import { commandDefs } from "./parser/commands"
-import { EquifieldSection, Renderer } from "./renderer/renderer"
+import { EquifieldSection, Renderer, RenderPositionCallback } from "./renderer/renderer"
 import { FontLoader } from "./renderer/FontLoader"
 
 /**
@@ -38,13 +38,15 @@ class SparksNMNClass {
 	 * 
 	 * 结果假设纸张的宽度是 120em，双侧页边距均为 10em。
 	 * 
-	 * @return `{element: HTMLElement, height: number}[]` element 为 DOM 元素，height 为以 em 为单位的高度。单个元素不应当在打印时截断，除非太长
+	 * positionCallback 用于定义点击可定位元素后的行为。
+	 * 
+	 * @return `{element: HTMLElement, height: number, noBreakAfter?: boolean}[]` element 为 DOM 元素，height 为以 em 为单位的高度。单个元素不应当在打印时截断，除非太长
 	 */
-	render(result: NMNResult['result'], lng: LanguageArray): EquifieldSection[] {
+	render(result: NMNResult['result'], lng: LanguageArray, positionCallback?: RenderPositionCallback): EquifieldSection[] {
 		if(!window || !('document' in window)) {
 			throw new NoRendererError('Sparks NMN renderer cannot work without a DOM window.')
 		}
-		return Renderer.render(result, lng)
+		return Renderer.render(result, lng, positionCallback)
 	}
 
 	/**

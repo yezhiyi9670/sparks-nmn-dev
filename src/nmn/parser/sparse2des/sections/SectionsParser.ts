@@ -196,6 +196,9 @@ class SectionsParserClass {
 		return ret
 	}
 
+	/**
+	 * 匹配小节线的属性
+	 */
 	matchSeparatorAttr(attrs: BracketTokenList[], lineNumber: number, issues: LinedIssue[]): SeparatorAttr[] {
 		let ret: SeparatorAttr[] = []
 		attrs.forEach((tokens) => {
@@ -213,6 +216,9 @@ class SectionsParserClass {
 			)
 			success ||= pushIfNonNull(ret,
 				rangize(AttrMatcher.matchIter(tokens))
+			)
+			success ||= pushIfNonNull(ret,
+				rangize(AttrMatcher.matchWeight(tokens))
 			)
 			success ||= pushIfNonNull(ret,
 				rangize(AttrMatcher.matchDurability(tokens))

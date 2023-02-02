@@ -2,7 +2,7 @@ import { expandArray, fillArray, findWithKey, iterateMap, paintArray } from "../
 import { Frac, Fraction } from "../../util/frac";
 import { LinedIssue } from "../parser";
 import { addMusicProp, addRenderProp, ScoreContext, scoreContextDefault } from "../sparse2des/context";
-import { DestructedArticle, DestructedFCA, DestructedLine, DestructedScore, LyricChar, MusicProps, MusicSection, NoteCharMusic } from "../sparse2des/types";
+import { AttrWeight, DestructedArticle, DestructedFCA, DestructedLine, DestructedScore, LyricChar, MusicProps, MusicSection, NoteCharMusic } from "../sparse2des/types";
 import { SectionStat } from "./section/SectionStat";
 import { ColumnScore, Jumper, LinedArticle, LinedLine, LinedLyricLine, LinedPart, Linked1LyricLine, Linked2Article, Linked2LyricChar, Linked2LyricLine, Linked2LyricSection, LinkedArticle, LinkedPart, LyricLineSignature, lyricLineSignature, partSignature, PartSignature } from "./types";
 
@@ -414,6 +414,7 @@ export class ColumnStater {
 			// 确定需要的声部
 			const sigs: PartSignature[] = []
 			const parts: LinedPart[] = []
+			const sectionWeights: number[] = Array(sectionCount).fill(0)
 			article.parts.forEach((part) => {
 				if(SectionStat.allNullish(part.notes.sections, sectionPtr, sectionCount)) {
 					// 此渲染行可以不包含这一声部。正常而言，空白区下方不会有非空的歌词行。
@@ -468,6 +469,14 @@ export class ColumnStater {
 					})
 				})
 				SectionStat.indexSort(lrcLines)
+				const mappedNotes = SectionStat.subLine(part.notes, sectionPtr, sectionCount)
+				// 统计布局权重
+				mappedNotes.sections.forEach((section, sectionIndex) => {
+					const weightProp = findWithKey(section.separator.before.attrs, 'type', 'weight') as AttrWeight
+					if(weightProp) {
+						sectionWeights[sectionIndex] = Math.max(sectionWeights[sectionIndex], weightProp.weight)
+					}
+				})
 				parts.push({
 					lineNumber: part.lineNumber,
 					signature: part.signature,
@@ -478,15 +487,21 @@ export class ColumnStater {
 						])
 					}),
 					index: part.indexMap.slice(sectionPtr, sectionPtr + sectionCount),
-					notes: SectionStat.subLine(part.notes, sectionPtr, sectionCount),
+					notes: mappedNotes,
 					lyricLineSignatures: lrcSigs,
 					lyricLines: lrcLines,
 					...this.subFCA(part, sectionPtr, sectionCount)
 				})
 			})
 			SectionStat.indexSort(parts)
+			sectionWeights.forEach((val, index) => {
+				if(val == 0) {
+					sectionWeights[index] = 1
+				}
+			})
 			lines.push({
 				field: field,
+				sectionWeights: sectionWeights,
 				startSection: sectionPtr,
 				sectionCountShould: sectionCountShould,
 				sectionCount: sectionCount,

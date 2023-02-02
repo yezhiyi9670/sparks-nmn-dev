@@ -78,9 +78,18 @@ export function DemoEditor(props: DemoEditorProps) {
 		parseNMN(showContent)
 	})
 
+	const handlePosition = React.useCallback((row: number, col: number) => {
+		const editor = editorRef.current?.editor
+		if(!editor) {
+			return
+		}
+		editor.moveCursorTo(row - 1, col)
+		editor.renderer.scrollCursorIntoView(editor.getCursorPosition())
+		editor.focus()
+	}, [editorRef])
 	const resultPreview = React.useMemo(() => {
-		return <PreviewView result={result} />
-	}, [ result ])
+		return <PreviewView result={result} onPosition={handlePosition} />
+	}, [ result, handlePosition ])
 
 	return <div className={classes.outer}>
 		<div className={classes.previewSide}>
@@ -92,6 +101,7 @@ export function DemoEditor(props: DemoEditorProps) {
 				name='code'
 				value={showContent}
 				onChange={handleChange}
+				ref={editorRef}
 				issues={result?.issues}
 			/>
 		</div>
