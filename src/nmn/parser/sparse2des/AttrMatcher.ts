@@ -27,7 +27,6 @@ export module AttrMatcher {
 		if(matched) {
 			const val = +matched[1]
 			if(val == val && 0 < val && val < 65536) {
-				console.log('section weight', val)
 				return {
 					type: 'weight',
 					weight: val

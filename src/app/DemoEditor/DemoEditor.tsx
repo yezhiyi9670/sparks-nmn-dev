@@ -71,7 +71,14 @@ export function DemoEditor(props: DemoEditorProps) {
 		if(props.onChange) {
 			props.onChange(newContent)
 		}
-		parseDethrottle(parseNMN)(newContent)
+		// parseDethrottle(parseNMN)(newContent)
+	}
+
+	function handleKeyDown(event: React.KeyboardEvent) {
+		if(event.ctrlKey && event.key == 's') {
+			parseDethrottle(parseNMN)(showContent)
+			event.preventDefault()
+		}
 	}
 
 	useOnceEffect(() => {
@@ -86,8 +93,9 @@ export function DemoEditor(props: DemoEditorProps) {
 		editor.moveCursorTo(row - 1, col)
 		editor.renderer.scrollCursorIntoView(editor.getCursorPosition())
 		editor.focus()
-	}, [editorRef])
+	}, [editorRef.current])
 	const resultPreview = React.useMemo(() => {
+		console.log('CALC preview')
 		return <PreviewView result={result} onPosition={handlePosition} />
 	}, [ result, handlePosition ])
 
@@ -96,7 +104,7 @@ export function DemoEditor(props: DemoEditorProps) {
 			{resultPreview}
 		</div>
 		<div className={classes.delimiter} />
-		<div className={classes.editorSide}>
+		<div className={classes.editorSide} onKeyDown={handleKeyDown}>
 			<SparksNMNEditor
 				name='code'
 				value={showContent}
