@@ -11,6 +11,11 @@ const upScale = window.navigator.userAgent.indexOf('Edg') != -1 ? 2 : 5  // 将�
 const downScale = window.navigator.userAgent.indexOf('Edg') != -1 ? 0.5 : 1
 // upScale 小了会出事情，现在暂时不管为什么
 
+export const domPaintStats = {
+	measureTime: 0,
+	domDrawTime: 0
+}
+
 export class DomPaint {
 	element: HTMLDivElement
 	
@@ -45,6 +50,7 @@ export class DomPaint {
 		if(text == '') {
 			return [0, 0]
 		}
+		domPaintStats.measureTime -= +new Date()
 		const hash = md5(JSON.stringify({
 			text: text,
 			font: font.fontFamily + '/' + font.fontWeight + '/' + (font.fontSize * font.fontScale),
@@ -52,6 +58,7 @@ export class DomPaint {
 		}))
 		if(hash in measureCache) {
 			const [ width, height ] = measureCache[hash]
+			domPaintStats.measureTime += +new Date()
 			return [ width * widthScale, height ]
 		}
 		let fontSize = font.fontSize * font.fontScale
@@ -70,6 +77,7 @@ export class DomPaint {
 		const height = $measure[0].clientHeight / 100
 		$measure.remove()
 		measureCache[hash] = [ width, height ]
+		domPaintStats.measureTime += +new Date()
 		return [ width * widthScale, height ]
 	}
 	/**
@@ -82,24 +90,28 @@ export class DomPaint {
 		if(text == '') {
 			return [0, 0]
 		}
+		domPaintStats.measureTime -= +new Date()
 		const hash = md5(JSON.stringify({
 			text: text,
 			font: font.fontFamily + '/' + font.fontWeight + '/' + (font.fontSize * font.fontScale),
 		}))
 		if(hash in measureCacheFast) {
 			const [ width, height ] = measureCacheFast[hash]
+			domPaintStats.measureTime += +new Date()
 			return [ width * widthScale, height ]
 		}
 		let canvas = document.createElement('canvas')
 		let context = canvas.getContext('2d')
 		let fontSize = font.fontSize * font.fontScale
 		if(context == null) {
+			domPaintStats.measureTime += +new Date()
 			return [0, 0]
 		}
 		context.font = `${font.fontWeight >= 550 ? 'bold ' : ''}${fontSize}px "${font.fontFamily}"`
 		let width = context.measureText(text).width
 		canvas.remove()
 		measureCacheFast[hash] = [ width, 0 ]
+		domPaintStats.measureTime += +new Date()
 		return [width * widthScale, 0]
 	}
 	/**
@@ -120,6 +132,8 @@ export class DomPaint {
 		y /= fontSize
 		const tx = {left: 0, center: -50, right: -100}[align]
 		const ty = {top: 0, middle: -50, bottom: -100}[alignY]
+
+		domPaintStats.domDrawTime -= +new Date()
 		const textSpan = $('<span></span>').text(text).css('color', '#000')
 		.css('white-space', 'pre')
 		.css('display', 'inline-block')
@@ -136,9 +150,10 @@ export class DomPaint {
 		if(clickHandler) {
 			textSpan.on('click', clickHandler).css('cursor', 'pointer')
 		}
-		$(this.element).append(
+		$(this.element).append((
 			textSpan
-		)
+		))
+		domPaintStats.domDrawTime += +new Date()
 	}
 	/**
 	 * 绘制文本框
@@ -177,7 +192,8 @@ export class DomPaint {
 		let centerX = (x1 + x2) / 2
 		let centerY = (y1 + y2) / 2
 		let angle = Math.atan2(dy, dx) * 180 / Math.PI
-		$(this.element).append(
+		domPaintStats.domDrawTime -= +new Date()
+		$(this.element).append((
 			$('<div></div>')
 			// .css('background-color', '#000')
 			.css('box-shadow', `inset 0 0 0 ${width * upScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
@@ -189,7 +205,8 @@ export class DomPaint {
 			.css('left', `0`)
 			.css('top', `0`)
 			.css(extraStyles)
-		)
+		))
+		domPaintStats.domDrawTime += +new Date()
 	}
 	/**
 	 * 绘制圆弧线
@@ -214,7 +231,8 @@ export class DomPaint {
 				rotate = 0
 			}
 		}
-		$(this.element).append(
+		domPaintStats.domDrawTime -= +new Date()
+		$(this.element).append((
 			$('<div></div>')
 			.css('box-shadow', `inset 0 0 0 ${r / downScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
 			.css('clip-path', `polygon(${this.polygonQuarterCircle(ratio)})`)
@@ -226,7 +244,8 @@ export class DomPaint {
 			.css('left', `0`)
 			.css('top', `0`)
 			.css(extraStyles)
-		)
+		))
+		domPaintStats.domDrawTime += +new Date()
 	}
 	/**
 	 * 绘制空心矩形

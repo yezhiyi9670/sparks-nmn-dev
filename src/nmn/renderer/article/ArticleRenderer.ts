@@ -22,6 +22,14 @@ class ArticleRendererClass {
 		} else {
 			const _: never = article
 		}
+		// 渲染下边距
+		if(article.type != 'music' || article.lines.length != 0) {
+			sections.push({
+				element: new DomPaint().element,
+				height: 1.5,
+				isMargin: true
+			})
+		}
 	}
 	/**
 	 * 渲染文本章节

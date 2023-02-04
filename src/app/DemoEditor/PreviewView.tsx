@@ -4,6 +4,8 @@ import { createUseStyles } from 'react-jss'
 import { Equifield, EquifieldSection } from '../../equifield/equifield'
 import { NMNResult, SparksNMN } from '../../nmn'
 import languageArray_zh_cn from '../../nmn/i18n/zh_cn'
+import { lineRendererStats } from '../../nmn/renderer/article/line/LineRenderer'
+import { domPaintStats } from '../../nmn/renderer/backend/DomPaint'
 
 const maxWidth = 1000
 const useStyles = createUseStyles({
@@ -52,10 +54,16 @@ export function PreviewView(props: PreviewViewProps) {
 
 	const renderResultFields = React.useMemo(() => {
 		if(props.result) {
-			const startTime = +new Date()
+			domPaintStats.measureTime = 0
+			domPaintStats.domDrawTime = 0
+			lineRendererStats.sectionsRenderTime = 0
+			let startTime = +new Date()
 			const fields = SparksNMN.render(props.result.result, languageArray_zh_cn, positionCallback)
-			const endTime = +new Date()
+			let endTime = +new Date()
 			console.log('Render took ', endTime - startTime, 'milliseconds')
+			console.log('  Measure took ', domPaintStats.measureTime, 'milliseconds')
+			console.log('  Dom draw took ', domPaintStats.domDrawTime, 'milliseconds')
+			console.log('  Section render took ', lineRendererStats.sectionsRenderTime, 'milliseconds')
 			return fields
 		} else {
 			return [{
@@ -70,8 +78,12 @@ export function PreviewView(props: PreviewViewProps) {
 		if(!element) {
 			return
 		}
+		let startTime = +new Date()
 		const ef = new Equifield(element)
 		ef.render(renderResultFields)
+		let endTime = +new Date()
+		console.log('Actuation took', endTime - startTime, 'milliseconds')
+
 		return () => {
 			ef.destroy()
 		}

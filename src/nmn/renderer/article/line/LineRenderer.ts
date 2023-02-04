@@ -24,6 +24,10 @@ type LrcSymbol = {
 	endX: number
 }
 
+export const lineRendererStats = {
+	sectionsRenderTime: 0
+}
+
 export class LineRenderer {
 	columns: PositionDispatcher
 	musicLineYs: { top: number, middle: number, bottom: number }[] = []
@@ -35,6 +39,7 @@ export class LineRenderer {
 		const root = new DomPaint()
 		const scale = context.render.scale!
 		let currY = 0
+		currY += 1.7
 
 		// ===== 列空间自动布局 =====
 		this.columns = new PositionDispatcher(root, line, context)
@@ -65,7 +70,7 @@ export class LineRenderer {
 
 		sections.push({
 			element: new DomPaint().element,
-			height: 3.5 * scale,
+			height: 1.8 * scale,
 			isMargin: true
 		})
 	}
@@ -142,7 +147,9 @@ export class LineRenderer {
 				localColumns.data = this.columns.data.slice(startSection - line.startSection, endSection - line.startSection)
 
 				// 画小节
+				lineRendererStats.sectionsRenderTime -= +new Date()
 				new SectionsRenderer(localColumns).render(currY, { notes: { sections }, decorations: decorations }, root, context, false, true)
+				lineRendererStats.sectionsRenderTime += +new Date()
 
 				// 画括号
 				msp.drawInsert(context, localColumns.startPosition(0), currY, { type: 'insert', char: 'lpr' }, true, scale)
@@ -446,7 +453,9 @@ export class LineRenderer {
 
 		currY += fieldHeight / 2
 
+		lineRendererStats.sectionsRenderTime -= +new Date()
 		new SectionsRenderer(this.columns).render(currY, part, root, context, isFirst, false)
+		lineRendererStats.sectionsRenderTime += +new Date()
 
 		currY += fieldHeight / 2
 

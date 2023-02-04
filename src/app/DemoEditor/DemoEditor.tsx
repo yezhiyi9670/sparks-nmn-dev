@@ -63,7 +63,10 @@ export function DemoEditor(props: DemoEditorProps) {
 	}, [])
 	const showContent = props.content ?? myContent
 	function parseNMN(content: string) {
+		let startTime = +new Date()
 		const nmnResult = SparksNMN.parse(content)
+		let endTime = +new Date()
+		console.log('Parse took', endTime - startTime, 'milliseconds')
 		console.log(nmnResult)
 		setResult(nmnResult)
 	}
