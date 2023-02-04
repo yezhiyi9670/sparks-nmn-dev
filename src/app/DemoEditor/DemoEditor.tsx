@@ -7,6 +7,7 @@ import { NMNResult, SparksNMN } from '../../nmn/index'
 import { SparksNMNEditor } from '../../nmn/react-ace-editor/SparksNMNEditor'
 import { createDethrottledApplier, useOnceEffect } from '../../util/event'
 import { PreviewView } from './PreviewView'
+import { useMethod } from '../../util/hook'
 
 const useStyles = createUseStyles({
 	outer: {
@@ -85,7 +86,7 @@ export function DemoEditor(props: DemoEditorProps) {
 		parseNMN(showContent)
 	})
 
-	const handlePosition = React.useCallback((row: number, col: number) => {
+	const handlePosition = useMethod((row: number, col: number) => {
 		const editor = editorRef.current?.editor
 		if(!editor) {
 			return
@@ -93,7 +94,7 @@ export function DemoEditor(props: DemoEditorProps) {
 		editor.moveCursorTo(row - 1, col)
 		editor.renderer.scrollCursorIntoView(editor.getCursorPosition())
 		editor.focus()
-	}, [editorRef.current])
+	})
 	const resultPreview = React.useMemo(() => {
 		console.log('CALC preview')
 		return <PreviewView result={result} onPosition={handlePosition} />

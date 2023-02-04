@@ -65,7 +65,7 @@ export class LineRenderer {
 
 		sections.push({
 			element: new DomPaint().element,
-			height: 3 * scale,
+			height: 3.5 * scale,
 			isMargin: true
 		})
 	}
@@ -82,9 +82,7 @@ export class LineRenderer {
 		// ===== 渲染FCA =====
 		currY += this.renderLineFCA(currY, part, false, root, context)
 		// ===== 渲染跳房子 =====
-		if(isFirst) {
-			currY += this.renderJumpers(currY, line, root, context)
-		}
+		currY += this.renderJumpers(currY, part, line, isFirst, root, context)
 		// ===== 渲染音乐行 =====
 		currY += this.renderPartNotes(currY, part, root, context, isFirst)
 		const lastYs = this.musicLineYs[this.musicLineYs.length - 1]
@@ -351,7 +349,7 @@ export class LineRenderer {
 	/**
 	 * 渲染跳房子符号，并统计是否出现标记与属性、跳房子与属性的重叠
 	 */
-	renderJumpers(startY: number, line: NMNLine, root: DomPaint, context: RenderContext) {
+	renderJumpers(startY: number, part: NMNPart, line: NMNLine, isFirst: boolean, root: DomPaint, context: RenderContext) {
 		const scale = context.render.scale!
 		const msp = new MusicPaint(root)
 		const firstPart = line.parts[0]!
@@ -360,7 +358,7 @@ export class LineRenderer {
 		const fieldHeight = 2.1
 		const overlapField = 2.2
 		const shift = 0.6
-		let attrOverlaps = false
+		let attrOverlaps = 0
 		if(line.jumpers.length > 0) {
 			let successCount = 0
 			currY += fieldHeight
@@ -403,7 +401,7 @@ export class LineRenderer {
 					root.drawLine(startX, bottomY, startX, topY, 0.14, 0.07, scale)
 					const sectionIndex = jumper.startSection - line.startSection
 					if(SectionStat.hasSeparatorAttrs(firstPart.notes.sections[sectionIndex])) {
-						attrOverlaps = true
+						attrOverlaps = 1
 					}
 				}
 				if(endIn) {
@@ -419,11 +417,13 @@ export class LineRenderer {
 			}
 		}
 
-		const firstAnnotation = SectionStat.fcaPrimary(firstPart)
+		const firstAnnotation = SectionStat.fcaPrimary(part)
 		for(let i = 0; i < line.sectionCount; i++) {
 			if(firstAnnotation) {
-				if(!SectionStat.allEmpty(firstAnnotation, i, 1) && SectionStat.hasSeparatorAttrs(firstPart.notes.sections[i])) {
-					attrOverlaps = true
+				if(!SectionStat.allEmpty(firstAnnotation, i, 1) && SectionStat.hasSeparatorAttrs(part.notes.sections[i])) {
+					if(attrOverlaps != 1) {
+						attrOverlaps = 2
+					}
 				}
 			}
 		}

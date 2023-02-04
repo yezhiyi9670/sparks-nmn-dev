@@ -40,6 +40,12 @@ export type AttrIter = {
 	iter: number
 }
 /**
+ * 重置迭代数
+ */
+export type AttrReset = {
+	type: 'reset'
+}
+/**
  * 小节的布局权重属性
  */
 export type AttrWeight = {
@@ -218,6 +224,7 @@ export type SeparatorAttr = {
 } & SeparatorAttrBase
 export type SeparatorAttrBase =
 	AttrIter |
+	AttrReset |
 	AttrWeight |
 	AttrRepeat |
 	AttrOpenRange |

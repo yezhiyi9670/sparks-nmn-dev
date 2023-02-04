@@ -185,7 +185,7 @@ export class MusicPaint {
 		currX += sign * 1 * scale
 		let hX = x + sign * 0.5 * scale
 		attrs.forEach((attr) => {
-			if(['iter', 'repeat', 'qpm', 'shift', 'durability', 'text', 'scriptedText'].indexOf(attr.type) != -1) {
+			if(['iter', 'repeat', 'qpm', 'shift', 'durability', 'text', 'scriptedText', 'reset'].indexOf(attr.type) != -1) {
 				const measure = this.drawSeparatorAttrText(context, currX, attrY, attr, fontScale, scale, extraStyles, true)
 				currX += sign * (this.drawSeparatorAttrText(context, currX - (sign > 0 ? 0 : measure[0]), attrY, attr, fontScale, scale, extraStyles, false)[0] + margin)
 			}
@@ -254,12 +254,14 @@ export class MusicPaint {
 			...extraStyles,
 			fontStyle: 'italic'
 		}
-		if(attr.type == 'durability' || attr.type == 'iter') {
+		if(attr.type == 'durability' || attr.type == 'iter' || attr.type == 'reset') {
 			let text = ''
 			if(attr.type == 'durability') {
 				text = 'x' + attr.value.toString()
 			} else if(attr.type == 'iter') {
 				text = attr.iter.toString() + '.'
+			} else if(attr.type == 'reset') {
+				text = 'reset'
 			}
 			const token = new PaintTextToken(
 				text, fontMetricB,

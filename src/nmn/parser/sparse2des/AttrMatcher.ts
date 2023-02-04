@@ -7,7 +7,7 @@ import { LinedIssue, addIssue } from "../parser";
 import { BracketFilter, BracketPairFilters, BracketTokenList, TokenFilter, Tokens } from "../tokenizer/tokens";
 import { scoreContextDefault } from "./context";
 import { NoteEater } from "./sections/NoteEater";
-import { AttrBeats, AttrDecor, attrDecorCheck, attrDecorPriority, AttrDelta, AttrDurability, AttrIter, AttrLabel, AttrNotes, AttrOctave, AttrOpenRange, AttrQpm, AttrRepeat, AttrScriptedText, AttrShift, AttrSlide, AttrText, AttrWeight, Beats, MusicSection, NoteCharMusic, Qpm } from "./types";
+import { AttrBeats, AttrDecor, attrDecorCheck, attrDecorPriority, AttrDelta, AttrDurability, AttrIter, AttrLabel, AttrNotes, AttrOctave, AttrOpenRange, AttrQpm, AttrRepeat, AttrReset, AttrScriptedText, AttrShift, AttrSlide, AttrText, AttrWeight, Beats, MusicSection, NoteCharMusic, Qpm } from "./types";
 
 export module AttrMatcher {
 	export function matchIter(tokens: BracketTokenList): AttrIter | undefined {
@@ -18,6 +18,15 @@ export module AttrMatcher {
 			return {
 				type: 'iter',
 				iter: +(result[0] as string)
+			}
+		})
+	}
+	export function matchReset(tokens: BracketTokenList): AttrReset | undefined {
+		return new BracketPairFilters(
+			new TokenFilter('word', 'reset'),
+		).testThen(tokens, (result) => {
+			return {
+				type: 'reset'
 			}
 		})
 	}

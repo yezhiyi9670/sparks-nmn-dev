@@ -1,6 +1,6 @@
 import { Frac, Fraction } from "../../../util/frac";
 import { ScoreContext, scoreContextDefault } from "../../sparse2des/context";
-import { DestructedFCA, MusicDecorationRange, MusicNote, MusicSection, NoteCharAny } from "../../sparse2des/types";
+import { DestructedFCA, MusicDecorationRange, MusicNote, MusicSection, NoteCharAny, SeparatorAttr } from "../../sparse2des/types";
 import { Jumper, LinedPart } from "../types";
 
 export module SectionStat {
@@ -356,21 +356,30 @@ export module SectionStat {
 	 * 小节是否包含前置/后置小节线属性
 	 */
 	export function hasSeparatorAttrs(section: MusicSection<unknown>) {
-		return section.separator.before.attrs.length || section.separator.after.attrs.length
+		function checkSeparatorAttrs(attrs: SeparatorAttr[]) {
+			return attrs.filter((attr) => {
+				return attr.type != 'weight'
+			}).length != 0
+		}
+		return checkSeparatorAttrs(section.separator.before.attrs) || checkSeparatorAttrs(section.separator.after.attrs)
 	}
 
 	/**
 	 * 获取 FCA 中的第一标记行的小节
 	 */
 	export function fcaPrimary(section: DestructedFCA) {
-		if(section.chord) {
+		if(section.chord && !SectionStat.allEmpty(section.chord.sections, 0, section.chord.sections.length)) {
 			return section.chord.sections
 		}
-		if(section.force) {
+		if(section.force && !SectionStat.allEmpty(section.force.sections, 0, section.force.sections.length)) {
 			return section.force.sections
 		}
 		if(section.annotations.length > 0) {
-			return section.annotations[0].sections
+			for(let ann of section.annotations) {
+				if(!SectionStat.allEmpty(ann.sections, 0, ann.sections.length)) {
+					return ann.sections
+				}
+			}
 		}
 		return undefined
 	}
