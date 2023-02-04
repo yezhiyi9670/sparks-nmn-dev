@@ -1,6 +1,8 @@
 import $ from 'jquery'
 import { FontMetric } from '../FontMetric'
 import { md5 } from '../../util/md5'
+import { iterateMap } from '../../util/array'
+import { camelCase2Hyphen } from '../../util/string'
 
 type ExtraStyles = {[_: string]: number | string}
 
@@ -16,12 +18,66 @@ export const domPaintStats = {
 	domDrawTime: 0
 }
 
+// 替换XML
+function escapeXml(unsafe: string) {
+	return unsafe.replace(/[<>&'"]/g, function (c: string) {
+		switch (c) {
+			case '<': return '&lt;';
+			case '>': return '&gt;';
+			case '&': return '&amp;';
+			case '\'': return '&apos;';
+			case '"': return '&quot;';
+		}
+		return ''
+	});
+}
+
+// 生成 style 字符串
+function translateStyles(styles: ExtraStyles) {
+	return escapeXml(iterateMap(styles, (value, key) => {
+		return `${camelCase2Hyphen(key)}:${value};`
+	}).join(''))
+}
+
+// 生成 Token
+function generateToken() {
+	let length = 24
+	let charset = '0123456789abcdfghijkmopqrstuvxyz'
+	let str = ''
+	for(let i = 0; i < length; i++) {
+		let randChar = charset[Math.floor(Math.random() * charset.length)]
+		str += randChar
+	}
+	return str
+}
+
 export class DomPaint {
 	element: HTMLDivElement
+	htmlContent: string
+	token: string
+	clickCallbacks: {[_: string]: () => void} = {}
+
+	getElement() {
+		this.element.innerHTML = this.htmlContent
+		for(let i = 0; i < this.element.children.length; i++) {
+			const innerElement = this.element.children[i]
+			const prefix = 'DomPaint-clickable__'
+			if(innerElement.id.startsWith(prefix)) {
+				const token = innerElement.id.substring(prefix.length)
+				if(token in this.clickCallbacks) {
+					innerElement.addEventListener('click', this.clickCallbacks[token])
+				}
+			}
+		}
+		return this.element
+	}
 	
 	constructor() {
-		this.element = $<HTMLDivElement>('<div></div>').css({position: 'relative'})[0]
+		this.token = generateToken()
+		this.element = $<HTMLDivElement>('<div></div>').css({position: 'relative'}).addClass('DomPaint__' + this.token)[0]
+		this.htmlContent = ''
 	}
+
 	/**
 	 * 多边形模拟四分之一圆弧形状
 	 */
@@ -134,25 +190,51 @@ export class DomPaint {
 		const ty = {top: 0, middle: -50, bottom: -100}[alignY]
 
 		domPaintStats.domDrawTime -= +new Date()
-		const textSpan = $('<span></span>').text(text).css('color', '#000')
-		.css('white-space', 'pre')
-		.css('display', 'inline-block')
-		.css('position', 'absolute')
-		.css('text-align', align)
-		.css('font-family', font.fontFamily)
-		.css('font-size', `${fontSize * scale * upScale}em`)
-		.css('font-weight', font.fontWeight)
-		.css('top', `0`)
-		.css('left', `0`)
-		.css('transform-origin', 'top left')
-		.css('transform', `translateX(${x/scale/upScale}em) translateY(${y / upScale}em) scale(${1/upScale}) translateX(${tx}%) translateY(${ty}%) `)
-		.css(extraStyles)
+		// const textSpan = $('<span></span>').text(text).css('color', '#000')
+		// .css('white-space', 'pre')
+		// .css('display', 'inline-block')
+		// .css('position', 'absolute')
+		// .css('text-align', align)
+		// .css('font-family', font.fontFamily)
+		// .css('font-size', `${fontSize * scale * upScale}em`)
+		// .css('font-weight', font.fontWeight)
+		// .css('top', `0`)
+		// .css('left', `0`)
+		// .css('transform-origin', 'top left')
+		// .css('transform', `translateX(${x/scale/upScale}em) translateY(${y / upScale}em) scale(${1/upScale}) translateX(${tx}%) translateY(${ty}%) `)
+		// .css(extraStyles)
+		// if(clickHandler) {
+		// 	textSpan.on('click', clickHandler).css('cursor', 'pointer')
+		// }
+		// $(this.element).append((
+		// 	textSpan
+		// ))
+		let token = ''
 		if(clickHandler) {
-			textSpan.on('click', clickHandler).css('cursor', 'pointer')
+			token = generateToken()
+			this.clickCallbacks[token] = clickHandler
 		}
-		$(this.element).append((
-			textSpan
-		))
+		const textSpanText = `<span style="${translateStyles(
+			{
+				color: '#000',
+				whiteSpace: 'pre',
+				display: 'inline-block',
+				position: 'absolute',
+				textAlign: align,
+				fontFamily: font.fontFamily,
+				fontSize: `${fontSize * scale * upScale}em`,
+				fontWeight: font.fontWeight,
+				top: 0,
+				left: 0,
+				transformOrigin: 'top left',
+				transform: `translateX(${x/scale/upScale}em) translateY(${y / upScale}em) scale(${1/upScale}) translateX(${tx}%) translateY(${ty}%)`,
+				...(clickHandler ? {
+					cursor: 'pointer'
+				} : {}),
+				...extraStyles
+			}
+		)}" ${clickHandler ? 'id="DomPaint-clickable__' + token + '"' : ''}>${escapeXml(text)}</span>`
+		this.htmlContent += textSpanText
 		domPaintStats.domDrawTime += +new Date()
 	}
 	/**
@@ -193,19 +275,31 @@ export class DomPaint {
 		let centerY = (y1 + y2) / 2
 		let angle = Math.atan2(dy, dx) * 180 / Math.PI
 		domPaintStats.domDrawTime -= +new Date()
-		$(this.element).append((
-			$('<div></div>')
-			// .css('background-color', '#000')
-			.css('box-shadow', `inset 0 0 0 ${width * upScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
-			.addClass('visible-print-block')
-			.css('position', 'absolute')
-			.css('width', `${(lineLength + 2 * padding) * upScale}em`)
-			.css('height', `${width * upScale}em`)
-			.css('transform', `translateX(${centerX}em) translateY(${centerY}em) translateX(-50%) translateY(-50%) rotate(${angle}deg) scale(${1/upScale})`)
-			.css('left', `0`)
-			.css('top', `0`)
-			.css(extraStyles)
-		))
+		// $(this.element).append((
+		// 	$('<div></div>')
+		// 	.css('box-shadow', `inset 0 0 0 ${width * upScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
+		// 	.addClass('visible-print-block')
+		// 	.css('position', 'absolute')
+		// 	.css('width', `${(lineLength + 2 * padding) * upScale}em`)
+		// 	.css('height', `${width * upScale}em`)
+		// 	.css('transform', `translateX(${centerX}em) translateY(${centerY}em) translateX(-50%) translateY(-50%) rotate(${angle}deg) scale(${1/upScale})`)
+		// 	.css('left', `0`)
+		// 	.css('top', `0`)
+		// 	.css(extraStyles)
+		// ))
+		const textSpanText = `<div style="${translateStyles(
+			{
+				boxShadow: `inset 0 0 0 ${width * upScale}em`,
+				position: 'absolute',
+				width: `${(lineLength + 2 * padding) * upScale}em`,
+				height: `${width * upScale}em`,
+				left: 0,
+				top: 0,
+				transform: `translateX(${centerX}em) translateY(${centerY}em) translateX(-50%) translateY(-50%) rotate(${angle}deg) scale(${1/upScale})`,
+				...extraStyles
+			}
+		)}"></div>`
+		this.htmlContent += textSpanText
 		domPaintStats.domDrawTime += +new Date()
 	}
 	/**
@@ -232,19 +326,33 @@ export class DomPaint {
 			}
 		}
 		domPaintStats.domDrawTime -= +new Date()
-		$(this.element).append((
-			$('<div></div>')
-			.css('box-shadow', `inset 0 0 0 ${r / downScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
-			.css('clip-path', `polygon(${this.polygonQuarterCircle(ratio)})`)
-			.addClass('visible-print-block')
-			.css('position', 'absolute')
-			.css('width', `${r * 2 / downScale}em`)
-			.css('height', `${r * 2 / downScale}em`)
-			.css('transform', `translateX(${x}em) translateY(${y}em) translateX(-${50}%) translateY(-${50}%) scale(${downScale}) rotate(${rotate}deg)`)
-			.css('left', `0`)
-			.css('top', `0`)
-			.css(extraStyles)
-		))
+		// $(this.element).append((
+		// 	$('<div></div>')
+		// 	.css('box-shadow', `inset 0 0 0 ${r / downScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
+		// 	.css('clip-path', `polygon(${this.polygonQuarterCircle(ratio)})`)
+		// 	.addClass('visible-print-block')
+		// 	.css('position', 'absolute')
+		// 	.css('width', `${r * 2 / downScale}em`)
+		// 	.css('height', `${r * 2 / downScale}em`)
+		// 	.css('transform', `translateX(${x}em) translateY(${y}em) translateX(-${50}%) translateY(-${50}%) scale(${downScale}) rotate(${rotate}deg)`)
+		// 	.css('left', `0`)
+		// 	.css('top', `0`)
+		// 	.css(extraStyles)
+		// ))
+		const textSpanText = `<div style="${translateStyles(
+			{
+				boxShadow: `inset 0 0 0 ${r / downScale}em`,
+				clipPath: `polygon(${this.polygonQuarterCircle(ratio)})`,
+				position: 'absolute',
+				width: `${r * 2 / downScale}em`,
+				height: `${r * 2 / downScale}em`,
+				left: 0,
+				top: 0,
+				transform: `translateX(${x}em) translateY(${y}em) translateX(-${50}%) translateY(-${50}%) scale(${downScale}) rotate(${rotate}deg)`,
+				...extraStyles
+			}
+		)}"></div>`
+		this.htmlContent += textSpanText
 		domPaintStats.domDrawTime += +new Date()
 	}
 	/**

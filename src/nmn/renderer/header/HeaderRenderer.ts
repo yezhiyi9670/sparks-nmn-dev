@@ -49,7 +49,7 @@ class HeaderRendererClass {
 		}
 		
 		sections.push({
-			element: root.element,
+			element: root.getElement(),
 			height: currY * scale
 		})
 	}
@@ -93,13 +93,13 @@ class HeaderRendererClass {
 
 		currY += 2
 		sections.push({
-			element: root.element,
+			element: root.getElement(),
 			height: currY * scale
 		})
 	}
 	renderTopSpacer(score: NMNResult['result'], sections: EquifieldSection[], context: RenderContext) {
 		sections.push({
-			element: new DomPaint().element,
+			element: new DomPaint().getElement(),
 			height: 2
 		})
 	}
@@ -127,7 +127,7 @@ class HeaderRendererClass {
 
 		if(score.scoreProps.footnotes.length > 0) {
 			sections.push({
-				element: root.element,
+				element: root.getElement(),
 				height: currY * scale
 			})
 		}

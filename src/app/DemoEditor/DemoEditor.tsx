@@ -95,6 +95,7 @@ export function DemoEditor(props: DemoEditorProps) {
 			return
 		}
 		editor.moveCursorTo(row - 1, col)
+		editor.clearSelection()
 		editor.renderer.scrollCursorIntoView(editor.getCursorPosition())
 		editor.focus()
 	})

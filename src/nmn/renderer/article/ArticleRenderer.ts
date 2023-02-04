@@ -25,7 +25,7 @@ class ArticleRendererClass {
 		// 渲染下边距
 		if(article.type != 'music' || article.lines.length != 0) {
 			sections.push({
-				element: new DomPaint().element,
+				element: new DomPaint().getElement(),
 				height: 1.5,
 				isMargin: true
 			})
@@ -55,7 +55,7 @@ class ArticleRendererClass {
 		currY += 2
 
 		sections.push({
-			element: root.element,
+			element: root.getElement(),
 			height: currY * scale
 		})
 	}
@@ -128,7 +128,7 @@ class ArticleRendererClass {
 		currY += 1
 
 		sections.push({
-			element: root.element,
+			element: root.getElement(),
 			height: currY * scale,
 			noBreakAfter: true
 		})

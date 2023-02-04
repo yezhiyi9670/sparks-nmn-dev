@@ -125,3 +125,10 @@ export function splitBy(haystack: string, needle: string): [string, string] {
 export function withinCharRange(char: string, lower: string, upper: string) {
 	return lower.charCodeAt(0) <= char.charCodeAt(0) && char.charCodeAt(0) <= upper.charCodeAt(0)
 }
+
+/**
+ * 小驼峰转换为连字符
+ */
+export function camelCase2Hyphen(str: string) {
+	return str.replace(/[A-Z]/g, (c) => {return '-' + c.toLowerCase()});
+}

@@ -11,6 +11,10 @@ import { addNotesScale, getLineFont } from "./font/fontMetrics"
 type NMNLine = (NMNResult['result']['articles'][0] & {type: 'music'})['lines'][0]
 const checkEps = 0.001
 
+export const positionDispatcherStats = {
+	computeTime: 0
+}
+
 type SectionPositions = {
 	/**
 	 * 原本的边界位置
@@ -165,10 +169,12 @@ export class PositionDispatcher {
 	 * 分配位置
 	 */
 	dispatch() {
+		positionDispatcherStats.computeTime -= +new Date()
 		this.dispatch$setSections()
 		this.dispatch$statColumns()
 		this.dispatch$compute()
-		console.log('Column slot', this.data)
+		// console.log('Column slot', this.data)
+		positionDispatcherStats.computeTime += +new Date()
 	}
 	/**
 	 * 分配位置 - 统计小节
@@ -537,7 +543,7 @@ export class PositionDispatcher {
 				} else if(ch == 'dead') {
 					clearRigid()
 					attempDispatch()
-					return
+					break
 				}
 			}
 		})

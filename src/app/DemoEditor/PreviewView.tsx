@@ -5,6 +5,7 @@ import { Equifield, EquifieldSection } from '../../equifield/equifield'
 import { NMNResult, SparksNMN } from '../../nmn'
 import languageArray_zh_cn from '../../nmn/i18n/zh_cn'
 import { lineRendererStats } from '../../nmn/renderer/article/line/LineRenderer'
+import { positionDispatcherStats } from '../../nmn/renderer/article/line/PositionDispatcher'
 import { domPaintStats } from '../../nmn/renderer/backend/DomPaint'
 
 const maxWidth = 1000
@@ -57,6 +58,7 @@ export function PreviewView(props: PreviewViewProps) {
 			domPaintStats.measureTime = 0
 			domPaintStats.domDrawTime = 0
 			lineRendererStats.sectionsRenderTime = 0
+			positionDispatcherStats.computeTime = 0
 			let startTime = +new Date()
 			const fields = SparksNMN.render(props.result.result, languageArray_zh_cn, positionCallback)
 			let endTime = +new Date()
@@ -64,6 +66,7 @@ export function PreviewView(props: PreviewViewProps) {
 			console.log('  Measure took ', domPaintStats.measureTime, 'milliseconds')
 			console.log('  Dom draw took ', domPaintStats.domDrawTime, 'milliseconds')
 			console.log('  Section render took ', lineRendererStats.sectionsRenderTime, 'milliseconds')
+			console.log('  Dispatching took ', positionDispatcherStats.computeTime, 'milliseconds')
 			return fields
 		} else {
 			return [{

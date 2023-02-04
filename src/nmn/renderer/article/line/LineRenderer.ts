@@ -64,12 +64,12 @@ export class LineRenderer {
 		}
 
 		sections.push({
-			element: root.element,
+			element: root.getElement(),
 			height: currY * scale
 		})
 
 		sections.push({
-			element: new DomPaint().element,
+			element: new DomPaint().getElement(),
 			height: 1.8 * scale,
 			isMargin: true
 		})
@@ -259,6 +259,10 @@ export class LineRenderer {
 						endX = nextSymbol.boundaries[0]
 					}
 					endX = Math.min(endX, symbol.endX - noteMeasure[0] / 2)
+					// 确保绘制连续的延长线
+					if(nextSymbol && nextSymbol.char.text == '' && nextSymbol.char.extension) {
+						endX = nextSymbol.startX
+					}
 					if(endX <= startX) {
 						return
 					}
