@@ -64,20 +64,29 @@ class ArticleRendererClass {
 	 */
 	renderMusicArticle(article: NMNMusicArticle, sections: EquifieldSection[], context: RenderContext) {
 		// 渲染章节头部
-		this.renderMusicArticleHeader(article, sections, context)
+		let halfRoot = this.renderMusicArticleHeader(article, sections, context)
 		// 渲染内容行
 		let lastLine: NMNMusicArticle['lines'][0] | undefined = undefined as any
-		article.lines.forEach((line) => {
-			new LineRenderer().renderLine(line, sections, context, lastLine)
+		article.lines.forEach((line, index) => {
+			if(index != 0) {
+				halfRoot = [new DomPaint(), 0]
+			}
+			new LineRenderer().renderLine(line, sections, context, lastLine, halfRoot[0], halfRoot[1])
 			lastLine = line
 		})
+		if(article.lines.length == 0) {
+			sections.push({
+				element: halfRoot[0].getElement(),
+				height: halfRoot[1]
+			})
+		}
 	}
 	/**
 	 * 渲染音乐章节头
 	 */
-	renderMusicArticleHeader(article: NMNMusicArticle, sections: EquifieldSection[], context: RenderContext) {
+	renderMusicArticleHeader(article: NMNMusicArticle, sections: EquifieldSection[], context: RenderContext): [DomPaint, number] {
 		if(!article.title && !article.musicalProps) {
-			return
+			return [new DomPaint(), 0]
 		}
 		const root = new DomPaint()
 		const msp = new MusicPaint(root)
@@ -127,11 +136,7 @@ class ArticleRendererClass {
 		currY += headerFieldWidth / 2
 		currY += 1
 
-		sections.push({
-			element: root.getElement(),
-			height: currY * scale,
-			noBreakAfter: true
-		})
+		return [root, currY]
 	}
 }
 

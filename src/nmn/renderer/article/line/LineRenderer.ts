@@ -35,10 +35,10 @@ export class LineRenderer {
 	/**
 	 * 渲染曲谱行
 	 */
-	renderLine(line: NMNLine, sections: EquifieldSection[], context: RenderContext, lastLine: NMNLine | undefined) {
-		const root = new DomPaint()
+	renderLine(line: NMNLine, sections: EquifieldSection[], context: RenderContext, lastLine: NMNLine | undefined, root: DomPaint, startY: number) {
+		// const root = new DomPaint()
 		const scale = context.render.scale!
-		let currY = 0
+		let currY = startY
 		currY += 1.7
 
 		// ===== 列空间自动布局 =====
