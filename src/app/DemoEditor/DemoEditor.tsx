@@ -59,7 +59,7 @@ export function DemoEditor(props: DemoEditorProps) {
 	const [ myContent, setMyContent ] = React.useState(props.initialContent ?? '')
 	const [ result, setResult ] = React.useState<NMNResult | undefined>(undefined)
 	const parseDethrottle = React.useMemo(() => {
-		return createDethrottledApplier(500)
+		return createDethrottledApplier(200)
 	}, [])
 	const showContent = props.content ?? myContent
 	function parseNMN(content: string) {

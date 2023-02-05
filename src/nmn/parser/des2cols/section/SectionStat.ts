@@ -219,7 +219,7 @@ export module SectionStat {
 			const section = sections[i]
 			if(section.type == 'section') {
 				for(let note of section.notes) {
-					if(note.type == 'note' && !note.voided) {
+					if(note.type == 'note' && !note.voided && !('void' in note.char)) {
 						return false
 					}
 				}

@@ -319,7 +319,7 @@ export class PositionDispatcher {
 								(+hasSlide) * noteCharMeasure[1] * 0.45 * this.scale)
 						], false) // 音符的附加符号（升降调、装饰音、滑音）的排版空间必须满足，但不需要参与计算
 					} else {
-						if(note.type != 'extend') {
+						if(note.type != 'extend' && !('void' in note.char)) {
 							addConstraint(fracPos, actualIndex, [0, 0], false) // 标记内容不参与自动排版，但是保留席位
 						}
 					}

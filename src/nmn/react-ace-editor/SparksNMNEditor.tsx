@@ -75,7 +75,7 @@ export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, pa
 					return
 				}
 				// ===== 渲染属性自动补全 =====
-				if(/^Rp(.*?):/.test(linePrefixText) && !/=(\S*)$/.test(linePrefixText)) {
+				if(/^(Rp|Srp|Frp)(.*?):/.test(linePrefixText) && !/=(\S*)$/.test(linePrefixText)) {
 					const completes = iterateMap(renderPropsDefault as any, (value, key): Ace.Completion => {
 						return {
 							name: key,

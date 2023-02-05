@@ -288,13 +288,16 @@ export class LineRenderer {
 		const noteMeasure = msp.measureNoteChar(context, isSmall, scale)
 		const FCALineField = 0.9 * noteMeasure[1]
 
-		function handleSections<T>(sections: MusicSection<T>[], noteHandler: (note: MusicNote<T>, sectionIndex: number, section: MusicSection<T>) => void) {
+		function handleSections<T extends object>(sections: MusicSection<T>[], noteHandler: (note: MusicNote<T>, sectionIndex: number, section: MusicSection<T>) => void) {
 			sections.forEach((section, sectionIndex) => {
 				if(section.type != 'section') {
 					return
 				}
 				section.notes.forEach((note) => {
 					if(note.type != 'note') {
+						return
+					}
+					if('void' in note.char) {
 						return
 					}
 					noteHandler(note, sectionIndex, section)
