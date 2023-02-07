@@ -5,7 +5,9 @@
   "license": "MIT",
   "scripts": {
     "start": "parcel --port 8527 --host localhost",
-    "build": "parcel build --public-url ./"
+    "build-demo": "cross-env BUILD_TYPE=demo parcel build --dist-dir ./dist/demo/ --public-url ./ src/index.html",
+    "build-umd": "cross-env BUILD_TYPE=umd parcel build --dist-dir ./dist/umd/ --public-url ./ src/nmn/index.ts",
+    "build-wrapper": "cross-env BUILD_TYPE=wrapper parcel build --dist-dir ./dist/wrapper/resources/ --public-url ./ src/equifield/equifield.ts src/builder/wrapper-builder.ts && node ./dist/wrapper/resources/builder/wrapper-builder.js"
   },
   "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
   "devDependencies": {
@@ -13,6 +15,7 @@
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.10",
     "assert": "^2.0.0",
+    "cross-env": "^7.0.3",
     "parcel": "^2.8.2",
     "parcel-reporter-static-files-copy": "^1.5.0",
     "process": "^0.11.10",
@@ -30,7 +33,10 @@
   "staticFiles": [
     {
       "staticPath": "src/nmn/font",
-      "staticOutPath": "nmn/font"
+      "staticOutPath": "nmn/font",
+      "env": {
+        "BUILD_TYPE": "demo"
+      }
     }
   ]
 }

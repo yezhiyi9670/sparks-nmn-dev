@@ -56,7 +56,6 @@ function App() {
 	</>
 }
 
-/* TODO[Dev]: 改为字体加载时自动刷新预览 */
 SparksNMN.loadFonts(() => {
 	createRoot(document.getElementById('root')!).render(
 		<App />
