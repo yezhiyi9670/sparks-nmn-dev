@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>/*{text:content:title}*/</title>
+	<style>
+		/*{style:source:equifield/equifield.css}*/
+	</style>
+	<script type="text/javascript">
+		/*{script:built:equifield-umd.js}*/
+	</script>
+	<style>
+		/*{style:dynamic:fonts.css}*/
+	</style>
+	<script type="text/javascript">
+		/*{script:content:data}*/
+	</script>
+	<style>
+		html {
+			margin: 0;
+			padding: 0;
+			background-color: #FFF;
+		}
+		body {
+			margin: 0;
+			padding: 0 8px;
+		}
+		.preview-container {
+			width: 100%;
+			max-width: 1000px;
+			padding: 16px 0;
+			margin: 0 auto;
+		}
+		@page{
+			size: A4;
+			margin: 60px 0;
+			padding: 0;
+		}
+		@media print {
+			html, body {
+				padding: 0;
+				margin: 0;
+			}
+			.preview-container {
+				padding: 0;
+				margin: 0;
+				margin-top: '-2em';
+			}
+		}
+	</style>
+</head>
+<body>
+	<div class="preview-container">
+		<div class="preview-equifield">
+		</div>
+	</div>
+	<script>
+		const ef = new Equifield($('.preview-equifield')[0]);
+		ef.render(Array(128).fill(0).map(() => {
+			return {
+				element: $('<span style="font-size: 2em">Hello, world!</span>')[0],
+				height: 3
+			}
+		}));
+	</script>
+</body>
+</html>

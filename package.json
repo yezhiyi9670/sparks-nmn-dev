@@ -7,7 +7,7 @@
     "start": "parcel --port 8527 --host localhost",
     "build-demo": "cross-env BUILD_TYPE=demo parcel build --dist-dir ./dist/demo/ --public-url ./ src/index.html",
     "build-umd": "cross-env BUILD_TYPE=umd parcel build --dist-dir ./dist/umd/ --public-url ./ src/nmn/index.ts",
-    "build-wrapper": "cross-env BUILD_TYPE=wrapper parcel build --dist-dir ./dist/wrapper/resources/ --public-url ./ src/equifield/equifield.ts src/builder/wrapper-builder.ts && node ./dist/wrapper/resources/builder/wrapper-builder.js"
+    "build-wrapper": "cross-env BUILD_TYPE=wrapper parcel build --dist-dir ./dist/wrapper/resources/ --public-url ./ src/equifield/equifield-umd.ts && ts-node ./src/builder/wrapper/wrapper-builder.ts"
   },
   "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
   "devDependencies": {
@@ -16,15 +16,19 @@
     "@types/react-dom": "^18.0.10",
     "assert": "^2.0.0",
     "cross-env": "^7.0.3",
+    "js-base64": "^3.7.5",
     "parcel": "^2.8.2",
     "parcel-reporter-static-files-copy": "^1.5.0",
     "process": "^0.11.10",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "sass": "^1.57.1"
+    "sass": "^1.57.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^4.9.5"
   },
   "dependencies": {
     "@types/jquery": "^3.5.16",
+    "@types/node": "^18.13.0",
     "ace-builds": "^1.14.0",
     "jquery": "^3.6.3",
     "react-ace": "^10.1.0",
