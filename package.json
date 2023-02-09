@@ -4,10 +4,10 @@
   "source": "./src/index.html",
   "license": "MIT",
   "scripts": {
-    "start": "parcel --port 8527 --host localhost",
+    "start": "cross-env BUILD_TYPE=demo parcel --port 8527 --host localhost --dist-dir ./dist/test/",
     "build-demo": "cross-env BUILD_TYPE=demo parcel build --dist-dir ./dist/demo/ --public-url ./ src/index.html",
     "build-umd": "cross-env BUILD_TYPE=umd parcel build --dist-dir ./dist/umd/ --public-url ./ src/nmn/index.ts",
-    "build-wrapper": "cross-env BUILD_TYPE=wrapper parcel build --dist-dir ./dist/wrapper/resources/ --public-url ./ src/equifield/equifield-umd.ts && ts-node ./src/builder/wrapper/wrapper-builder.ts"
+    "build-wrapper": "cross-env BUILD_TYPE=wrapper parcel build --dist-dir ./dist/wrapper/resources/ --public-url ./ src/builder/wrapper/wrapperjs-umd.ts && ts-node ./src/builder/wrapper/wrapper-builder.ts"
   },
   "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
   "devDependencies": {

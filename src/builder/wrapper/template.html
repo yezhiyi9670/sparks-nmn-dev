@@ -3,12 +3,11 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>/*{text:content:title}*/</title>
 	<style>
 		/*{style:source:equifield/equifield.css}*/
 	</style>
 	<script type="text/javascript">
-		/*{script:built:equifield-umd.js}*/
+		/*{script:built:wrapperjs-umd.js}*/
 	</script>
 	<style>
 		/*{style:dynamic:fonts.css}*/
@@ -56,13 +55,37 @@
 		</div>
 	</div>
 	<script>
-		const ef = new Equifield($('.preview-equifield')[0]);
-		ef.render(Array(128).fill(0).map(() => {
-			return {
-				element: $('<span style="font-size: 2em">Hello, world!</span>')[0],
-				height: 3
+		const renderDocument = () => {
+			const ef = new Equifield($('.preview-equifield')[0]);
+			if(!('efData' in window)) {
+				// Say something about what this is if somebody try to open the template in browser
+				ef.render([
+					{
+						element: $('<span style="font-size:3em;font-weight:700;color:#000">SparksNMN Preview Template</span>')[0],
+						height: 6
+					},
+					{
+						element: $('<span style="font-size:1.95em;color:#000;">This is the template file for generating HTML previews.</span>')[0],
+						height: 3
+					},
+					{
+						element: $('<span style="font-size:1.95em;color:#000;">You should not open it directly. Here\'s nothing useful.</span>')[0],
+						height: 3
+					}
+				])
+			} else {
+				ef.render(efData.map((section) => {
+					const { element, ...other } = section
+					return {
+						element: $(element)[0],
+						...other
+					}
+				}))
 			}
-		}));
+		};
+	</script>
+	<script>
+		/*{style:dynamic:fonts-loader.js}*/
 	</script>
 </body>
 </html>

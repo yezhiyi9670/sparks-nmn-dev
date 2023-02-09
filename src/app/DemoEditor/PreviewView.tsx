@@ -1,4 +1,4 @@
-import jquery from 'jquery'
+import jquery, { data } from 'jquery'
 import React, { useEffect } from 'react'
 import { createUseStyles } from 'react-jss'
 import { Equifield, EquifieldSection } from '../../equifield/equifield'
@@ -67,6 +67,16 @@ export function PreviewView(props: PreviewViewProps) {
 			console.log('  Dom draw took ', domPaintStats.domDrawTime, 'milliseconds')
 			console.log('  Section render took ', lineRendererStats.sectionsRenderTime, 'milliseconds')
 			console.log('  Dispatching took ', positionDispatcherStats.computeTime, 'milliseconds')
+
+			// const dataText = `window.efData=${JSON.stringify(fields.map((section) => {
+			// 	const { element, ...other } = section
+			// 	return {
+			// 		element: element.outerHTML,
+			// 		...other
+			// 	}
+			// })).replace(/</g, "\\x3c")}`
+			// console.log('Packaged data ', dataText)
+
 			return fields
 		} else {
 			return [{

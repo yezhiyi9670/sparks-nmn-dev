@@ -329,6 +329,25 @@ export const sectionSeparatorCharMap: {
 	':/||': [':/||', '/'],
 	':/||:': [':/||', '||:']
 }
+/**
+ * 获取对于较大小节线记号保留的边距
+ */
+export function sectionSeparatorInset(sep: SectionSeparators, isFirstSection: boolean) {
+	let beforePad = 0
+	let afterPad = 0
+	if(sep.before.char == '||:') {
+		if(isFirstSection) {
+			beforePad = 1.2
+		} else {
+			beforePad = 0.8
+		}
+	}
+	const a = sep.after.char
+	if(a == ':/||' || a == ':/||:' || a == ':||' || a == ':||:') {
+		afterPad = 0.8
+	}
+	return [beforePad, afterPad]
+}
 
 /**
  * 音符行中的音符字符

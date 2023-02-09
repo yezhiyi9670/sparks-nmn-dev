@@ -1,7 +1,7 @@
 import { I18n } from '../../i18n'
 import { Linked2LyricChar } from '../../parser/des2cols/types'
 import { getLrcSymbolEquivalent } from '../../parser/sparse2des/lyrics/symbols'
-import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, LrcAttr, MusicNote, MusicProps, MusicSection, NoteCharAny, noteCharChecker, NoteCharChord, NoteCharForce, NoteCharMusic, NoteCharText, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
+import { AttrInsert, AttrShift, BaseTune, Beats, JumperAttr, LrcAttr, MusicNote, MusicProps, MusicSection, NoteCharAny, noteCharChecker, NoteCharChord, NoteCharForce, NoteCharMusic, NoteCharText, PartAttr, Qpm, SectionSeparator, SectionSeparatorChar, sectionSeparatorInset, SectionSeparators, SeparatorAttr, SeparatorAttrBase } from '../../parser/sparse2des/types'
 import { findWithKey } from '../../util/array'
 import { Frac } from '../../util/frac'
 import { MusicTheory } from '../../util/music'
@@ -177,13 +177,19 @@ export class MusicPaint {
 	/**
 	 * 绘制属性
 	 */
-	drawBeforeAfterAttrs(context: RenderContext, x: number, y: number, attrs: SeparatorAttr[], pos: 'before' | 'after', fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}) {
+	drawBeforeAfterAttrs(context: RenderContext, x: number, y: number, attrs: SeparatorAttr[], section: MusicSection<unknown>, isFirstSection: boolean, pos: 'before' | 'after', fontScale: number = 1, scale: number = 1, extraStyles: ExtraStyles = {}) {
 		let sign = pos == 'before' ? 1 : -1
 		let currX = x
 		let attrY = y - 4.5
 		const margin = 0.7 * scale
 		currX += sign * 1 * scale
-		let hX = x + sign * 0.5 * scale
+		let hX = x + sign * 0.8 * scale
+		const separatorInset = sectionSeparatorInset(section.separator, isFirstSection)
+		if(sign > 0) {
+			hX += separatorInset[0]
+		} else {
+			hX -= separatorInset[1]
+		}
 		attrs.forEach((attr) => {
 			if(['iter', 'repeat', 'qpm', 'shift', 'durability', 'text', 'scriptedText', 'reset'].indexOf(attr.type) != -1) {
 				const measure = this.drawSeparatorAttrText(context, currX, attrY, attr, fontScale, scale, extraStyles, true)

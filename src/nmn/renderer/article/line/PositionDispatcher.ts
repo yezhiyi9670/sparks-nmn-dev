@@ -1,6 +1,6 @@
 import { NMNResult } from "../../.."
 import { ScoreContext } from "../../../parser/sparse2des/context"
-import { MusicSection, NoteCharAny } from "../../../parser/sparse2des/types"
+import { MusicSection, NoteCharAny, sectionSeparatorInset } from "../../../parser/sparse2des/types"
 import { countArray, findIndexWithKey, findWithKey } from "../../../util/array"
 import { Frac, Fraction } from "../../../util/frac"
 import { DomPaint } from "../../backend/DomPaint"
@@ -206,6 +206,7 @@ export class PositionDispatcher {
 			}
 			let beforeBeatsWidth = 0
 			let afterBeatsWidth = 0
+			let maxInset = [0, 0]
 			this.line.parts.forEach((part) => {
 				const section = part.notes.sections[index]
 				const beforeAttrs = section.separator.before.attrs
@@ -224,9 +225,19 @@ export class PositionDispatcher {
 						msp.drawBeats(0, 0, afterBeats.beats, 0.95, this.scale, {}, true)[0] + this.scale * 0.5
 					)
 				}
+				const separatorInset = sectionSeparatorInset(section.separator, index == 0)
+				maxInset = [
+					Math.max(maxInset[0], separatorInset[0]),
+					Math.max(maxInset[1], separatorInset[1])
+				]
 			})
-			newSec.range[0] += beforeBeatsWidth
-			newSec.range[1] -= afterBeatsWidth
+			
+			if(beforeBeatsWidth != 0) {
+				newSec.range[0] += beforeBeatsWidth + maxInset[0] * this.scale
+			}
+			if(afterBeatsWidth != 0) {
+				newSec.range[1] -= afterBeatsWidth + maxInset[1] * this.scale
+			}
 			this.data.push(newSec)
 		})
 	}

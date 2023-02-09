@@ -1,6 +1,7 @@
 .wcl-equifield-root {
 	overflow-x: hidden;
 	overflow-y: hidden;
+	line-height: 1.15;
 	/* position: relative; */
 }
 .wcl-equifield-field {

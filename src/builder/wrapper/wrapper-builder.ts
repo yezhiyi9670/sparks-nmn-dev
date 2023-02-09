@@ -10,25 +10,31 @@ const paths = {
 let templateText = fs.readFileSync(paths.source + 'builder/wrapper/template.html').toString()
 
 const getFontStyles = () => {
-	const fonts = [
-		// { name: 'SimSun', url: './nmn/font/simsun/simsun.ttf', type: 'application/ttf' },
-		// { name: 'SimHei', url: './nmn/font/simhei/simhei.ttf', type: 'application/ttf' },
-		// { name: 'Deng', url: './nmn/font/deng/deng.ttf', type: 'application/ttf' },
-		{ name: 'SparksNMN-EOPNumber', url: './nmn/font/eop_number/eop_number.ttf', type: 'application/ttf' },
-		{ name: 'SparksNMN-mscore-20', url: './nmn/font/mscore-20/mscore-20.ttf', type: 'application/ttf' },
-		{ name: 'SparksNMN-Bravura', url: './nmn/font/bravura/bravura.otf', type: 'application/otf' }
-	]
-
-	return fonts.map((font) => {
-		const fontFilePath = paths.source + font.url
-		const fontContent = fs.readFileSync(fontFilePath).toString()
-		return `@font-face{font-family: '${font.name}'; src: url(data:${font.type};base64,${Base64.encode(fontContent)})}\n`
-	}).join('')
+	return `
+		@font-face{font-family:'Deng';src:local('等线')}
+		@font-face{font-family:'SimSun';src:local('SimSun')}
+		@font-face{font-family:'SimHei';src:local('SimHei')}
+	`
 }
-templateText = templateText.replace(/\/\*\{(\w+):(\w+):(.*?)\}\*\//g, (text: string, contentType: string, protocol: string, location: string) => {
-	if(protocol == 'content') {
-		return text
-	}
+const getFontScript = () => {
+	const fonts = [
+		{ name: 'SparksNMN-EOPNumber', url: './nmn/font/eop_number/eop_number.ttf', type: 'application/x-font-ttf' },
+		{ name: 'SparksNMN-mscore-20', url: './nmn/font/mscore-20/mscore-20.ttf', type: 'application/x-font-ttf' },
+		{ name: 'SparksNMN-Bravura', url: './nmn/font/bravura/bravura.woff', type: 'application/x-font-woff' }
+	]
+	return `FontLoader.loadFonts(${JSON.stringify(fonts.map((fontDef) => {
+		const { url, ...other } = fontDef
+		const fontFilePath = paths.source + url
+		const fontContent = fs.readFileSync(fontFilePath)
+		let b64url = `data:${fontDef.type};base64,${Base64.fromUint8Array(fontContent)}`
+		return { url: b64url, ...other }
+	}))},renderDocument)`
+}
+const replaceFields = (src: string, replacer: (text: string, contentType: string, protocol: string, location: string) => string): string => {
+	return src.replace(/\/\*\{(\w+):(\w+):(.*?)\}\*\//g, replacer)
+}
+
+templateText = replaceFields(templateText, (text, contentType, protocol, location) => {
 	if(protocol == 'built') {
 		return fs.readFileSync(paths.built + location).toString()
 	}
@@ -38,11 +44,24 @@ templateText = templateText.replace(/\/\*\{(\w+):(\w+):(.*?)\}\*\//g, (text: str
 	if(protocol == 'dynamic') {
 		if(location == 'fonts.css') {
 			return getFontStyles()
+		} else if(location == 'fonts-loader.js') {
+			return getFontScript()
 		}
 	}
 	return text
 })
 
 fs.writeFileSync(paths.dist + 'template.html', templateText)
+
+templateText = replaceFields(templateText, (text, contentType, protocol, location) => {
+	if(protocol == 'content') {
+		if(location == 'data') {
+			return fs.readFileSync(paths.source + 'builder/wrapper/test.txt').toString()
+		}
+	}
+	return text
+})
+
+fs.writeFileSync(paths.dist + 'test.html', templateText)
 
 export {}

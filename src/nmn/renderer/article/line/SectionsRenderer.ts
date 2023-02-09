@@ -225,8 +225,8 @@ export class SectionsRenderer {
 					})
 				}
 				// 画属性
-				msp.drawBeforeAfterAttrs(context, this.columns.startPosition(sectionIndex), currY, section.separator.before.attrs, 'before', 1, scale)
-				msp.drawBeforeAfterAttrs(context, this.columns.endPosition(sectionIndex), currY, section.separator.after.attrs, 'after', 1, scale)
+				msp.drawBeforeAfterAttrs(context, this.columns.startPosition(sectionIndex), currY, section.separator.before.attrs, section, sectionIndex == 0, 'before', 1, scale)
+				msp.drawBeforeAfterAttrs(context, this.columns.endPosition(sectionIndex), currY, section.separator.after.attrs, section, sectionIndex == 0, 'after', 1, scale)
 			} else if(section.type == 'omit') {
 				const omitFontMetric = new FontMetric('SimHei/400', 2.16)
 				if(section.count != section.count) {
