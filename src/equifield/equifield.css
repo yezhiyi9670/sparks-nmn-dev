@@ -1,11 +1,10 @@
 .wcl-equifield-root {
+	position: relative;
 	overflow-x: hidden;
 	overflow-y: hidden;
 	line-height: 1.15;
-	/* position: relative; */
 }
 .wcl-equifield-field {
-	/* position: relative; */
 	page-break-inside: avoid;
 	page-break-after: auto;
 	overflow-x: visible;
@@ -13,17 +12,13 @@
 }
 .wcl-equifield-content {
 	transform-origin: left top;
-	/* This will cause problem while printing, so don't use */
-	/* transform: scale(0.2);
-	font-size: 5em;
-	width: 500%;
-	margin-right: -400%; */
 }
 
 @media print {
 	.wcl-equifield-root {
-		margin-left: 50%;
-		margin-right: -50%;
+		position: absolute;
+		top: 0;
+		left: 50%;
 		transform: translateX(-50%);
 		width: 98vw;
 		font-size: calc(98vw / 120) !important;
