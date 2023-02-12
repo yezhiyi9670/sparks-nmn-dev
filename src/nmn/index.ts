@@ -1,6 +1,6 @@
 import nmnExamples from "./examples/examples"
 import { ColumnScore, LinedArticle } from "./parser/des2cols/types"
-import { LinedIssue, Parser } from "./parser/parser"
+import { LinedIssue, Parser, SectionPositions } from "./parser/parser"
 import { getLanguageValue } from './util/template'
 import { I18n, LanguageArray } from './i18n'
 import { commandDefs } from "./parser/commands"
@@ -27,7 +27,7 @@ class SparksNMNClass {
 	/**
 	 * 解析 SparksNMN 文本文档
 	 */
-	parse(doc: string) {
+	parse(doc: string): NMNResult {
 		return Parser.parse(doc)
 	}
 
@@ -40,6 +40,8 @@ class SparksNMNClass {
 	 * 
 	 * positionCallback 用于定义点击可定位元素后的行为。
 	 * 
+	 * 声部小节的高亮背景可以认为（在同一份渲染结果中）有唯一的 ID，形如 `SparksNMN-sechl SparksNMN-sechl-uuidofmusicsection`。通过操作其 `display` 属性实现显示和隐藏。
+	 * 
 	 * @return `{element: HTMLElement, height: number, noBreakAfter?: boolean}[]` element 为 DOM 元素，height 为以 em 为单位的高度。单个元素不应当在打印时截断，除非太长
 	 */
 	render(result: NMNResult['result'], lng: LanguageArray, positionCallback?: RenderPositionCallback): EquifieldSection[] {
@@ -47,6 +49,15 @@ class SparksNMNClass {
 			throw new NoRendererError('Sparks NMN renderer cannot work without a DOM window.')
 		}
 		return Renderer.render(result, lng, positionCallback)
+	}
+
+	/**
+	 * 已知源代码当前行、光标的当前行号以及列号和解析结果，确定需要高亮的声部 uuid 以及声部内的小节序号
+	 * 
+	 * 无法找到相关小节时，给出 undefined。
+	 */
+	getHighlightedSection(table: SectionPositions, lineCode: string, position: [number, number]): string | undefined {
+		return Parser.getHighlightedSection(table, lineCode, position)
 	}
 
 	/**
@@ -76,7 +87,11 @@ class SparksNMNLanguageClass {
 
 export const SparksNMNLanguage = new SparksNMNLanguageClass()
 
-export type NMNResult = {issues: LinedIssue[], result: ColumnScore<LinedArticle>}
+export type NMNResult = {
+	issues: LinedIssue[],
+	result: ColumnScore<LinedArticle>,
+	sectionPositions: SectionPositions
+}
 export type NMNIssue = LinedIssue
 export const NMNI18n = I18n
 export type NMNLanguageArray = LanguageArray

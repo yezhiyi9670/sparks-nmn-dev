@@ -2,13 +2,15 @@ import { CookedLine, RawLine } from "./commands/priLine"
 import { checkConcat } from "../util/array"
 import { LineTree, LineTreeBuilder } from "./clns2lnt/LineTreeBuilder"
 import { createIssue, Issue, Severity } from "./issue/issue"
-import { tokenize, TokenizerOption } from "./tokenizer/tokenizer"
-import { TokenFilter } from "./tokenizer/tokens"
+import { tokenize, TokenizerOption, TokenizerOptions } from "./tokenizer/tokenizer"
+import { TokenFilter, Tokens } from "./tokenizer/tokens"
 import { SparseBuilder, SparseLine } from "./lnt2sparse/SparseBuilder"
 import { Destructor } from "./sparse2des/Destructor"
-import { DestructedScore } from "./sparse2des/types"
+import { DestructedFCA, DestructedScore, MusicSection } from "./sparse2des/types"
 import { ColumnStater } from "./des2cols/ColumnStater"
 import { Linifier } from "./linify/linify"
+import { ColumnScore, LinedArticle } from "./des2cols/types"
+import { getCommandDef } from "./commands"
 
 const tokenOption: TokenizerOption = {
 	symbolChars: '`_$' + `~!@#%^&*()-=+[{]}\|;:",.<>/?`,
@@ -44,10 +46,18 @@ export function addRenderedIssue(issues: LinedIssue[], lineNumber: number, index
 }
 
 type CommandLineTree = LineTree<CookedLine & {type: 'command'}>
+export type SectionPositions = {[lineNumber: number]: {
+	/**
+	 * 行指令
+	 */
+	head: string
+	/**
+	 * 各序号对应的 id
+	 */
+	ids: {[ordinal: number]: string}
+}}
 
 class ParserClass {
-	constructor() {}
-
 	/**
 	 * 解析文本文档
 	 */
@@ -59,6 +69,7 @@ class ParserClass {
 		const sparse = this.lnt2sparse(lnt, issues)
 		const des = this.sparse2des(sparse, issues)
 		const cols = this.des2cols(des, issues)
+		const sectionPositions = this.statSectionPositions(cols)
 		return {
 			phase: {
 				lns,
@@ -68,8 +79,139 @@ class ParserClass {
 				cols
 			},
 			result: cols,
-			issues
+			issues,
+			sectionPositions
 		}
+	}
+
+	/**
+	 * 找出需要高亮的小节 uuid
+	 */
+	getHighlightedSection(table: SectionPositions, lineCode: string, position: [number, number]): string | undefined {
+		// ===== 确定所在行 =====
+		const lineNumber = position[0]
+		if(!(lineNumber in table)) {
+			return undefined
+		}
+		const tableLine = table[lineNumber]
+
+		// ===== 确定命令头匹配 =====
+		const tokens = tokenize(lineCode, tokenOption).result
+		if(tokens[0].type != 'word') {
+			return undefined
+		}
+		const commandDef = getCommandDef(tokens[0].content)
+		if(!commandDef || commandDef.head != tableLine.head) {
+			return undefined
+		}
+		const colonIndex = new TokenFilter('symbol', ':').findInLayered(tokens, tokenParens)
+		if(colonIndex == -1) {
+			return undefined
+		}
+
+		// ===== 找小节线区间 =====
+		const parens = tokenParens
+		let parenChecker = Array(parens.length).fill(0) as number[]
+		function checkParen(symbolContent: string) {
+			for(let i = 0; i < parens.length; i++) {
+				if(parens[i][0] == symbolContent) {
+					parenChecker[i] += 1
+				}
+				if(parens[i][1] == symbolContent) {
+					parenChecker[i] -= 1
+				}
+			}
+		}
+		function isAllZero() {
+			return parenChecker.filter((val) => !!val).length == 0
+		}
+		const sectionSeparatorRanges: [number, number][] = []
+		let lastRange: [number, number] | undefined = [0, 0]  // 利用这种方法跳过排在最前面的小节线
+		for(let index = colonIndex + 1; index < tokens.length; index++) {
+			const token = tokens[index]
+			if(token.type == 'symbol') {
+				checkParen(token.content)
+			}
+			const currentState = token.type == 'symbol' && ([':', '|', '/'].includes(token.content)) && isAllZero()
+			if(currentState) {
+				if(lastRange) {
+					lastRange[1] = token.range[1]
+				} else {
+					sectionSeparatorRanges.push(lastRange = [token.range[0], token.range[1]])
+				}
+			} else {
+				lastRange = undefined
+			}
+		}
+
+		// ===== 根据区间确定下标 ======
+		let ordinal = 0
+		for(let range of sectionSeparatorRanges) {
+			if(range[1] > position[1]) {
+				break
+			}
+			ordinal += 1
+		}
+
+		const ids = tableLine.ids
+		if(ordinal in ids) {
+			return ids[ordinal]
+		}
+		return undefined
+	}
+
+	/**
+	 * 根据最终的解析结果统计各行号对应的高亮小节
+	 */
+	statSectionPositions(data: ColumnScore<LinedArticle>): SectionPositions {
+		const ret: SectionPositions = {}
+		
+		function addSectionInfo(head: string, lineNumber: number, ordinal: number, uuid: string) {
+			if(!(lineNumber in ret)) {
+				ret[lineNumber] = {
+					head: head,
+					ids: {}
+				}
+			}
+			const currLine = ret[lineNumber]
+			if(!(ordinal in currLine.ids)) {
+				currLine.ids[ordinal] = uuid
+			}
+		}
+		function handleSections(head: string, sections: MusicSection<unknown>[]) {
+			sections.forEach((section) => {
+				if(section.idCard.uuid != '' && section.idCard.lineNumber != -1) {
+					addSectionInfo(head, section.idCard.lineNumber, section.idCard.index, section.idCard.uuid)
+				}
+			})
+		}
+		function handleFCA(data: DestructedFCA) {
+			if(data.chord) {
+				handleSections('C', data.chord.sections)
+			}
+			if(data.force) {
+				handleSections('F', data.force.sections)
+			}
+			data.annotations.forEach((ann) => {
+				handleSections('A', ann.sections)
+			})
+		}
+		data.articles.forEach((article) => {
+			if(article.type != 'music') {
+				return
+			}
+			article.lines.forEach((line) => {
+				line.parts.forEach((part) => {
+					handleSections('N', part.notes.sections)
+					handleFCA(part)
+					part.lyricLines.forEach((lrcLine) => {
+						handleFCA(lrcLine)
+					})
+				})
+			})
+		})
+
+		return ret
 	}
 
 	/*

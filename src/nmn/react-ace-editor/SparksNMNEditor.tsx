@@ -13,6 +13,7 @@ interface SparksNMNEditorProps {
 	name: string
 	value?: string
 	onChange?: (_: string) => void
+	onCursorChange?: (val: string) => void
 	issues?: NMNIssue[]
 	ref?: React.Ref<AceEditor>
 }
@@ -95,6 +96,7 @@ export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, pa
 		mode='sparksnmn'
 		value={props.value ?? ''}
 		onChange={props.onChange}
+		onCursorChange={props.onCursorChange}
 		ref={ref}
 		lineWrap={false}
 		onLoad={handleLoad}

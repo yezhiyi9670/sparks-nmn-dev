@@ -14,6 +14,7 @@ interface CodeEditorProps {
 	mode: string
 	value: string
 	onChange?: (val: string) => void
+	onCursorChange?: (val: string) => void
 	ref: React.RefObject<AceEditor>
 	lineWrap?: boolean
 	widthFlag?: number
@@ -40,6 +41,7 @@ export const CodeEditor = React.forwardRef((props: CodeEditorProps, ref: React.F
 			fontSize={isMobile ? 14 : 15}
 			highlightActiveLine={false}
 			onChange={props.onChange}
+			onCursorChange={props.onCursorChange}
 			setOptions={{
 				scrollPastEnd: true,
 				enableLiveAutocompletion: true,

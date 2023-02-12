@@ -1,12 +1,8 @@
 import jquery, { data } from 'jquery'
 import React, { useEffect } from 'react'
 import { createUseStyles } from 'react-jss'
-import { Equifield, EquifieldSection } from '../../equifield/equifield'
 import { NMNResult, SparksNMN } from '../../nmn'
-import languageArray_zh_cn from '../../nmn/i18n/zh_cn'
-import { lineRendererStats } from '../../nmn/renderer/article/line/LineRenderer'
-import { positionDispatcherStats } from '../../nmn/renderer/article/line/PositionDispatcher'
-import { domPaintStats } from '../../nmn/renderer/backend/DomPaint'
+import { SparksNMNPreview } from '../../nmn/react-ace-editor/SparksNMNPreview'
 
 const maxWidth = 1000
 const useStyles = createUseStyles({
@@ -17,7 +13,7 @@ const useStyles = createUseStyles({
 		border: '1px solid #00000022'
 	},
 	previewContent: {
-		padding: '48px 0'
+		padding: '48px 0',
 	},
 	[`@media(max-width: ${maxWidth + 32}px)`]: {
 		previewContainer: {
@@ -34,7 +30,10 @@ const useStyles = createUseStyles({
 			border: 'none',
 		},
 		previewContent: {
-			padding: '0'
+			padding: '0',
+			'& .SparksNMN-sechl': {
+				display: 'none !important'
+			}
 		}
 	}
 })
@@ -42,69 +41,17 @@ const useStyles = createUseStyles({
 type PreviewViewProps = {
 	result: NMNResult | undefined
 	onPosition?: (row: number, col: number) => void
+	cursor?: {
+		code: string,
+		position: [number, number]
+	}
 }
 export function PreviewView(props: PreviewViewProps) {
 	const classes = useStyles()
-	const divRef = React.createRef<HTMLDivElement>()
-
-	const positionCallback = (row: number, col: number) => {
-		if(props.onPosition) {
-			props.onPosition(row, col)
-		}
-	}
-
-	const renderResultFields = React.useMemo(() => {
-		if(props.result) {
-			domPaintStats.measureTime = 0
-			domPaintStats.domDrawTime = 0
-			lineRendererStats.sectionsRenderTime = 0
-			positionDispatcherStats.computeTime = 0
-			let startTime = +new Date()
-			const fields = SparksNMN.render(props.result.result, languageArray_zh_cn, positionCallback)
-			let endTime = +new Date()
-			console.log('Render took ', endTime - startTime, 'milliseconds')
-			console.log('  Measure took ', domPaintStats.measureTime, 'milliseconds')
-			console.log('  Dom draw took ', domPaintStats.domDrawTime, 'milliseconds')
-			console.log('  Section render took ', lineRendererStats.sectionsRenderTime, 'milliseconds')
-			console.log('  Dispatching took ', positionDispatcherStats.computeTime, 'milliseconds')
-
-			// const dataText = `window.efData=${JSON.stringify(fields.map((section) => {
-			// 	const { element, ...other } = section
-			// 	return {
-			// 		element: element.outerHTML,
-			// 		...other
-			// 	}
-			// })).replace(/</g, "\\x3c")}`
-			// console.log('Packaged data ', dataText)
-
-			return fields
-		} else {
-			return [{
-				element: jquery('<span style="font-size: 2em">Loading preview...</span>')[0],
-				height: 3
-			}]
-		}
-	}, [props.result])
-	
-	React.useEffect(() => {
-		const element = divRef.current
-		if(!element) {
-			return
-		}
-		let startTime = +new Date()
-		const ef = new Equifield(element)
-		ef.render(renderResultFields)
-		let endTime = +new Date()
-		console.log('Actuation took', endTime - startTime, 'milliseconds')
-
-		return () => {
-			ef.destroy()
-		}
-	})
 
 	return <div className={classes.previewContainer}>
 		<div className={classes.previewContent}>
-			<div ref={divRef}></div>
+			<SparksNMNPreview result={props.result} onPosition={props.onPosition} logTimeStat cursor={props.cursor} />
 		</div>
 	</div>
 }

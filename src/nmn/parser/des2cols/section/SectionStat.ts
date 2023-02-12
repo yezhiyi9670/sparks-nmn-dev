@@ -5,6 +5,11 @@ import { Jumper, LinedPart } from "../types";
 
 export module SectionStat {
 	export const nullish: MusicSection<never> = {
+		idCard: {
+			lineNumber: -1,
+			index: -1,
+			uuid: '',
+		},
 		range: [-1, -1],
 		ordinal: 0,
 		startPos: Frac.create(0),
@@ -230,9 +235,14 @@ export module SectionStat {
 	/**
 	 * 含小节行切取
 	 */
-	export function subLine<T extends {sections: MusicSection<unknown>[]}>(line: T, startSection: number, sectionCount: number): T {
+	export function subLine<T extends {sections: MusicSection<unknown>[]}>(line: T, startSection: number, sectionCount: number, overwriteIdSections?: MusicSection<unknown>[]): T {
 		return Object.assign({}, line, {
-			sections: line.sections.slice(startSection, startSection + sectionCount)
+			sections: line.sections.slice(startSection, startSection + sectionCount).map((section, index) => {
+				if(overwriteIdSections && overwriteIdSections.length > index) {
+					section.idCard.uuid = overwriteIdSections[index].idCard.uuid
+				}
+				return section
+			})
 		})
 	}
 	/**

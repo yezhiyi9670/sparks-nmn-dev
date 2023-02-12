@@ -119,6 +119,7 @@ export class DomPaint {
 		}
 		let fontSize = font.fontSize * font.fontScale
 		const $measure = $('<span></span>').text(text)
+		.css('line-height', 1.15)
 		.css('white-space', 'pre')
 		.css('display', 'inline-block')
 		.css('position', 'fixed')
@@ -263,7 +264,7 @@ export class DomPaint {
 	 * @param padding 直线在两端加长的长度
 	 * @param extraStyles 应用在 <div> 元素上的额外样式
 	 */
-	drawLine(x1: number, y1: number, x2: number, y2: number, width: number, padding: number = 0, scale: number = 1, extraStyles: ExtraStyles = {}) {
+	drawLine(x1: number, y1: number, x2: number, y2: number, width: number, padding: number = 0, scale: number = 1, extraStyles: ExtraStyles = {}, extraClasses: string[] = []) {
 		y1 *= scale
 		y2 *= scale
 		padding *= scale
@@ -298,7 +299,7 @@ export class DomPaint {
 				transform: `translateX(${centerX}em) translateY(${centerY}em) translateX(-50%) translateY(-50%) rotate(${angle}deg) scale(${1/upScale})`,
 				...extraStyles
 			}
-		)}"></div>`
+		)}" class="${extraClasses.join(' ')}"></div>`
 		this.htmlContent += textSpanText
 		domPaintStats.domDrawTime += +new Date()
 	}

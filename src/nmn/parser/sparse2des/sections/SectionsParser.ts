@@ -1,6 +1,7 @@
 import { inCheck, pushIfNonNull } from "../../../util/array";
 import { Frac, Fraction } from "../../../util/frac";
 import { MusicTheory } from "../../../util/music";
+import { randomToken } from "../../../util/random";
 import { BracketPair } from "../../lnt2sparse/SparseBuilder";
 import { addIssue, LinedIssue } from "../../parser";
 import { BracketPairFilters, BracketToken, BracketTokenList, TokenFilter, Tokens } from "../../tokenizer/tokens";
@@ -179,6 +180,7 @@ class SectionsParserClass {
 			// 枚举每一对相邻小节线，并取出相应区间进行操作。
 			ret.push(this.parseSection<TypeSampler>(
 				tokens.slice(lpt, rpt),
+				i - 1,
 				lineNumber,
 				context,
 				issues,
@@ -275,16 +277,22 @@ class SectionsParserClass {
 		return props
 	}
 
-	parseSection<TypeSampler>(tokens: BracketTokenList, lineNumber: number, context: ScoreContext, issues: LinedIssue[], knownValues: {
+	parseSection<TypeSampler>(tokens: BracketTokenList, sectionIndex: number, lineNumber: number, context: ScoreContext, issues: LinedIssue[], knownValues: {
 		range: [number, number],
 		separator: SectionSeparators
 	}, typeSampler: TypeSampler): SampledSection<TypeSampler> {
+		const idCard = {
+			lineNumber: lineNumber,
+			index: sectionIndex,
+			uuid: randomToken(24)
+		}
 		const base = {
 			range: knownValues.range,
 			startPos: { x: 0, y: 1 },
 			ordinal: 0,
 			separator: knownValues.separator,
-			musicalProps: context.musical
+			musicalProps: context.musical,
+			idCard: idCard
 		}
 		// empty
 		if(new BracketPairFilters(

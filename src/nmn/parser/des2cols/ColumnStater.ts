@@ -1,5 +1,6 @@
 import { expandArray, fillArray, findWithKey, iterateMap, paintArray } from "../../util/array";
 import { Frac, Fraction } from "../../util/frac";
+import { randomToken } from "../../util/random";
 import { LinedIssue } from "../parser";
 import { addMusicProp, addRenderProp, ScoreContext, scoreContextDefault } from "../sparse2des/context";
 import { AttrWeight, DestructedArticle, DestructedFCA, DestructedLine, DestructedScore, LyricChar, MusicProps, MusicSection, NoteCharMusic } from "../sparse2des/types";
@@ -421,6 +422,10 @@ export class ColumnStater {
 					return
 				}
 				sigs.push(part.signature)
+
+				const mappedNotes = SectionStat.subLine(part.notes, sectionPtr, sectionCount)
+				const sectionsIn = mappedNotes.sections
+
 				const lrcSigs: LyricLineSignature[] = []
 				const lrcLines: LinedLyricLine[] = []
 				part.lyricLines.forEach((lrcLine) => {
@@ -444,7 +449,6 @@ export class ColumnStater {
 						if(Ns.sections.length > leftLength) {
 							Ns.sections = Ns.sections.slice(0, leftLength)
 						}
-						console.log('clipped', Ns)
 						Ns.decorations = Ns.decorations.filter((decor) => {
 							return SectionStat.fieldOverlaps(
 								field,
@@ -464,12 +468,11 @@ export class ColumnStater {
 						index: indexMap.slice(sectionPtr, sectionPtr + sectionCount),
 						attrs: attrsMap[sectionPtr],
 						notesSubstitute: mappedNs,
-						...this.subFCA({ force, chord, annotations }, sectionPtr, sectionCount),
+						...this.subFCA({ force, chord, annotations }, sectionPtr, sectionCount, sectionsIn),
 						...others
 					})
 				})
 				SectionStat.indexSort(lrcLines)
-				const mappedNotes = SectionStat.subLine(part.notes, sectionPtr, sectionCount)
 				// 统计布局权重
 				mappedNotes.sections.forEach((section, sectionIndex) => {
 					const weightProp = findWithKey(section.separator.before.attrs, 'type', 'weight') as AttrWeight
@@ -490,7 +493,7 @@ export class ColumnStater {
 					notes: mappedNotes,
 					lyricLineSignatures: lrcSigs,
 					lyricLines: lrcLines,
-					...this.subFCA(part, sectionPtr, sectionCount)
+					...this.subFCA(part, sectionPtr, sectionCount, sectionsIn),
 				})
 			})
 			SectionStat.indexSort(parts)
@@ -513,7 +516,7 @@ export class ColumnStater {
 						jumper.endSection - jumper.startSection
 					])
 				}),
-				sectionFields: article.sectionFields.slice(sectionPtr, sectionPtr + sectionCount)
+				sectionFields: article.sectionFields.slice(sectionPtr, sectionPtr + sectionCount),
 			})
 
 			sectionPtr += sectionCount
@@ -524,12 +527,12 @@ export class ColumnStater {
 			...other
 		}
 	}
-	subFCA(part: DestructedFCA, startSection: number, sectionCount: number): DestructedFCA {
+	subFCA(part: DestructedFCA, startSection: number, sectionCount: number, overwriteIdSections?: MusicSection<unknown>[]): DestructedFCA {
 		return {
-			force: SectionStat.subLine(part.force!, startSection, sectionCount),
-			chord: SectionStat.subLine(part.chord!, startSection, sectionCount),
+			force: SectionStat.subLine(part.force!, startSection, sectionCount, overwriteIdSections),
+			chord: SectionStat.subLine(part.chord!, startSection, sectionCount, overwriteIdSections),
 			annotations: part.annotations.map((ann) => {
-				return SectionStat.subLine(ann, startSection, sectionCount)
+				return SectionStat.subLine(ann, startSection, sectionCount, overwriteIdSections)
 			})
 		}
 	}

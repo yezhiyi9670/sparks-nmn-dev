@@ -1,4 +1,4 @@
-import { Equifield } from "../../equifield/equifield";
+import { Equifield } from "../../nmn/equifield/equifield";
 import $ from 'jquery'
 import { FontLoader } from "../../nmn/renderer/FontLoader";
 

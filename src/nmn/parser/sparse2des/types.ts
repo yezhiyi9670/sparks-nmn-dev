@@ -544,6 +544,25 @@ export type SectionSeparators = {
  */
 export type MusicSection<NoteChar> = {
 	/**
+	 * 与源代码关联的身份信息
+	 */
+	idCard: {
+		/**
+		 * 被定义的行号
+		 */
+		lineNumber: number
+		/**
+		 * 被定义的序号
+		 */
+		index: number
+		/**
+		 * 全局唯一 ID
+		 * 
+		 * 在列统计阶段，标注小节（包括声部的 FCA 和歌词行的 FCA）的 uuid 会被对应声部的音乐小节覆盖
+		 */
+		uuid: string
+	}
+	/**
 	 * 字符范围
 	 */
 	range: [number, number]

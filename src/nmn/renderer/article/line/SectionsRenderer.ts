@@ -144,6 +144,19 @@ export class SectionsRenderer {
 
 		// ===== 小节音符 =====
 		sections.forEach((section, sectionIndex) => {
+			// 画高亮区
+			if(!isSmall) {
+				const startX = this.columns.startPosition(sectionIndex)
+				const endX = this.columns.endPosition(sectionIndex)
+				const centerY = currY + fieldHeight / 4
+				const highlightClass = [`SparksNMN-sechl`, `SparksNMN-sechl-${section.idCard.uuid}`]
+				const lineWidth = fieldHeight / 2
+				root.drawLine(startX, centerY, endX, centerY, lineWidth, 0, scale, {
+					boxShadow: `inset 0 0 0 100em #9C27B0`,
+					opacity: 0.25,
+					visibility: 'hidden'
+				}, highlightClass)
+			}
 			if(section.type == 'section') {
 				const noteMeasure = msp.measureNoteChar(context, isSmall, scale)
 				// 画音符

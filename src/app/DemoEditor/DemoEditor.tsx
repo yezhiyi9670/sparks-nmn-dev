@@ -46,6 +46,11 @@ const useStyles = createUseStyles({
 	}
 })
 
+type CursorData = {
+	code: string,
+	position: [number, number]
+}
+
 type DemoEditorProps = {
 	initialContent?: string
 	content?: string
@@ -58,8 +63,12 @@ export function DemoEditor(props: DemoEditorProps) {
 
 	const [ myContent, setMyContent ] = React.useState(props.initialContent ?? '')
 	const [ result, setResult ] = React.useState<NMNResult | undefined>(undefined)
+	const [ cursorData, setCursorData ] = React.useState<CursorData | undefined>(undefined)
 	const parseDethrottle = React.useMemo(() => {
 		return createDethrottledApplier(200)
+	}, [])
+	const cursorChangeDethrottle = React.useMemo(() => {
+		return createDethrottledApplier(100)
 	}, [])
 	const showContent = props.content ?? myContent
 	function parseNMN(content: string) {
@@ -75,7 +84,6 @@ export function DemoEditor(props: DemoEditorProps) {
 		if(props.onChange) {
 			props.onChange(newContent)
 		}
-		// parseDethrottle(parseNMN)(newContent)
 	}
 
 	function handleKeyDown(event: React.KeyboardEvent) {
@@ -99,10 +107,24 @@ export function DemoEditor(props: DemoEditorProps) {
 		editor.renderer.scrollCursorIntoView(editor.getCursorPosition())
 		editor.focus()
 	})
+	const handleCursorChangeIn = useMethod(() => {
+		const editor = editorRef.current?.editor
+		if(!editor) {
+			return
+		}
+		const pos = editor.getCursorPosition()
+		const cursor: CursorData = {
+			code: editor.session.getLine(editor.getCursorPosition().row),
+			position: [pos.row + 1, pos.column]
+		}
+		setCursorData(cursor)
+	})
+	const handleCursorChange = useMethod(() => {
+		cursorChangeDethrottle(handleCursorChangeIn)()
+	})
 	const resultPreview = React.useMemo(() => {
-		console.log('CALC preview')
-		return <PreviewView result={result} onPosition={handlePosition} />
-	}, [ result, handlePosition ])
+		return <PreviewView result={result} onPosition={handlePosition} cursor={cursorData} />
+	}, [ result, handlePosition, cursorData ])
 
 	return <div className={classes.outer}>
 		<div className={classes.previewSide}>
@@ -114,6 +136,7 @@ export function DemoEditor(props: DemoEditorProps) {
 				name='code'
 				value={showContent}
 				onChange={handleChange}
+				onCursorChange={handleCursorChange}
 				ref={editorRef}
 				issues={result?.issues}
 			/>
