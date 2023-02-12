@@ -299,7 +299,7 @@ export class NoteEater {
 					continue
 				}
 				// ===== 读取音符及音符后缀 =====
-				const range0 = this.peek()?.range[0] ?? 0
+				const range0 = this.peek() ? this.peek()!.range[0] + this.charPtr : 0
 				const noteChar = this.eatNoteChar<TypeSampler>(issues, typeSampler)
 				const suffixes: ('*' | '~' | '.')[] = []
 				const attrs: NoteAttr[] = []

@@ -24,7 +24,8 @@ export const scoreContextDefault: ScoreContext = {
 		},
 		base: {
 			value: NaN,
-			baseValue: NaN
+			baseValue: NaN,
+			explicitOctave: false
 		},
 		transp: 0,
 		extras: []
