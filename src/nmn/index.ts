@@ -56,8 +56,31 @@ class SparksNMNClass {
 	 * 
 	 * 无法找到相关小节时，给出 undefined。
 	 */
-	getHighlightedSection(table: SectionPositions, lineCode: string, position: [number, number]): string | undefined {
-		return Parser.getHighlightedSection(table, lineCode, position)
+	getHighlightedSection(table: SectionPositions, code: string, position: [number, number]): string | undefined {
+		return Parser.getHighlightedSection(table, code, position)
+	}
+
+	/**
+	 * 针对折行情况转换位置坐标
+	 */
+	convertPosition(code: string, row: number, col: number) {
+		const lines = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+		row -= 1
+		while(row < lines.length) {
+			const currentLine = lines[row]
+			if(currentLine[currentLine.length - 1] == "\\") {
+				if(col >= currentLine.length - 1) {
+					row += 1
+					col -= currentLine.length - 1
+				} else {
+					break
+				}
+			} else {
+				break
+			}
+		}
+		row += 1
+		return { row, col }
 	}
 
 	/**

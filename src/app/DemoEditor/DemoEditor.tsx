@@ -102,7 +102,8 @@ export function DemoEditor(props: DemoEditorProps) {
 		if(!editor) {
 			return
 		}
-		editor.moveCursorTo(row - 1, col)
+		const pos = SparksNMN.convertPosition(editor.session.getValue(), row, col)
+		editor.moveCursorTo(pos.row - 1, pos.col)
 		editor.clearSelection()
 		editor.renderer.scrollCursorIntoView(editor.getCursorPosition())
 		editor.focus()
@@ -114,7 +115,7 @@ export function DemoEditor(props: DemoEditorProps) {
 		}
 		const pos = editor.getCursorPosition()
 		const cursor: CursorData = {
-			code: editor.session.getLine(editor.getCursorPosition().row),
+			code: editor.session.getValue(),
 			position: [pos.row + 1, pos.column]
 		}
 		setCursorData(cursor)

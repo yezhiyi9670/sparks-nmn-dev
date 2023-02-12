@@ -52,6 +52,10 @@ export type SectionPositions = {[lineNumber: number]: {
 	 */
 	head: string
 	/**
+	 * 对应音符行的行号
+	 */
+	master: number
+	/**
 	 * 各序号对应的 id
 	 */
 	ids: {[ordinal: number]: string}
@@ -87,13 +91,37 @@ class ParserClass {
 	/**
 	 * 找出需要高亮的小节 uuid
 	 */
-	getHighlightedSection(table: SectionPositions, lineCode: string, position: [number, number]): string | undefined {
+	getHighlightedSection(table: SectionPositions, code: string, position: [number, number]): string | undefined {
+		const unconvertResult = ((code: string, position_: [number, number]) => {
+			const position = position_.slice() as [number, number]
+			const lines = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n")
+			let codeLine = lines[position[0] - 1]
+			while(position[0] > 1) {
+				const rowPtr = position[0] - 1
+				const prevLine = lines[rowPtr - 1]
+				if(prevLine[prevLine.length - 1] == "\\") {
+					codeLine = prevLine.substring(0, prevLine.length - 1) + codeLine
+					position[0] -= 1
+					position[1] += prevLine.length - 1
+				} else {
+					break
+				}
+			}
+			return {
+				code: codeLine,
+				position: position
+			}
+		})(code, position)
+		const lineCode = unconvertResult.code
+		position = unconvertResult.position
+
 		// ===== 确定所在行 =====
 		const lineNumber = position[0]
 		if(!(lineNumber in table)) {
 			return undefined
 		}
 		const tableLine = table[lineNumber]
+		const tableLineMaster = table[tableLine.master]
 
 		// ===== 确定命令头匹配 =====
 		const tokens = tokenize(lineCode, tokenOption).result
@@ -157,6 +185,9 @@ class ParserClass {
 		if(ordinal in ids) {
 			return ids[ordinal]
 		}
+		if(ordinal in tableLineMaster.ids) {
+			return tableLineMaster.ids[ordinal]
+		}
 		return undefined
 	}
 
@@ -166,10 +197,11 @@ class ParserClass {
 	statSectionPositions(data: ColumnScore<LinedArticle>): SectionPositions {
 		const ret: SectionPositions = {}
 		
-		function addSectionInfo(head: string, lineNumber: number, ordinal: number, uuid: string) {
+		function addSectionInfo(head: string, master: number, lineNumber: number, ordinal: number, uuid: string) {
 			if(!(lineNumber in ret)) {
 				ret[lineNumber] = {
 					head: head,
+					master: master,
 					ids: {}
 				}
 			}
@@ -178,22 +210,24 @@ class ParserClass {
 				currLine.ids[ordinal] = uuid
 			}
 		}
-		function handleSections(head: string, sections: MusicSection<unknown>[]) {
-			sections.forEach((section) => {
+		function handleSections(head: string, masterSections: MusicSection<unknown>[], sections: MusicSection<unknown>[]) {
+			sections.forEach((section, index) => {
 				if(section.idCard.uuid != '' && section.idCard.lineNumber != -1) {
-					addSectionInfo(head, section.idCard.lineNumber, section.idCard.index, section.idCard.uuid)
+					const masterSection = masterSections[index]
+					const master = masterSection?.idCard.lineNumber ?? section.idCard.lineNumber
+					addSectionInfo(head, master, section.idCard.lineNumber, section.idCard.index, section.idCard.uuid)
 				}
 			})
 		}
-		function handleFCA(data: DestructedFCA) {
+		function handleFCA(masterSections: MusicSection<unknown>[], data: DestructedFCA) {
 			if(data.chord) {
-				handleSections('C', data.chord.sections)
+				handleSections('C', masterSections, data.chord.sections)
 			}
 			if(data.force) {
-				handleSections('F', data.force.sections)
+				handleSections('F', masterSections, data.force.sections)
 			}
 			data.annotations.forEach((ann) => {
-				handleSections('A', ann.sections)
+				handleSections('A', masterSections, ann.sections)
 			})
 		}
 		data.articles.forEach((article) => {
@@ -202,10 +236,10 @@ class ParserClass {
 			}
 			article.lines.forEach((line) => {
 				line.parts.forEach((part) => {
-					handleSections('N', part.notes.sections)
-					handleFCA(part)
+					handleSections('N', part.notes.sections, part.notes.sections)
+					handleFCA(part.notes.sections, part)
 					part.lyricLines.forEach((lrcLine) => {
-						handleFCA(lrcLine)
+						handleFCA(part.notes.sections, lrcLine)
 					})
 				})
 			})
