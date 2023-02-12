@@ -145,7 +145,7 @@ export class SectionsRenderer {
 		// ===== 小节音符 =====
 		sections.forEach((section, sectionIndex) => {
 			// 画高亮区
-			if(!isSmall) {
+			if(!isSmall && section.idCard.lineNumber != -1 && section.idCard.uuid != '') {
 				const startX = this.columns.startPosition(sectionIndex)
 				const endX = this.columns.endPosition(sectionIndex)
 				const centerY = currY + fieldHeight / 4
