@@ -114,7 +114,6 @@ export default {
 		'n': '每行小节数',
 		'debug': '显示错误警告',
 		'sectionorder': '小节线序号模式',
-		'language': '曲谱渲染使用的语言',
 		'scale': '文档缩放',
 		'gutter_left': '曲谱的额外左边距',
 		'connector_left': '连谱号的额外左边距',

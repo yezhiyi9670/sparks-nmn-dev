@@ -3,14 +3,15 @@ import React, { useImperativeHandle } from "react"
 import { SparksNMNLanguage, NMNI18n, NMNIssue } from ".."
 import { CodeEditor } from "./CodeEditor/CodeEditor"
 import AceEditor from 'react-ace'
-import languageArray_zh_cn from '../../nmn/i18n/zh_cn'
 import 'ace-builds/src-noconflict/mode-plain_text'
 import './mode/sparksnmn'
 import { renderPropsDefault } from "../renderer/props"
 import { iterateMap } from "../util/array"
+import { LanguageArray } from "../i18n"
 
 interface SparksNMNEditorProps {
 	name: string
+	language: LanguageArray
 	value?: string
 	onChange?: (_: string) => void
 	onCursorChange?: (val: string) => void
@@ -24,7 +25,7 @@ export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, pa
 		return ref.current!
 	})
 
-	const languageArray = languageArray_zh_cn
+	const languageArray = props.language
 
 	const annotations: Ace.Annotation[] = React.useMemo(() => {
 		const ret = props.issues?.map((issue) => {
@@ -36,7 +37,7 @@ export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, pa
 			}
 		}) ?? []
 		return ret
-	}, [ props.issues ])
+	}, [ props.issues, props.language ])
 
 	React.useEffect(() => {
 		if(ref.current) {

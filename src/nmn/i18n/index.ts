@@ -16,6 +16,9 @@ export type LanguageArray = {
 }
 
 class I18nClass {
+	languages = {
+		'zh_cn': languageArray_zh_cn
+	}
 	/**
 	 * 获取命令头的描述
 	 */

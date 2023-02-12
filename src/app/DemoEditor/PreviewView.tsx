@@ -1,7 +1,7 @@
 import jquery, { data } from 'jquery'
 import React, { useEffect } from 'react'
 import { createUseStyles } from 'react-jss'
-import { NMNResult, SparksNMN } from '../../nmn'
+import { NMNI18n, NMNResult, SparksNMN } from '../../nmn'
 import { SparksNMNPreview } from '../../nmn/react-ace-editor/SparksNMNPreview'
 
 const maxWidth = 1000
@@ -51,7 +51,7 @@ export function PreviewView(props: PreviewViewProps) {
 
 	return <div className={classes.previewContainer}>
 		<div className={classes.previewContent}>
-			<SparksNMNPreview result={props.result} onPosition={props.onPosition} logTimeStat cursor={props.cursor} />
+			<SparksNMNPreview language={NMNI18n.languages.zh_cn} result={props.result} onPosition={props.onPosition} logTimeStat cursor={props.cursor} />
 		</div>
 	</div>
 }

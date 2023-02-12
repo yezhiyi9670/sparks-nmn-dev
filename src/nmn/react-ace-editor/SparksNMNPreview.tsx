@@ -2,14 +2,15 @@ import $ from 'jquery'
 import React from 'react'
 import { NMNResult, SparksNMN } from '..'
 import { Equifield } from '../equifield/equifield'
+import { LanguageArray } from '../i18n'
 import { lineRendererStats } from '../renderer/article/line/LineRenderer'
 import { positionDispatcherStats } from '../renderer/article/line/PositionDispatcher'
 import { domPaintStats } from '../renderer/backend/DomPaint'
-import languageArray_zh_cn from '../i18n/zh_cn'
 import { randomToken } from '../util/random'
 
 type SparksNMNPreviewProps = {
 	result: NMNResult | undefined
+	language: LanguageArray
 	onPosition?: (row: number, col: number) => void
 	logTimeStat?: boolean
 	cursor?: {
@@ -36,7 +37,7 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 			lineRendererStats.sectionsRenderTime = 0
 			positionDispatcherStats.computeTime = 0
 			let startTime = +new Date()
-			const fields = SparksNMN.render(props.result.result, languageArray_zh_cn, positionCallback)
+			const fields = SparksNMN.render(props.result.result, props.language, positionCallback)
 			let endTime = +new Date()
 			if(props.logTimeStat) {
 				console.log('Render took ', endTime - startTime, 'milliseconds')
@@ -53,7 +54,7 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 				height: 3
 			}]
 		}
-	}, [props.result, positionCallback])
+	}, [props.result, props.language, positionCallback])
 	
 	React.useEffect(() => {
 		const element = divRef.current

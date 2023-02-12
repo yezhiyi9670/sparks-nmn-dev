@@ -3,7 +3,7 @@ import React from 'react'
 import AceEditor from 'react-ace'
 import { createUseStyles } from 'react-jss'
 import { CodeEditor } from '../../nmn/react-ace-editor/CodeEditor/CodeEditor'
-import { NMNResult, SparksNMN } from '../../nmn/index'
+import { NMNI18n, NMNResult, SparksNMN } from '../../nmn/index'
 import { SparksNMNEditor } from '../../nmn/react-ace-editor/SparksNMNEditor'
 import { createDethrottledApplier, useOnceEffect } from '../../util/event'
 import { PreviewView } from './PreviewView'
@@ -135,6 +135,7 @@ export function DemoEditor(props: DemoEditorProps) {
 		<div className={classes.editorSide} onKeyDown={handleKeyDown}>
 			<SparksNMNEditor
 				name='code'
+				language={NMNI18n.languages.zh_cn}
 				value={showContent}
 				onChange={handleChange}
 				onCursorChange={handleCursorChange}

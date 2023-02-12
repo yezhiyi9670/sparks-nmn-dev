@@ -15,10 +15,6 @@ export interface RenderProps {
 	 */
 	sectionorder?: string
 	/**
-	 * 语言
-	 */
-	language?: string
-	/**
 	 * 尺寸
 	 */
 	scale?: number
@@ -100,7 +96,6 @@ export const renderPropsDefault: RenderProps = {
 	n: 4,
 	debug: true,
 	sectionorder: 'paren',
-	language: 'en',
 	scale: 1.0,
 	gutter_left: 1,
 	connector_left: 0,
@@ -147,12 +142,6 @@ export function renderPropConvert(key: string, val: string) {
 	}
 	if(key == 'sectionorder') {
 		if(['none', 'plain', 'paren', 'bracket'].indexOf(val) != -1) {
-			return val
-		}
-		return { error: 'value' }
-	}
-	if(key == 'language') {
-		if(['en', 'zh_cn'].indexOf(val) != -1) {
 			return val
 		}
 		return { error: 'value' }

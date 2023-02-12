@@ -64,7 +64,7 @@ class HeaderRendererClass {
 			const authorMetric = new FontMetric(context.render.font_author!, 2.16)
 			let text = author.text
 			if(author.tag) {
-				text = author.text + I18n.renderToken(I18n.data(context.render.language) ?? context.language, 'author_sep') + author.tag
+				text = author.text + I18n.renderToken(context.language, 'author_sep') + author.tag
 			}
 			root.drawTextFast(100, currY, text, authorMetric, scale, 'right')
 			currY += 1.2 + 2.16 * authorMetric.fontScale
