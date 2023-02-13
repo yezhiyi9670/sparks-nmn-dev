@@ -136,6 +136,9 @@ class ParserClass {
 		if(colonIndex == -1) {
 			return undefined
 		}
+		if(tokens[colonIndex].range[1] > position[1]) {
+			return undefined
+		}
 
 		// ===== 找小节线区间 =====
 		const parens = tokenParens
