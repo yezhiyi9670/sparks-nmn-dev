@@ -19,27 +19,29 @@ type SparksNMNPreviewProps = {
 	}
 }
 export function SparksNMNPreview(props: SparksNMNPreviewProps) {
+	const { onPosition, result, language, logTimeStat } = props
+	
 	const divRef = React.createRef<HTMLDivElement>()
 
 	const token = React.useMemo(() => randomToken(24), [])
 	const tokenClass = `SparksNMN-preview-${token}`
 
 	const positionCallback = React.useCallback((row: number, col: number) => {
-		if(props.onPosition) {
-			props.onPosition(row, col)
+		if(onPosition) {
+			onPosition(row, col)
 		}
-	}, [props.onPosition])
+	}, [onPosition])
 
 	const renderResultFields = React.useMemo(() => {
-		if(props.result) {
+		if(result) {
 			domPaintStats.measureTime = 0
 			domPaintStats.domDrawTime = 0
 			lineRendererStats.sectionsRenderTime = 0
 			positionDispatcherStats.computeTime = 0
 			let startTime = +new Date()
-			const fields = SparksNMN.render(props.result.result, props.language, positionCallback)
+			const fields = SparksNMN.render(result.result, language, positionCallback)
 			let endTime = +new Date()
-			if(props.logTimeStat) {
+			if(logTimeStat) {
 				console.log('Render took ', endTime - startTime, 'milliseconds')
 				console.log('  Measure took ', domPaintStats.measureTime, 'milliseconds')
 				console.log('  Dom draw took ', domPaintStats.domDrawTime, 'milliseconds')
@@ -54,7 +56,7 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 				height: 3
 			}]
 		}
-	}, [props.result, props.language, positionCallback])
+	}, [result, language, logTimeStat, positionCallback])
 	
 	React.useEffect(() => {
 		const element = divRef.current
@@ -68,23 +70,23 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 		const ef = new Equifield(element)
 		ef.render(renderResultFields)
 		let endTime = +new Date()
-		if(props.logTimeStat) {
+		if(logTimeStat) {
 			console.log('Actuation took', endTime - startTime, 'milliseconds')
 		}
 
 		return () => {
 			ef.destroy()
 		}
-	}, [renderResultFields])
+	}, [divRef, renderResultFields, logTimeStat, tokenClass])
 
 	React.useEffect(() => {
-		if(!props.result || !props.cursor) {
+		if(!result || !props.cursor) {
 			return
 		}
-		const id = SparksNMN.getHighlightedSection(props.result.sectionPositions, props.cursor.code, props.cursor.position)
+		const id = SparksNMN.getHighlightedSection(result.sectionPositions, props.cursor.code, props.cursor.position)
 		$(`.${tokenClass} .SparksNMN-sechl`).css({visibility: 'hidden'})
 		$(`.${tokenClass} .SparksNMN-sechl-${id}`).css({visibility: 'visible'})
-	}, [props.result, renderResultFields, props.cursor])
+	}, [result, renderResultFields, props.cursor, tokenClass])
 
 	return <div ref={divRef}></div>
 }

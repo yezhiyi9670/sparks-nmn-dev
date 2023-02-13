@@ -18,6 +18,7 @@ interface SparksNMNEditorProps {
 	issues?: NMNIssue[]
 	ref?: React.Ref<AceEditor>
 }
+// eslint-disable-next-line react/display-name
 export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, parentRef: React.Ref<AceEditor>) => {
 	const ref = React.useRef<AceEditor>(null)
 
@@ -37,7 +38,7 @@ export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, pa
 			}
 		}) ?? []
 		return ret
-	}, [ props.issues, props.language ])
+	}, [ props.issues, languageArray ])
 
 	React.useEffect(() => {
 		if(ref.current) {

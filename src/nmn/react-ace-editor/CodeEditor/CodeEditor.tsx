@@ -24,6 +24,7 @@ interface CodeEditorProps {
 /**
  * 代码编辑器
  */
+// eslint-disable-next-line react/display-name
 export const CodeEditor = React.forwardRef((props: CodeEditorProps, ref: React.ForwardedRef<AceEditor>) => {
 	const isMobile = false
 	const darkMode = false
