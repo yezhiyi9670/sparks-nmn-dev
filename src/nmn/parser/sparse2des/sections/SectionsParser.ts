@@ -284,7 +284,7 @@ class SectionsParserClass {
 		const idCard = {
 			lineNumber: lineNumber,
 			index: sectionIndex,
-			uuid: randomToken(24)
+			uuid: `${lineNumber}-${sectionIndex}`
 		}
 		const base = {
 			range: knownValues.range,
