@@ -72,16 +72,6 @@ class I18nClass {
 	upDownText(context: LanguageArray, key: 'up' | 'down') {
 		return context.updown[key]
 	}
-
-	/**
-	 * 获取语言数据
-	 */
-	data(language: string | undefined): LanguageArray | undefined {
-		if(language == 'zh_cn') {
-			return languageArray_zh_cn
-		}
-		return undefined
-	}
 }
 
 export const I18n = new I18nClass()
