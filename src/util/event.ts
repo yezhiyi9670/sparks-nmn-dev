@@ -61,16 +61,14 @@ export class CallbackRegistry<Func_t extends Function> {
 	}
 }
 
-const neverCalled = new CallbackRegistry()
-
 /**
- * 根据 Token，使用仅有一次的 effect（The hacky way）
+ * 使用仅有一次的 effect，并且可以在结束时清除（The hacky way）
  */
 export function useOnceEffect(func: () => void) {
-	const [ token ] = React.useState(randomToken(32))
 	return React.useEffect(() => {
-		neverCalled.register(func, token)
-	})
+		return func()
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [])
 }
 
 /**
@@ -78,7 +76,7 @@ export function useOnceEffect(func: () => void) {
  * 保证执行器总是延迟 delay，且两次触发的间隔不小于 delay
  */
 export function createDethrottledApplier(timeout: number) {
-	let timer = 0
+	let timer: NodeJS.Timeout | undefined = undefined
 	return function<T extends (...args: any[]) => void>(func: T): T {
 		return function() {
 			const context = this
@@ -86,7 +84,7 @@ export function createDethrottledApplier(timeout: number) {
 			if(timer) {
 				clearTimeout(timer)
 			}
-			timer = setTimeout(() => func.apply(context, args), timeout)
+			timer = setTimeout(() => func.apply(context, args as any), timeout)
 		} as T
 	}
 }
