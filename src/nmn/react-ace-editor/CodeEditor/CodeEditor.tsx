@@ -20,6 +20,7 @@ interface CodeEditorProps {
 	widthFlag?: number
 	onLoad?: (editor: Ace.Editor) => void
 	annotations?: Ace.Annotation[]
+	fontSize?: number
 }
 /**
  * 代码编辑器
@@ -39,7 +40,7 @@ export const CodeEditor = React.forwardRef((props: CodeEditorProps, ref: React.F
 			value={props.value}
 			height='100%'
 			width={`calc(100% - ${rd}px + ${rd}px)`}
-			fontSize={isMobile ? 14 : 15}
+			fontSize={props.fontSize ?? 15}
 			highlightActiveLine={false}
 			onChange={props.onChange}
 			onCursorChange={props.onCursorChange}

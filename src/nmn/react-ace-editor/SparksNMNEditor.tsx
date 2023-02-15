@@ -17,6 +17,7 @@ interface SparksNMNEditorProps {
 	onCursorChange?: (val: string) => void
 	issues?: NMNIssue[]
 	ref?: React.Ref<AceEditor>
+	fontSize?: number
 }
 // eslint-disable-next-line react/display-name
 export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, parentRef: React.Ref<AceEditor>) => {
@@ -102,5 +103,6 @@ export const SparksNMNEditor = React.forwardRef((props: SparksNMNEditorProps, pa
 		ref={ref}
 		lineWrap={false}
 		onLoad={handleLoad}
+		fontSize={props.fontSize}
 	/>
 })
