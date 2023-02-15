@@ -77,7 +77,8 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 		return () => {
 			ef.destroy()
 		}
-	}, [divRef, renderResultFields, logTimeStat, tokenClass])
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [renderResultFields, logTimeStat, tokenClass])
 
 	React.useEffect(() => {
 		if(!result || !props.cursor) {
