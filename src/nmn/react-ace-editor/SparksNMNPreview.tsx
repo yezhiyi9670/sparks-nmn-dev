@@ -106,12 +106,14 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 	}, [renderResultFields, logTimeStat, tokenClass])
 
 	React.useEffect(() => {
-		if(!result || !props.cursor) {
+		if(!result) {
 			return
 		}
-		const id = SparksNMN.getHighlightedSection(result.sectionPositions, props.cursor.code, props.cursor.position)
 		$(`.${tokenClass} .SparksNMN-sechl`).css({visibility: 'hidden'})
-		$(`.${tokenClass} .SparksNMN-sechl-${id}`).css({visibility: 'visible'})
+		if(props.cursor) {
+			const id = SparksNMN.getHighlightedSection(result.sectionPositions, props.cursor.code, props.cursor.position)
+			$(`.${tokenClass} .SparksNMN-sechl-${id}`).css({visibility: 'visible'})
+		}
 	}, [result, renderResultFields, props.cursor, tokenClass])
 
 	return <div ref={divRef}></div>
