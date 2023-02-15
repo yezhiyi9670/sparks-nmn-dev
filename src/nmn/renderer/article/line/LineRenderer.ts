@@ -70,7 +70,7 @@ export class LineRenderer {
 
 		sections.push({
 			element: new DomPaint().getElement(),
-			height: 1.8 * scale,
+			height: 1.4 * scale,
 			isMargin: true
 		})
 	}
@@ -104,6 +104,8 @@ export class LineRenderer {
 			currY += this.renderLyricLine(currY, lyricLine, part, line, isFirst, root, context)
 			isFirst = false
 		})
+
+		currY += 1
 
 		return currY - startY
 	}
@@ -286,7 +288,7 @@ export class LineRenderer {
 		const msp = new MusicPaint(root)
 		const scale = context.render.scale!
 		const noteMeasure = msp.measureNoteChar(context, isSmall, scale)
-		const FCALineField = 0.9 * noteMeasure[1]
+		const FCALineField = 1.0 * noteMeasure[1]
 
 		function handleSections<T extends object>(sections: MusicSection<T>[], noteHandler: (note: MusicNote<T>, sectionIndex: number, section: MusicSection<T>) => void) {
 			sections.forEach((section, sectionIndex) => {
