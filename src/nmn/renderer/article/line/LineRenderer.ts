@@ -29,7 +29,7 @@ export const lineRendererStats = {
 }
 
 export class LineRenderer {
-	columns: PositionDispatcher
+	columns!: PositionDispatcher
 	musicLineYs: { top: number, middle: number, bottom: number }[] = []
 
 	/**

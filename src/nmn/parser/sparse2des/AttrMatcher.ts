@@ -312,6 +312,11 @@ export module AttrMatcher {
 			return undefined
 		}
 		const section: MusicSection<NoteCharMusic> = {
+			idCard: {
+				lineNumber: -1,
+				index: -1,
+				uuid: ''
+			},
 			range: [tokenIn.range[0] + 1, tokenIn.range[1] - 1],
 			ordinal: 0,
 			startPos: {x: 0, y: 0},
@@ -327,7 +332,7 @@ export module AttrMatcher {
 			notes: [],
 			decoration: [],
 			leftSplit: false,
-			leftSplitVoid: false
+			leftSplitVoid: false,
 		}
 		const [ writtenQuarters ] = new NoteEater(tokenIn.tokens[0] ?? [], lineNumber, scoreContextDefault, 0).parse<'music'>(
 			section,

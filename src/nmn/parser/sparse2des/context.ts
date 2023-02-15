@@ -39,8 +39,8 @@ export function addMusicProp(context: ScoreContext, prop?: MusicProps): ScoreCon
 	}
 	let newProps = Object.assign({}, context.musical)
 	for(let key in prop) {
-		if(prop[key] !== undefined) {
-			newProps[key] = prop[key]
+		if((prop as any)[key] !== undefined) {
+			(newProps as any)[key] = (prop as any)[key]
 		}
 	}
 	return Object.assign({}, context, { musical: newProps })
@@ -51,8 +51,8 @@ export function addRenderProp(context: ScoreContext, prop?: RenderProps): ScoreC
 	}
 	let newProps = Object.assign({}, context.render)
 	for(let key in prop) {
-		if(prop[key] !== undefined) {
-			newProps[key] = prop[key]
+		if((prop as any)[key] !== undefined) {
+			(newProps as any)[key] = (prop as any)[key]
 		}
 	}
 	return Object.assign({}, context, { render: newProps })

@@ -78,7 +78,7 @@ export function useOnceEffect(func: () => void) {
 export function createDethrottledApplier(timeout: number) {
 	let timer: NodeJS.Timeout | undefined = undefined
 	return function<T extends (...args: any[]) => void>(func: T): T {
-		return function() {
+		return function(this: any) {
 			const context = this
 			const args = arguments
 			if(timer) {

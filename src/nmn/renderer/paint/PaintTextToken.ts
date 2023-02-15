@@ -4,10 +4,10 @@ import { FontMetric } from "../FontMetric";
 type ExtraStyles = {[_: string]: number | string}
 
 export class PaintTextToken {
-	text: string
-	fontMetric: FontMetric
-	scale: number
-	extraStyles: ExtraStyles
+	text!: string
+	fontMetric!: FontMetric
+	scale!: number
+	extraStyles!: ExtraStyles
 
 	constructor(text: string, fontMetric: FontMetric, scale: number = 1, extraStyles: ExtraStyles = {}) {
 		Object.assign(this, { text, fontMetric, scale, extraStyles })

@@ -15,8 +15,5 @@
 		"jsx": "preserve",
 		"baseUrl": "src",
 		"noImplicitAny": true
-	},
-	"include": [
-		"types/"
-	]
+	}
 }

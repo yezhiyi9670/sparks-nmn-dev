@@ -55,7 +55,7 @@ export class LyricsParser {
 	constructor(input: BracketTokenList, lineNumber: number, context: ScoreContext) {
 		this.input = input
 		this.lineNumber = lineNumber
-		this.context = this.context
+		this.context = context
 	}
 
 	parseLyrics(issues: LinedIssue[], typeSampler: LyricDestructionType): LyricChar[] {

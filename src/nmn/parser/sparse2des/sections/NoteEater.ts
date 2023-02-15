@@ -553,7 +553,7 @@ export class NoteEater {
 				}
 				const [ pref, base ] = splitBy(token1.content, '/')
 				let prefSplitPos = 1
-				let accidentalDeltas = {'#': 1, 'b': -1, '$': 0, '^': 0.5, '%': -0.5}
+				let accidentalDeltas: {[_: string]: number} = {'#': 1, 'b': -1, '$': 0, '^': 0.5, '%': -0.5}
 				while(prefSplitPos < pref.length && (
 					inCheck(pref[prefSplitPos - 1], accidentalDeltas) ||
 					withinCharRange(pref[prefSplitPos], 'A', 'Z')

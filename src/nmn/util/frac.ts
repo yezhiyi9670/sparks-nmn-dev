@@ -9,7 +9,7 @@ export interface Fraction {
 	y: number
 }
 
-function gcd(x: number, y: number) {
+function gcd(x: number, y: number): number {
 	if(x < 0) {
 		x = -x
 	}

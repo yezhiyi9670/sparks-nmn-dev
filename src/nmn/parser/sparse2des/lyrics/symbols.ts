@@ -53,7 +53,7 @@ export function getLrcSymbolType(symbol: string, typeSampler: LyricDestructionTy
  * 查找歌词前后缀字符的测量等价类
  */
 export function getLrcSymbolEquivalent(symbol: string) {
-	let symbolMap = {
+	let symbolMap: {[_: string]: string} = {
 		'，': ',',
 		'。': '.',
 		'！': '!',

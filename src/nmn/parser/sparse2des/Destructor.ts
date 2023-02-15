@@ -320,7 +320,7 @@ export class Destructor {
 						)
 					}
 				} else {
-					props[key] = r
+					(props as any)[key] = r
 				}
 			}
 		})
