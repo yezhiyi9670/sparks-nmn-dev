@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { NMNResult, SparksNMN } from '..'
 import { Equifield } from '../equifield/equifield'
 import { LanguageArray } from '../i18n'
@@ -17,6 +17,8 @@ type SparksNMNPreviewProps = {
 		code: string,
 		position: [number, number]
 	}
+	onReportTiming?: (value: number) => void
+	onReportSize?: (value: number) => void
 }
 export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 	const { onPosition, result, language, logTimeStat } = props
@@ -32,7 +34,11 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 		}
 	}, [onPosition])
 
+	let hasRendered = false
+	let timing = 0
 	const renderResultFields = React.useMemo(() => {
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+		hasRendered = true
 		if(result) {
 			domPaintStats.measureTime = 0
 			domPaintStats.domDrawTime = 0
@@ -41,6 +47,8 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 			let startTime = +new Date()
 			const fields = SparksNMN.render(result.result, language, positionCallback)
 			let endTime = +new Date()
+			// eslint-disable-next-line react-hooks/exhaustive-deps
+			timing = endTime - startTime
 			if(logTimeStat) {
 				console.log('Render took ', endTime - startTime, 'milliseconds')
 				console.log('  Measure took ', domPaintStats.measureTime, 'milliseconds')
@@ -57,6 +65,23 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 			}]
 		}
 	}, [result, language, logTimeStat, positionCallback])
+
+	useEffect(() => {
+		if(hasRendered) {
+			if(props.onReportTiming) {
+				props.onReportTiming(timing)
+			}
+			if(props.onReportSize) {
+				const textData = JSON.stringify(renderResultFields.map((field) => {
+					return {
+						...field,
+						element: field.element.outerHTML
+					}
+				})).replace(/</g, "\\x3c")
+				props.onReportSize(new TextEncoder().encode(textData).length)
+			}
+		}
+	})
 	
 	React.useEffect(() => {
 		const element = divRef.current
