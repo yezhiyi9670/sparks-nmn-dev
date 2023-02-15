@@ -56,6 +56,14 @@ export class DomPaint {
 	htmlContent: string
 	token: string
 	clickCallbacks: {[_: string]: () => void} = {}
+	clickableOrder: number = 0
+
+	limitPrecisionShape(item: number) {
+		return item.toFixed(3)// .replace(/\.(\d*?)(0+)$/, '.$1').replace(/\.$/, '')
+	}
+	limitPrecisionEm(item: number) {
+		return item.toFixed(5)// .replace(/\.(\d*?)(0+)$/, '.$1').replace(/\.$/, '')
+	}
 
 	getElement() {
 		this.element.innerHTML = this.htmlContent
@@ -93,7 +101,7 @@ export class DomPaint {
 			points.push([Math.cos(angle) * innerRatio, Math.sin(angle) * innerRatio])
 		}
 		return points.map((point) => {
-			return `${50 + point[0] * 50}% ${50 + point[1] * 50}%`
+			return `${this.limitPrecisionShape(50 + point[0] * 50)}% ${this.limitPrecisionShape(50 + point[1] * 50)}%`
 		}).join(',')
 	}
 	/**
@@ -191,28 +199,9 @@ export class DomPaint {
 		const ty = {top: 0, middle: -50, bottom: -100}[alignY]
 
 		domPaintStats.domDrawTime -= +new Date()
-		// const textSpan = $('<span></span>').text(text).css('color', '#000')
-		// .css('white-space', 'pre')
-		// .css('display', 'inline-block')
-		// .css('position', 'absolute')
-		// .css('text-align', align)
-		// .css('font-family', font.fontFamily)
-		// .css('font-size', `${fontSize * scale * upScale}em`)
-		// .css('font-weight', font.fontWeight)
-		// .css('top', `0`)
-		// .css('left', `0`)
-		// .css('transform-origin', 'top left')
-		// .css('transform', `translateX(${x/scale/upScale}em) translateY(${y / upScale}em) scale(${1/upScale}) translateX(${tx}%) translateY(${ty}%) `)
-		// .css(extraStyles)
-		// if(clickHandler) {
-		// 	textSpan.on('click', clickHandler).css('cursor', 'pointer')
-		// }
-		// $(this.element).append((
-		// 	textSpan
-		// ))
 		let token = ''
 		if(clickHandler) {
-			token = generateToken()
+			token = (this.clickableOrder++).toString()
 			this.clickCallbacks[token] = clickHandler
 		}
 		const textSpanText = `<span style="${translateStyles(
@@ -223,12 +212,12 @@ export class DomPaint {
 				position: 'absolute',
 				textAlign: align,
 				fontFamily: font.fontFamily,
-				fontSize: `${fontSize * scale * upScale}em`,
+				fontSize: `${this.limitPrecisionEm(fontSize * scale * upScale)}em`,
 				fontWeight: font.fontWeight,
 				top: 0,
 				left: 0,
 				transformOrigin: 'top left',
-				transform: `translateX(${x/scale/upScale}em) translateY(${y / upScale}em) scale(${1/upScale}) translateX(${tx}%) translateY(${ty}%)`,
+				transform: `translateX(${this.limitPrecisionEm(x/scale/upScale)}em) translateY(${this.limitPrecisionEm(y / upScale)}em) scale(${this.limitPrecisionEm(1/upScale)}) translateX(${tx}%) translateY(${ty}%)`,
 				...(clickHandler ? {
 					cursor: 'pointer'
 				} : {}),
@@ -276,27 +265,15 @@ export class DomPaint {
 		let centerY = (y1 + y2) / 2
 		let angle = Math.atan2(dy, dx) * 180 / Math.PI
 		domPaintStats.domDrawTime -= +new Date()
-		// $(this.element).append((
-		// 	$('<div></div>')
-		// 	.css('box-shadow', `inset 0 0 0 ${width * upScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
-		// 	.addClass('visible-print-block')
-		// 	.css('position', 'absolute')
-		// 	.css('width', `${(lineLength + 2 * padding) * upScale}em`)
-		// 	.css('height', `${width * upScale}em`)
-		// 	.css('transform', `translateX(${centerX}em) translateY(${centerY}em) translateX(-50%) translateY(-50%) rotate(${angle}deg) scale(${1/upScale})`)
-		// 	.css('left', `0`)
-		// 	.css('top', `0`)
-		// 	.css(extraStyles)
-		// ))
 		const textSpanText = `<div style="${translateStyles(
 			{
-				boxShadow: `inset 0 0 0 ${width * upScale}em`,
+				boxShadow: `inset 0 0 0 ${this.limitPrecisionEm(width * upScale)}em`,
 				position: 'absolute',
-				width: `${(lineLength + 2 * padding) * upScale}em`,
+				width: `${this.limitPrecisionEm((lineLength + 2 * padding) * upScale)}em`,
 				height: `${width * upScale}em`,
 				left: 0,
 				top: 0,
-				transform: `translateX(${centerX}em) translateY(${centerY}em) translateX(-50%) translateY(-50%) rotate(${angle}deg) scale(${1/upScale})`,
+				transform: `translateX(${this.limitPrecisionEm(centerX)}em) translateY(${this.limitPrecisionEm(centerY)}em) translateX(-50%) translateY(-50%) rotate(${this.limitPrecisionEm(angle)}deg) scale(${this.limitPrecisionEm(1/upScale)})`,
 				...extraStyles
 			}
 		)}" class="${extraClasses.join(' ')}"></div>`
@@ -327,29 +304,16 @@ export class DomPaint {
 			}
 		}
 		domPaintStats.domDrawTime -= +new Date()
-		// $(this.element).append((
-		// 	$('<div></div>')
-		// 	.css('box-shadow', `inset 0 0 0 ${r / downScale}em`) // 确保打印能够正常输出。若使用背景颜色，打印时可能会被忽略。
-		// 	.css('clip-path', `polygon(${this.polygonQuarterCircle(ratio)})`)
-		// 	.addClass('visible-print-block')
-		// 	.css('position', 'absolute')
-		// 	.css('width', `${r * 2 / downScale}em`)
-		// 	.css('height', `${r * 2 / downScale}em`)
-		// 	.css('transform', `translateX(${x}em) translateY(${y}em) translateX(-${50}%) translateY(-${50}%) scale(${downScale}) rotate(${rotate}deg)`)
-		// 	.css('left', `0`)
-		// 	.css('top', `0`)
-		// 	.css(extraStyles)
-		// ))
 		const textSpanText = `<div style="${translateStyles(
 			{
-				boxShadow: `inset 0 0 0 ${r / downScale}em`,
+				boxShadow: `inset 0 0 0 ${this.limitPrecisionEm(r / downScale)}em`,
 				clipPath: `polygon(${this.polygonQuarterCircle(ratio)})`,
 				position: 'absolute',
-				width: `${r * 2 / downScale}em`,
-				height: `${r * 2 / downScale}em`,
+				width: `${this.limitPrecisionEm(r * 2 / downScale)}em`,
+				height: `${this.limitPrecisionEm(r * 2 / downScale)}em`,
 				left: 0,
 				top: 0,
-				transform: `translateX(${x}em) translateY(${y}em) translateX(-${50}%) translateY(-${50}%) scale(${downScale}) rotate(${rotate}deg)`,
+				transform: `translateX(${this.limitPrecisionEm(x)}em) translateY(${this.limitPrecisionEm(y)}em) translateX(-${50}%) translateY(-${50}%) scale(${this.limitPrecisionEm(downScale)}) rotate(${this.limitPrecisionEm(rotate)}deg)`,
 				...extraStyles
 			}
 		)}"></div>`
