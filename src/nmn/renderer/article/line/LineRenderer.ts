@@ -70,7 +70,7 @@ export class LineRenderer {
 
 		sections.push({
 			element: new DomPaint().getElement(),
-			height: 1.4 * scale,
+			height: 1.1 * scale,
 			isMargin: true
 		})
 	}
