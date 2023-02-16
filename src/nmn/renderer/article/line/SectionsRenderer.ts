@@ -222,7 +222,6 @@ export class SectionsRenderer {
 					if(decor.type == 'insert') {
 						const sig = Frac.repr(decor.target)
 						const times = insertCount[sig]
-						console.log(sig)
 						const pos = this.columns.fracInsertPosition(sectionIndex, Frac.add(section.startPos, decor.target), decor.ordinal, times)
 						msp.drawInsert(context, pos, currY, decor.char, isSmall, scale)
 					}

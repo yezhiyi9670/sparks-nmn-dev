@@ -161,7 +161,6 @@ export class PositionDispatcher {
 				pos0 = this.data[sectionIndex].range[0]
 			}
 		}
-		console.log('index', symbolOrdinal, 'total', totalSymbols)
 		return pos0 + (pos1 - pos0) / (1 + totalSymbols) * (1 + symbolOrdinal)
 	}
 
