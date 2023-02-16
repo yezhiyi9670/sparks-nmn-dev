@@ -64,9 +64,7 @@ export function DemoEditor(props: DemoEditorProps) {
 	const [ myContent, setMyContent ] = React.useState(props.initialContent ?? '')
 	const [ result, setResult ] = React.useState<NMNResult | undefined>(undefined)
 	const [ cursorData, setCursorData ] = React.useState<CursorData | undefined>(undefined)
-	const parseDethrottle = React.useMemo(() => {
-		return createDethrottledApplier(200)
-	}, [])
+	const [ previewDirty, setPreviewDirty ] = React.useState(false)
 	const cursorChangeDethrottle = React.useMemo(() => {
 		return createDethrottledApplier(100)
 	}, [])
@@ -76,11 +74,12 @@ export function DemoEditor(props: DemoEditorProps) {
 		const nmnResult = SparksNMN.parse(content)
 		let endTime = +new Date()
 		console.log('Parse took', endTime - startTime, 'milliseconds')
-		// console.log(nmnResult)
 		setResult(nmnResult)
+		setPreviewDirty(false)
 	}
 	function handleChange(newContent: string) {
 		setMyContent(newContent)
+		setPreviewDirty(true)
 		if(props.onChange) {
 			props.onChange(newContent)
 		}
@@ -88,7 +87,9 @@ export function DemoEditor(props: DemoEditorProps) {
 
 	function handleKeyDown(event: React.KeyboardEvent) {
 		if(event.ctrlKey && event.key == 's') {
-			parseDethrottle(parseNMN)(showContent)
+			if(previewDirty) {
+				parseNMN(showContent)
+			}
 			event.preventDefault()
 		}
 	}
