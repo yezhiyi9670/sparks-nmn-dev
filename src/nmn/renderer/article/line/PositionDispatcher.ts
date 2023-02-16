@@ -234,6 +234,8 @@ export class PositionDispatcher {
 			
 			if(beforeBeatsWidth != 0) {
 				newSec.range[0] += beforeBeatsWidth + maxInset[0] * this.scale
+			} else if(index == 0) {
+				newSec.range[0] += maxInset[0] * this.scale * 0.75
 			}
 			if(afterBeatsWidth != 0) {
 				newSec.range[1] -= afterBeatsWidth + maxInset[1] * this.scale
