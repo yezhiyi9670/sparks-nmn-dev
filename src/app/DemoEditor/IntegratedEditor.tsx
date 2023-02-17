@@ -216,7 +216,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 				onCursorChange={handleCursorChange}
 				ref={editorRef}
 				issues={parseResult.result.issues}
-				fontSize={15}
+				fontSize={14.5}
 			/>
 		</div>
 		<div className={classes.groupStatusBar}>
