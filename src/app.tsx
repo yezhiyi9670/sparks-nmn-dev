@@ -8,6 +8,7 @@ import { Frac } from './nmn/util/frac'
 import { MusicTheory } from './nmn/util/music'
 import { md5 } from './nmn/util/md5'
 import { TestApp } from './app/TestApp'
+import { I18nProvider } from './app/i18n/i18n'
 
 function ConsoleTest() {
 	console.log(md5('abc'))
@@ -58,6 +59,8 @@ function App() {
 
 SparksNMN.loadFonts(() => {
 	createRoot(document.getElementById('root')!).render(
-		<App />
+		<I18nProvider languageKey='zh_cn'>
+			<App />
+		</I18nProvider>
 	)
 })

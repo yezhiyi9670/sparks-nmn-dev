@@ -16,3 +16,16 @@ export function useMethod<T extends Function>(val: T): T {
 	}, [])
 	return callerFunc as any as T
 }
+
+/**
+ * 调用 Ref
+ */
+export function callRef<T>(ref: React.RefObject<T>, func: (obj: T) => void, elseAction?: () => void) {
+	if(ref.current) {
+		func(ref.current)
+	} else {
+		if(elseAction) {
+			elseAction()
+		}
+	}
+}
