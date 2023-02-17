@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "start": "cross-env BUILD_TYPE=demo parcel --port 8527 --host localhost --dist-dir ./dist/test/",
-    "build-demo": "cross-env BUILD_TYPE=demo parcel build --dist-dir ./dist/demo/ --public-url ./ src/index.html",
+    "build-demo": "ts-node ./src/builder/demo/clean.ts && cross-env BUILD_TYPE=demo parcel build --dist-dir ./dist/demo/ --public-url ./ src/index.html",
     "build-lib": "cross-env BUILD_TYPE=lib parcel build --dist-dir ./dist/lib/ --public-url ./ src/nmn/index.ts",
     "build-umd": "cross-env BUILD_TYPE=umd parcel build --dist-dir ./dist/umd/ --public-url ./ src/nmn/index-umd.ts",
     "build-wrapper": "cross-env BUILD_TYPE=wrapper parcel build --dist-dir ./dist/wrapper/resources/ --public-url ./ src/builder/wrapper/wrapperjs-umd.ts && ts-node ./src/builder/wrapper/wrapper-builder.ts"
@@ -46,6 +46,13 @@
     {
       "staticPath": "src/nmn/font",
       "staticOutPath": "nmn/font",
+      "env": {
+        "BUILD_TYPE": "demo"
+      }
+    },
+    {
+      "staticPath": "src/app/example",
+      "staticOutPath": "example",
       "env": {
         "BUILD_TYPE": "demo"
       }

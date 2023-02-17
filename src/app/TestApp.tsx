@@ -4,6 +4,7 @@ import { useOnceEffect } from "../util/event"
 import { callRef } from "../util/hook"
 import { Box } from "../util/component"
 import { IntegratedEditor, IntegratedEditorApi } from "./DemoEditor/IntegratedEditor"
+import $ from 'jquery'
 
 const useStyles = createUseStyles({
 	outer: {
@@ -65,15 +66,46 @@ export function PageHeader(props: PageHeaderProps) {
 	</div>
 }
 
+function getQueryVariable(variable: string) {
+	var query = window.location.search.substring(1);
+	var vars = query.split("&");
+	for (var i = 0; i < vars.length; i++) {
+		var pair = vars[i].split("=");
+		if (pair[0] == variable) { return decodeURIComponent(pair[1]); }
+	}
+	return undefined
+}
+
 export function TestApp() {
 	const editorRef = createRef<IntegratedEditorApi>()
 
 	useOnceEffect(() => {
-		const storedData = localStorage.getItem('sparks-nmn-demo-src')
-		if(storedData) {
-			callRef(editorRef, api => {
-				api.triggerOpen({path: '', content: storedData})
-			})
+		const loadLoc = getQueryVariable('load-example')
+		if(loadLoc !== undefined) {
+			const loc = 'example/' + loadLoc
+			if(loc.startsWith('//') || loc.includes(':') || loc.includes('..')) {
+				console.warn('The request of loading file', loc, 'is blocked because it does not look safe')
+			} else {
+				$.get(loc, (data) => {
+					if(typeof(data) == 'string' && !data.trim().startsWith('<')) {
+						localStorage.setItem('sparks-nmn-demo-src', data)
+						callRef(editorRef, api => {
+							api.triggerOpen({path: '', content: data})
+							history.replaceState(undefined, '', location.origin + location.pathname)
+						})
+					} else {
+						console.warn('Failed to load file', loc)
+					}
+				})
+			}
+		} else {
+			// load localStorage data
+			const storedData = localStorage.getItem('sparks-nmn-demo-src')
+			if(storedData) {
+				callRef(editorRef, api => {
+					api.triggerOpen({path: '', content: storedData})
+				})
+			}
 		}
 	})
 
