@@ -6,6 +6,7 @@ import { NMNLanguageArray, NMNResult } from "../../../nmn"
 import { SparksNMNPreview } from "../../../nmn/react-ace-editor/SparksNMNPreview"
 import $ from 'jquery'
 import { Equifield } from "../../../nmn/equifield/equifield"
+import { useOnceEffect } from "../../../util/event"
 
 const useStyles = createUseStyles({
 	root: {
@@ -16,24 +17,9 @@ const useStyles = createUseStyles({
 		userSelect: 'text',
 		minHeight: '100%'
 	},
-	warning: {
-		marginBottom: '32px',
-		padding: '0 8.33%',
-		userSelect: 'none'
-	},
-	warningIn: {
-		whiteSpace: 'pre-wrap',
-		padding: '16px',
-		background: '#fffbe6',
-		border: '1px solid #f4bd00',
-		color: '#000D',
-		lineHeight: 1.35
-	},
+	warningEf: {},
 	'@media print': {
-		root: {
-			padding: 0
-		},
-		warning: {
+		warningEf: {
 			display: 'none'
 		}
 	}
@@ -54,6 +40,7 @@ export function PreviewView(props: {
 }) {
 	const classes = useStyles()
 	const LNG = useI18n()
+	const warningDivRef = useRef<HTMLDivElement | null>(null)
 
 	const prevMaxWidth = useRef(1000)
 	const maxWidth = 1000
@@ -70,6 +57,28 @@ export function PreviewView(props: {
 			props.onReportTiming && props.onReportTiming(0)
 		}
 	})
+	useOnceEffect(() => {
+		if(warningDivRef.current) {
+			const ef = new Equifield(warningDivRef.current)
+			const fontSize = 1.8
+			ef.render([{
+				element: $('<div></div>').text(LNG('preview.warning')).css({
+					whiteSpace: 'pre',
+					padding: `${1.8 / fontSize}em`,
+					fontSize: `${fontSize * 5}em`,
+					width: `${100 / fontSize}em`,
+					boxSizing: 'border-box',
+					background: '#fffbe6',
+					border: `${0.15 / fontSize}em solid #f4bd00`,
+					color: '#000D',
+					lineHeight: 1.35,
+					transformOrigin: 'left top',
+					transform: 'scale(0.2)'
+				})[0],
+				height: 14,
+			}])
+		}
+	})
 
 	const blankPreview = useMemo(() => (
 		<PreviewBlank />
@@ -81,11 +90,7 @@ export function PreviewView(props: {
 			margin: (alignMode == 'center') ? '0 auto' : '',
 			borderRight: (alignMode == 'left') ? '1px solid #0002' : ''
 		}}>
-			<div className={classes.warning}>
-				<div className={classes.warningIn}>
-					{LNG('preview.warning')}
-				</div>
-			</div>
+			<div ref={warningDivRef} className={classes.warningEf}></div>
 			{hasContent ? <SparksNMNPreview
 				result={props.result}
 				language={props.language}
