@@ -21,6 +21,9 @@ const useStyles = createUseStyles({
 	'@media print': {
 		warningEf: {
 			display: 'none'
+		},
+		root: {
+			border: 'none !important'
 		}
 	}
 })
