@@ -75,7 +75,7 @@ export function PreviewView(props: {
 					transformOrigin: 'left top',
 					transform: 'scale(0.2)'
 				})[0],
-				height: 14,
+				height: 17,
 			}])
 		}
 	})
