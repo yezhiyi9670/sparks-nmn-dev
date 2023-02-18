@@ -1,6 +1,7 @@
+import { iterateMap } from "../../../util/array";
 import { Frac, Fraction } from "../../../util/frac";
 import { ScoreContext, scoreContextDefault } from "../../sparse2des/context";
-import { DestructedFCA, MusicDecorationRange, MusicNote, MusicSection, NoteCharAny, SeparatorAttr } from "../../sparse2des/types";
+import { DestructedFCA, MusicDecorationRange, MusicNote, MusicSection, NoteCharAny, SectionSeparatorChar, sectionSeparatorCharMap, SeparatorAttr } from "../../sparse2des/types";
 import { Jumper, LinedPart } from "../types";
 
 export module SectionStat {
@@ -94,7 +95,7 @@ export module SectionStat {
 		return Frac.max(section.totalQuarters, shouldBe)
 	}
 	/**
-	 * 连接小节内部和小节之间的连音线
+	 * 连接小节内部和小节之间的连音线，并合并 ||: 小节线
 	 */
 	export function interLink<CharType>(sections: MusicSection<CharType>[], decorations: MusicDecorationRange[]) {
 		// ===== 处理联合连音线 =====
@@ -203,6 +204,26 @@ export module SectionStat {
 					}
 				}
 			})
+		})
+		// ===== 连接小节线 =====
+		let prevSection: MusicSection<CharType> | undefined = undefined as any
+		sections.forEach((section) => {
+			if(prevSection) {
+				if(section.separator.before.char == '||:') {
+					const replacementChar = ((): SectionSeparatorChar => {
+						const char = prevSection.separator.next.char
+						let foundOne = char
+						iterateMap(sectionSeparatorCharMap, (pair, base) => {
+							if(pair[1] == '||:' && pair[0] == char) {
+								foundOne = base as SectionSeparatorChar
+							}
+						})
+						return foundOne
+					})()
+					prevSection.separator.next.char = replacementChar
+				}
+			}
+			prevSection = section
 		})
 	}
 	/**
