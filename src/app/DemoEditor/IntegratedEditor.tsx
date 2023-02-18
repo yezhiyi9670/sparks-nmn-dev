@@ -127,6 +127,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 	})
 	const updateResult = useMethod((valueOverride?: string) => {
 		const parsed = parseNMN(valueOverride ?? value)
+		console.log('result', parsed.result)
 		setParseResult({
 			result: parsed.result,
 			timing: parsed.time
