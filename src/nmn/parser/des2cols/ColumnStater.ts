@@ -475,7 +475,7 @@ export class ColumnStater {
 						})
 						return Ns
 					})
-					if(SectionStat.allNullish(lrcLine.sections, sectionPtr, sectionCount) && mappedNs.length == 0) {
+					if(!SectionStat.isLrcLineRenderWorthy(lrcLine, sectionPtr, sectionCount) && mappedNs.length == 0) {
 						// 此行声部可以不包含这一歌词行
 						return
 					}
