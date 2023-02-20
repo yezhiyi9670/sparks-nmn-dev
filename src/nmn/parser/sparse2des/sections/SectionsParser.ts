@@ -332,7 +332,8 @@ class SectionsParserClass {
 			notes: [],
 			decoration: [],
 			leftSplit: false,
-			leftSplitVoid: false
+			leftSplitVoid: false,
+			rightSplit: false
 		})
 		const [ writtenQuarters ] = new NoteEater(tokens, lineNumber, context).parse<TypeSampler>(ret, Frac.create(1), Frac.create(0), issues, typeSampler)
 		ret.totalQuarters = writtenQuarters
