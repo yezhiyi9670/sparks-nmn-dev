@@ -131,6 +131,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 			result: parsed.result,
 			timing: parsed.time
 		})
+		// console.log(parsed.result)
 		setIsPreviewDirty(false)
 	})
 
