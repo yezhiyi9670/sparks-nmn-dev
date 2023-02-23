@@ -7,8 +7,8 @@ export default flattenI18nData({
 
 	"title": {
 		"default": appName,
-		"new": "演示模式 - " + appName,
-		"newDirty": "● 演示模式 - " + appName,
+		"new": "" + appName,
+		"newDirty": "● " + appName,
 	},
 	
 	// 状态栏
@@ -41,7 +41,7 @@ export default flattenI18nData({
 	// 预览
 	"preview": {
 		"new_title": "新文档",
-		"warning": "重要提醒：\n此 Playground 仅用于试验与学习，不支持文件保存和偏好设置。如需日常使用，应当下载桌面版。\n文件会以非常不靠谱的方式暂存在浏览器上，随时都可能会被覆盖。\n【Ctrl + S 暂存文件并刷新预览，Ctrl + R 只刷新不保存，Ctrl + P 打印预览】",
+		"warning": "重要提醒：\n此试用版本仅用于试验与学习，不支持文件保存和偏好设置。如需日常使用，应当下载桌面版。\n文件会以非常不靠谱的方式暂存在浏览器上，随时都可能会被覆盖。\n【Ctrl + S 暂存文件并刷新预览，Ctrl + R 只刷新不保存，Ctrl + P 打印预览】",
 		"blank": {
 			"title": "空白文档",
 			"desc": {
