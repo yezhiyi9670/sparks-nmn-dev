@@ -1,6 +1,6 @@
 {
   "name": "sparks-nmn-dev",
-  "version": "1.4.13",
+  "version": "1.5.1",
   "source": "./src/index.html",
   "license": "MIT",
   "scripts": {
