@@ -201,7 +201,7 @@ export class LineRenderer {
 		const lrcLineField = 2.2 * new FontMetric(context.render.font_lyrics!, 2.16).fontScale
 		const substituteField = 4.4
 		const lrcLineMarginBottom = 1.0
-		const labelPrevOffset = 1
+		const labelPrevOffset = context.render.offset_lyrics_iter!
 
 		const scale = context.render.scale!
 		const msp = new MusicPaint(root)
