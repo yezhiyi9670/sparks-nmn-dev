@@ -153,7 +153,8 @@ export default {
 		'margin_after_part_notes': '(2)间距 - 声部曲谱部分之后',
 		'inset_before_lyrics': '(1.3)负间距 - 声部歌词组之前',
 		'margin_after_part': '(1)间距 - 声部之后',
-		'offset_lyrics_iter': '(1.5)偏移值 - 歌词行编号'
+		'offset_lyrics_iter': '(1.5)偏移值 - 歌词行编号',
+		'offset_section_boundary': '(1)偏移值 - 小节边距',
 	},
 	'updown': {
 		'up': '升',

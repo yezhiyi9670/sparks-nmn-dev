@@ -188,7 +188,7 @@ export class PositionDispatcher {
 		const gutterLeft = this.context.render.gutter_left!
 		const leftBoundary = gutterLeft * this.scale
 		const rightBoundary = 100
-		const sectionPadding = 1 * this.scale
+		const sectionPadding = this.context.render.offset_section_boundary! * this.scale
 		
 		let currentStart = leftBoundary
 		let totalWeights = 0
