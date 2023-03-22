@@ -36,6 +36,12 @@ if(fs.existsSync(nexrSrc)) {
 	copy('src/nmn', nexrSrc)
 }
 
+const templateSrc = '../sparks-nmn-desktop/public/static/export-template.txt'
+if(fs.existsSync(templateSrc)) {
+	console.log('Copy export template')
+	fs.copyFileSync('dist/wrapper/template.html', templateSrc)
+}
+
 const demoPath = 'E:/wamp64/hosts/PhpTests/dist/sparks-nmn-dev'
 if(fs.existsSync(demoPath)) {
 	console.log('Copy to demo')
