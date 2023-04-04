@@ -42,7 +42,18 @@ if(fs.existsSync(templateSrc)) {
 	fs.copyFileSync('dist/wrapper/template.html', templateSrc)
 }
 
-const demoPath = 'E:/wamp64/hosts/PhpTests/dist/sparks-nmn-dev'
+let demoPath = 'E:/wamp64/hosts/PhpTests/dist/sparks-nmn-dev'
+if(fs.existsSync(demoPath)) {
+	console.log('Copy to demo')
+	const files = fs.readdirSync(demoPath, { withFileTypes: true })
+	for(const file of files) {
+		if(!file.isDirectory()) {
+			fs.unlinkSync(path.resolve(demoPath, file.name))
+		}
+	}
+	copy('dist/demo', demoPath)
+}
+demoPath = 'E:/wamp64/hosts/SiteDemo/playground'
 if(fs.existsSync(demoPath)) {
 	console.log('Copy to demo')
 	const files = fs.readdirSync(demoPath, { withFileTypes: true })
