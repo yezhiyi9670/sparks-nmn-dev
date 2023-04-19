@@ -110,8 +110,8 @@ export function TestApp() {
 	})
 
 	function handleKeyDown(evt: React.KeyboardEvent) {
-		if(evt.ctrlKey) {
-			if(evt.key == 's') {
+		if(evt.ctrlKey && !evt.shiftKey) {
+			if(evt.key.toLowerCase() == 's') {
 				evt.preventDefault()
 				callRef(editorRef, api => {
 					api.triggerBeforeSave()
@@ -120,7 +120,7 @@ export function TestApp() {
 						api.triggerSaved('')
 					}
 				})
-			} else if(evt.key == 'r') {
+			} else if(evt.key.toLowerCase() == 'r') {
 				evt.preventDefault()
 				callRef(editorRef, api => {
 					api.triggerBeforeSave()
