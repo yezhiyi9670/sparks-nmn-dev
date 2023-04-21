@@ -53,7 +53,7 @@ if(fs.existsSync(demoPath)) {
 	}
 	copy('dist/demo', demoPath)
 }
-demoPath = 'E:/wamp64/hosts/SiteDemo/playground'
+demoPath = '../sparks-nmn-website/static/playground'
 if(fs.existsSync(demoPath)) {
 	console.log('Copy to demo')
 	const files = fs.readdirSync(demoPath, { withFileTypes: true })
@@ -65,4 +65,4 @@ if(fs.existsSync(demoPath)) {
 	copy('dist/demo', demoPath)
 }
 
-require('child_process').execSync('start "" "' + 'dist\\demo' + '"')
+// require('child_process').execSync('start "" "' + 'dist\\demo' + '"')
