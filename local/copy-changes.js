@@ -30,9 +30,14 @@ const copy = (sd, td) => {
 	}
 };
 
-const nexrSrc = '../sparks-nmn-desktop/src/renderer/nmn'
+let nexrSrc = '../sparks-nmn-desktop/src/renderer/nmn'
 if(fs.existsSync(nexrSrc)) {
 	console.log('Copy to sparks-nmn-desktop')
+	copy('src/nmn', nexrSrc)
+}
+nexrSrc = '../sparks-nmn-website/src/nmn'
+if(fs.existsSync(nexrSrc)) {
+	console.log('Copy to sparks-nmn-website')
 	copy('src/nmn', nexrSrc)
 }
 

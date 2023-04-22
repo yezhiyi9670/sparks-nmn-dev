@@ -7,6 +7,7 @@ import { SparksNMNPreview } from "../../../nmn/react-ace-editor/SparksNMNPreview
 import $ from 'jquery'
 import { Equifield } from "../../../nmn/equifield/equifield"
 import { useOnceEffect } from "../../../util/event"
+import { SparksNMNDisplay } from "../../../nmn/react-ace-editor/SparksNMNDisplay"
 
 const useStyles = createUseStyles({
 	root: {
@@ -101,6 +102,7 @@ export function PreviewView(props: {
 				onPosition={props.onPosition}
 				onReportTiming={props.onReportTiming}
 				onReportSize={props.onReportSize}
+				logTimeStat
 			/> : blankPreview}
 		</div>
 	)
