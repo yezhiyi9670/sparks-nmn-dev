@@ -17,12 +17,11 @@ const browserType =
 /*
 Edge 与 Chrome 有最小字体限制，通过调节字体尺度绕过
 Edge 与 Chrome 导致连音线等图形出现不规则边缘，通过较大的放缩可缓解
-Firefox 下图形不缩放，避免出现粗细不均匀。考虑到用户可能设置最小字体，文本仍然缩放
 */
 const [ textUpScale, figureUpScale ] = {
 	edge: [ 5, 4 ],
 	normal: [ 5, 4 ],
-	firefox: [ 2, 1 ]
+	firefox: [ 2, 2 ]
 }[browserType]
 
 export const domPaintStats = {
