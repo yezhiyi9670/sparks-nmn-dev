@@ -24,8 +24,11 @@ const useStyles = createUseStyles({
 			display: 'none'
 		},
 		root: {
-			border: 'none !important'
-		}
+			border: 'none !important',
+			'& .SparksNMN-sechl': {
+				display: 'none'
+			}
+		},
 	}
 })
 
