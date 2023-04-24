@@ -57,7 +57,7 @@ function App() {
 	</>
 }
 
-SparksNMN.loadFonts(() => {
+SparksNMN.fontLoader.requestFontLoad('./nmn/font', () => {
 	createRoot(document.getElementById('root')!).render(
 		<I18nProvider languageKey='zh_cn'>
 			<App />
