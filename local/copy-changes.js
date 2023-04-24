@@ -6,13 +6,16 @@ if (!fs.existsSync("package.json")) {
 	process.exit(3);
 }
 
-const copy = (sd, td) => {
+const copy = (sd, td, reject = []) => {
 	if(!fs.existsSync(td)) {
 		fs.mkdirSync(td)
 	}
 	// 读取目录下的文件，返回文件名及文件类型{name: 'xxx.txt, [Symbol(type)]: 1 }
 	const sourceFile = fs.readdirSync(sd, { withFileTypes: true });
 	for (const file of sourceFile) {
+		if(reject.indexOf(file) != -1) {
+			continue
+		}
 		// 源文件 地址+文件名
 		const srcFile = path.resolve(sd, file.name);
 		// 目标文件
@@ -38,7 +41,7 @@ if(fs.existsSync(nexrSrc)) {
 nexrSrc = '../sparks-nmn-website/src/nmn'
 if(fs.existsSync(nexrSrc)) {
 	console.log('Copy to sparks-nmn-website')
-	copy('src/nmn', nexrSrc)
+	copy('src/nmn', nexrSrc, 'font')
 }
 
 const templateSrc = '../sparks-nmn-desktop/public/static/export-template.txt'
