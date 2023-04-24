@@ -13,7 +13,7 @@ const copy = (sd, td, reject = []) => {
 	// 读取目录下的文件，返回文件名及文件类型{name: 'xxx.txt, [Symbol(type)]: 1 }
 	const sourceFile = fs.readdirSync(sd, { withFileTypes: true });
 	for (const file of sourceFile) {
-		if(reject.indexOf(file) != -1) {
+		if(reject.indexOf(file.name) != -1) {
 			continue
 		}
 		// 源文件 地址+文件名
@@ -41,7 +41,7 @@ if(fs.existsSync(nexrSrc)) {
 nexrSrc = '../sparks-nmn-website/src/nmn'
 if(fs.existsSync(nexrSrc)) {
 	console.log('Copy to sparks-nmn-website')
-	copy('src/nmn', nexrSrc, 'font')
+	copy('src/nmn', nexrSrc, ['font'])
 }
 
 const templateSrc = '../sparks-nmn-desktop/public/static/export-template.txt'
