@@ -55,7 +55,7 @@ if(fs.existsSync(demoPath)) {
 	console.log('Copy to demo')
 	const files = fs.readdirSync(demoPath, { withFileTypes: true })
 	for(const file of files) {
-		if(!file.isDirectory()) {
+		if(!file.isDirectory() && file.name != '.htaccess') {
 			fs.unlinkSync(path.resolve(demoPath, file.name))
 		}
 	}
@@ -66,7 +66,7 @@ if(fs.existsSync(demoPath)) {
 	console.log('Copy to demo')
 	const files = fs.readdirSync(demoPath, { withFileTypes: true })
 	for(const file of files) {
-		if(!file.isDirectory()) {
+		if(!file.isDirectory() && file.name != '.htaccess') {
 			fs.unlinkSync(path.resolve(demoPath, file.name))
 		}
 	}
