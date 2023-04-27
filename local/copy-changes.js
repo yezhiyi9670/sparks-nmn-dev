@@ -50,7 +50,7 @@ if(fs.existsSync(templateSrc)) {
 	fs.copyFileSync('dist/wrapper/template.html', templateSrc)
 }
 
-let demoPath = 'E:/wamp64/hosts/PhpTests/dist/sparks-nmn-dev'
+let demoPath = 'D:/wamp64/hosts/experiments/demo/sparks-nmn-dev'
 if(fs.existsSync(demoPath)) {
 	console.log('Copy to demo')
 	const files = fs.readdirSync(demoPath, { withFileTypes: true })
