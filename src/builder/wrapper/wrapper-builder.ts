@@ -18,9 +18,9 @@ const getFontStyles = () => {
 }
 const getFontScript = () => {
 	const fonts = [
-		{ name: 'SparksNMN-EOPNumber', url: './nmn/font/eop_number/eop_number.ttf', type: 'application/x-font-ttf' },
-		{ name: 'SparksNMN-mscore-20', url: './nmn/font/mscore-20/mscore-20.ttf', type: 'application/x-font-ttf' },
-		{ name: 'SparksNMN-Bravura', url: './nmn/font/bravura/bravura.woff', type: 'application/x-font-woff' }
+		{ name: 'SparksNMN-EOPNumber', url: './nmn/font/eop_number/eop_number.ttf', type: 'application/x-font-ttf', weight: 'normal' },
+		{ name: 'SparksNMN-mscore-20', url: './nmn/font/mscore-20/mscore-20.ttf', type: 'application/x-font-ttf', weight: 'normal' },
+		{ name: 'SparksNMN-Bravura', url: './nmn/font/bravura/bravura.woff', type: 'application/x-font-woff', weight: 'normal' }
 	]
 	return `FontLoader.loadFonts(${JSON.stringify(fonts.map((fontDef) => {
 		const { url, ...other } = fontDef
