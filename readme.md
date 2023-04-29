@@ -2,7 +2,7 @@
 
 > Note: This will be made into a node module soon™.
 
-Sparks NMN is a text-based language for composing numbered music notation (aka. 简谱). It features web-based rendering and natural markup grammar.
+Sparks NMN is a text-based language for composing numbered music notation (aka. 简谱). It features web-based rendering and natural markup syntax.
 
 Documentation and desktop app will be developed later.
 
