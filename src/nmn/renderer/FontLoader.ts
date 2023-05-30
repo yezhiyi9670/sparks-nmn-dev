@@ -1,3 +1,9 @@
+declare global {
+	interface Window {
+		invokeLoad: (x: any) => Promise<any>
+	}
+}
+
 export module FontLoader {
 	type FontData = {
 		name: string
@@ -33,7 +39,13 @@ export module FontLoader {
 			if(data.desc !== undefined) {
 				fontFace.descentOverride = data.desc + '%'
 			}
-			fontFace.load().then((loaded) => {
+			;(() => {
+				if('fontUseInvokeLoad' in window && window.fontUseInvokeLoad) {
+					return window.invokeLoad(fontFace)
+				} else {
+					return fontFace.load()
+				}
+			})().then((loaded) => {
 				document.fonts.add(loaded)
 				if(callback) {
 					callback(true)

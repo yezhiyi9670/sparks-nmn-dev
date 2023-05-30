@@ -3,6 +3,9 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script>
+		window.fontUseInvokeLoad = true;
+	</script>
 	<style>
 		/*{style:source:nmn/equifield/equifield.css}*/
 	</style>
@@ -84,7 +87,7 @@
 				}))
 			}
 			if(location.hash == '#print') {
-				setTimeout(() => print(), 1)
+				setTimeout(() => window.print(), 1)
 			}
 		};
 	</script>

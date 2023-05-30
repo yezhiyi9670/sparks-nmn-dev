@@ -10,25 +10,27 @@ const paths = {
 let templateText = fs.readFileSync(paths.source + 'builder/wrapper/template.html').toString()
 
 const getFontStyles = () => {
-	return `
-		@font-face{font-family:'Deng';src:local('等线')}
-		@font-face{font-family:'SimSun';src:local('SimSun')}
-		@font-face{font-family:'SimHei';src:local('SimHei')}
-	`
+	return ``
 }
 const getFontScript = () => {
+	const fontCdnRoot = 'https://cdn.jsdelivr.net/gh/yezhiyi9670/sparks-nmn-dev@latest/src/nmn/font/'
 	const fonts = [
-		{ name: 'SparksNMN-EOPNumber', url: './nmn/font/eop_number/eop_number.ttf', type: 'application/x-font-ttf', weight: 'normal' },
-		{ name: 'SparksNMN-mscore-20', url: './nmn/font/mscore-20/mscore-20.ttf', type: 'application/x-font-ttf', weight: 'normal' },
-		{ name: 'SparksNMN-Bravura', url: './nmn/font/bravura/bravura.woff', type: 'application/x-font-woff', weight: 'normal' }
+		{ family: 'CommonLight', name: 'noto_sans_sc_light', format: 'woff2', asc: 85, desc: 6 },
+		{ family: 'CommonLight', name: 'noto_sans_sc_light', format: 'woff2', weight: 'bold', asc: 85, desc: 6 },
+		{ family: 'CommonSerif', name: 'uming_cn_dotfix', format: 'woff2' },
+		{ family: 'CommonSerif', name: 'uming_cn_dotfix', format: 'woff2', weight: 'bold' },
+		{ family: 'CommonBlack', name: 'wqy_microhei', format: 'woff2' },
+		{ family: 'SparksNMN-EOPNumber', name: 'eop_number', format: 'ttf' },
+		{ family: 'SparksNMN-mscore-20', name: 'mscore-20', format: 'ttf' },
+		{ family: 'SparksNMN-Bravura', name: 'bravura', format: 'woff' },
 	]
-	return `FontLoader.loadFonts(${JSON.stringify(fonts.map((fontDef) => {
-		const { url, ...other } = fontDef
-		const fontFilePath = paths.source + url
-		const fontContent = fs.readFileSync(fontFilePath)
-		let b64url = `data:${fontDef.type};base64,${Base64.fromUint8Array(fontContent)}`
-		return { url: b64url, ...other }
-	}))},renderDocument)`
+	return `FontLoader.loadFonts(${JSON.stringify(fonts.map(font => ({
+		name: font.family,
+		url: `${fontCdnRoot}${font.name}/${font.name}${font.weight ? ('-transformed-' + font.weight) : ''}.${font.format}`,
+		weight: font.weight ?? 'normal',
+		asc: font.asc,
+		desc: font.desc,
+	})))},renderDocument)`
 }
 const replaceFields = (src: string, replacer: (text: string, contentType: string, protocol: string, location: string) => string): string => {
 	return src.replace(/\/\*\{(\w+):(\w+):(.*?)\}\*\//g, replacer)
