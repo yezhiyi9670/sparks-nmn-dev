@@ -13,7 +13,6 @@ const getFontStyles = () => {
 	return ``
 }
 const getFontScript = () => {
-	const fontCdnRoot = 'https://cdn.jsdelivr.net/gh/yezhiyi9670/sparks-nmn-dev@latest/src/nmn/font/'
 	const fonts = [
 		{ family: 'CommonLight', name: 'noto_sans_sc_light', format: 'woff2', asc: 85, desc: 6 },
 		{ family: 'CommonLight', name: 'noto_sans_sc_light', format: 'woff2', weight: 'bold', asc: 85, desc: 6 },
@@ -24,13 +23,13 @@ const getFontScript = () => {
 		{ family: 'SparksNMN-mscore-20', name: 'mscore-20', format: 'ttf' },
 		{ family: 'SparksNMN-Bravura', name: 'bravura', format: 'woff' },
 	]
-	return `FontLoader.loadFonts(${JSON.stringify(fonts.map(font => ({
+	return `window.fontLoadData = ${JSON.stringify(fonts.map(font => ({
 		name: font.family,
-		url: `${fontCdnRoot}${font.name}/${font.name}${font.weight ? ('-transformed-' + font.weight) : ''}.${font.format}`,
+		url: `${font.name}/${font.name}${font.weight ? ('-transformed-' + font.weight) : ''}.${font.format}`,
 		weight: font.weight ?? 'normal',
 		asc: font.asc,
 		desc: font.desc,
-	})))},renderDocument)`
+	})))}`
 }
 const replaceFields = (src: string, replacer: (text: string, contentType: string, protocol: string, location: string) => string): string => {
 	return src.replace(/\/\*\{(\w+):(\w+):(.*?)\}\*\//g, replacer)
@@ -59,6 +58,8 @@ templateText = replaceFields(templateText, (text, contentType, protocol, locatio
 	if(protocol == 'content') {
 		if(location == 'data') {
 			return fs.readFileSync(paths.source + 'builder/wrapper/test.txt').toString()
+		} else if(location == 'flags') {
+			return 'window.localFontLocation = undefined'
 		}
 	}
 	return text

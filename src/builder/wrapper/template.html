@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<script>
-		window.fontUseInvokeLoad = true;
+		/*{script:content:flags}*/
 	</script>
 	<style>
 		/*{style:source:nmn/equifield/equifield.css}*/
@@ -56,7 +56,9 @@
 </head>
 <body>
 	<div class="preview-container">
-		<div class="preview-equifield"></div>
+		<div class="preview-equifield">
+			<p>Loading preview...</p>
+		</div>
 	</div>
 	<script>
 		const renderDocument = () => {
@@ -93,6 +95,22 @@
 	</script>
 	<script>
 		/*{style:dynamic:fonts-loader.js}*/
+	</script>
+	<script>
+		window.fontCdnRoot = 'https://cdn.jsdelivr.net/gh/yezhiyi9670/sparks-nmn-dev@latest/src/nmn/font'
+		const fontDataProcessed = window.fontLoadData.map(item => {
+			const url = item.url
+			const urlList = []
+			if(window.localFontLocation) {
+				urlList.push(window.localFontLocation + '/' + url)
+			}
+			urlList.push(window.fontCdnRoot + '/' + url)
+			return {
+				...item,
+				url: urlList
+			}
+		})
+		FontLoader.loadFonts(fontDataProcessed, renderDocument)
 	</script>
 </body>
 </html>

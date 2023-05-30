@@ -1,13 +1,7 @@
-declare global {
-	interface Window {
-		invokeLoad: (x: any) => Promise<any>
-	}
-}
-
 export module FontLoader {
 	type FontData = {
 		name: string
-		url: string
+		url: string | string[]
 		weight: string
 		asc?: number
 		desc?: number
@@ -31,7 +25,8 @@ export module FontLoader {
 	 */
 	export function loadFont(data: FontData, callback?: (_: boolean) => void, error?: (_: any) => void) {
 		if(document.fonts) {
-			let fontFace = new FontFace(data.name, `url('${data.url}')`)
+			let urlList = typeof(data.url) == 'string' ? [data.url] : data.url
+			let fontFace = new FontFace(data.name, urlList.map(e => `url(${e})`).join(','))
 			fontFace.weight = data.weight
 			if(data.asc !== undefined) {
 				fontFace.ascentOverride = data.asc + '%'
@@ -39,13 +34,7 @@ export module FontLoader {
 			if(data.desc !== undefined) {
 				fontFace.descentOverride = data.desc + '%'
 			}
-			;(() => {
-				if('fontUseInvokeLoad' in window && window.fontUseInvokeLoad) {
-					return window.invokeLoad(fontFace)
-				} else {
-					return fontFace.load()
-				}
-			})().then((loaded) => {
+			fontFace.load().then((loaded) => {
 				document.fonts.add(loaded)
 				if(callback) {
 					callback(true)
@@ -88,7 +77,9 @@ export module FontLoader {
 				}, () => {
 					loadings -= 1
 					task.state = 'none'
-					startTasks()
+					setTimeout(() => {
+						startTasks()
+					}, 1000)
 				})
 			})
 			if(loaded == data.length) {
