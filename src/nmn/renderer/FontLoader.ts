@@ -26,7 +26,7 @@ export module FontLoader {
 	export function loadFont(data: FontData, callback?: (_: boolean) => void, error?: (_: any) => void) {
 		if(document.fonts) {
 			let urlList = typeof(data.url) == 'string' ? [data.url] : data.url
-			let fontFace = new FontFace(data.name, urlList.map(e => `url(${e})`).join(','))
+			let fontFace = new FontFace(data.name, urlList.map(e => `url('${e}')`).join(','))
 			fontFace.weight = data.weight
 			if(data.asc !== undefined) {
 				fontFace.ascentOverride = data.asc + '%'

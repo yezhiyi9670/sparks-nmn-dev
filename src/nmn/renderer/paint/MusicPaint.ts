@@ -264,7 +264,7 @@ export class MusicPaint {
 		const fontMetricA = new FontMetric(context.render.font_attr!, 2.16 * fontScale)
 		const fontSize = fontMetricA.fontSize * fontMetricA.fontScale
 		const fontMetricB = new FontMetric('CommonSerif/400', fontSize)
-		const fontMetricIter = new FontMetric('CommonSerif/400', 1.05 * fontSize)
+		const fontMetricIter = new FontMetric('CommonSerif/400', fontSize)
 		const fontMetricC = new FontMetric('SparksNMN-Bravura/400', fontSize * 1.5)
 		const fontMetricLx = new FontMetric(context.render.font_checkpoint!, 2.3 * fontScale)
 		const fontMetricLxr = new FontMetric(context.render.font_attr!, 2.06 * fontScale)
@@ -522,7 +522,7 @@ export class MusicPaint {
 		const fontMetricA = new FontMetric(fontDesc, initialFontSize)
 		const fontSize = fontMetricA.fontSize * fontMetricA.fontScale
 		const fontMetricB = new FontMetric('CommonSerif/700', 1 * fontSize)
-		const fontMetricIter = new FontMetric('CommonSerif/700', 1.05 * fontSize)
+		const fontMetricIter = new FontMetric('CommonSerif/700', 1 * fontSize)
 		const fontMetricC = new FontMetric('SparksNMN-Bravura/400', 1.5 * fontSize)
 		const extraStylesItalic = {
 			...extraStyles,

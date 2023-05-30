@@ -16,8 +16,8 @@ const getFontScript = () => {
 	const fonts = [
 		{ family: 'CommonLight', name: 'noto_sans_sc_light', format: 'woff2', asc: 85, desc: 6 },
 		{ family: 'CommonLight', name: 'noto_sans_sc_light', format: 'woff2', weight: 'bold', asc: 85, desc: 6 },
-		{ family: 'CommonSerif', name: 'uming_cn_dotfix', format: 'woff2' },
-		{ family: 'CommonSerif', name: 'uming_cn_dotfix', format: 'woff2', weight: 'bold' },
+		{ family: 'CommonSerif', name: 'uming_cn_dotfix', format: 'woff2', asc: 85, desc: 6 },
+		{ family: 'CommonSerif', name: 'uming_cn_dotfix', format: 'woff2', weight: 'bold', asc: 85, desc: 6 },
 		{ family: 'CommonBlack', name: 'wqy_microhei', format: 'woff2' },
 		{ family: 'SparksNMN-EOPNumber', name: 'eop_number', format: 'ttf' },
 		{ family: 'SparksNMN-mscore-20', name: 'mscore-20', format: 'ttf' },
