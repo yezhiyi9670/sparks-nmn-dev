@@ -3,6 +3,8 @@ export module FontLoader {
 		name: string
 		url: string
 		weight: string
+		asc?: number
+		desc?: number
 	}
 	/**
 	 * 检测字体是否加载完成
@@ -25,6 +27,12 @@ export module FontLoader {
 		if(document.fonts) {
 			let fontFace = new FontFace(data.name, `url('${data.url}')`)
 			fontFace.weight = data.weight
+			if(data.asc !== undefined) {
+				fontFace.ascentOverride = data.asc + '%'
+			}
+			if(data.desc !== undefined) {
+				fontFace.descentOverride = data.desc + '%'
+			}
 			fontFace.load().then((loaded) => {
 				document.fonts.add(loaded)
 				if(callback) {
