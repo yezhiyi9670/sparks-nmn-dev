@@ -21,12 +21,17 @@ export default flattenI18nData({
 		},
 		// 保存状态
 		"dirty": {
-			"new": "已存至浏览器",
-			"dirty": "未保存",
+			"new": "已暂存",
+			"dirty": "未暂存",
 			"preview": {
 				"clean": "已刷新预览",
 				"dirty": "未刷新预览"
 			}
+		},
+		// 页面数
+		"pages": {
+			"nan": "粗排模式",
+			"value": "共${0}页"
 		},
 		// 计时信息
 		"timing": {
@@ -34,7 +39,7 @@ export default flattenI18nData({
 		},
 		// 文件大小
 		"size": {
-			"source": "${0} KB"
+			"source": "${0}KB"
 		}
 	},
 

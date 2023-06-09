@@ -42,15 +42,16 @@ function ConsoleTest() {
 function App() {
 	return <>
 		<style>{`
-			@page${'{'}
-				size: A4;
-				margin: 60px 0;
-				padding: 0;
-			${'}'}
-			html, body${'{'}
+			@page {
+				margin-left: 0cm;
+				margin-right: 0cm;
+				margin-top: 8.0vw;
+				margin-bottom: 8.0vw;
+			}
+			html, body {
 				padding: 0;
 				margin: 0;
-			${'}'}
+			}
 		`}</style>
 		<TestApp />
 	</>

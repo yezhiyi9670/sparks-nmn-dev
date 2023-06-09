@@ -12,6 +12,7 @@ import { StatusProcessTime } from './status/process-time'
 import { StatusFileSize } from './status/file-size'
 import { PreviewCursor, PreviewView } from './preview/PreviewView'
 import { StatusDirty } from './status/dirty-state'
+import { StatusPages } from './status/pages'
 
 const useStyles = createUseStyles({
 	editor: {
@@ -92,7 +93,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 	})
 
 	// ===== 预览刷新模式 =====
-	const updateChoice: string = 'delay1000'
+	const updateChoice: string = 'delay10000'
 	let updateMode: 'instant' | 'dethrottle' | 'none' = 'none'
 	let updateDelay: number = 1000
 	if(updateChoice == 'realtime') {
@@ -112,6 +113,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 	const [ cursor, setCursor ] = useState<PreviewCursor | undefined>(undefined)
 	const [ renderTiming, setRenderTiming ] = useState(0)
 	const [ renderedSize, setRenderedSize ] = useState(0)
+	const [ renderedPages, setRenderedPages ] = useState(NaN)
 
 	function parseNMN(newValue: string) {
 		let startTime = +new Date()
@@ -185,6 +187,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 			cursor={cursorShown}
 			onReportSize={setRenderedSize}
 			onReportTiming={setRenderTiming}
+			onReportPages={setRenderedPages}
 		/>
 		return ret
 	}, [parseResult, handlePosition, languageArray, cursorShown])
@@ -230,6 +233,9 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 					isDirty={isDirty}
 					isPreviewDirty={isPreviewDirty}
 					onForceUpdate={handleForceUpdate}
+				/>
+				<StatusPages
+					pages={renderedPages}
 				/>
 				{'on' == 'on' && (
 					<StatusProcessTime parseTime={parseResult.timing} renderTime={renderTiming} />

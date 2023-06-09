@@ -7,6 +7,17 @@ import { lineRendererStats } from '../renderer/article/line/LineRenderer'
 import { positionDispatcherStats } from '../renderer/article/line/PositionDispatcher'
 import { domPaintStats } from '../renderer/backend/DomPaint'
 import { randomToken } from '../util/random'
+import { createUseStyles } from 'react-jss'
+
+const useStyles = createUseStyles({
+	previewEf: {
+		'@media print': {
+			'& .wcl-equifield-field[data-label=pageSeparator]': {
+				display: 'none'
+			}
+		}
+	}
+})
 
 type SparksNMNPreviewProps = {
 	result: NMNResult | undefined
@@ -20,9 +31,12 @@ type SparksNMNPreviewProps = {
 	onReportTiming?: (value: number) => void
 	onReportSize?: (value: number) => void
 	onReportError?: (_err: any | undefined) => void
+	onReportPages?: (value: number) => void
 }
 export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 	const { onPosition, result, language, logTimeStat } = props
+
+	const classes = useStyles()
 	
 	const divRef = React.createRef<HTMLDivElement>()
 
@@ -48,15 +62,23 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 			let startTime = +new Date()
 			const fields = (() => {
 				try {
-					const ret = SparksNMN.render(result.result, language, positionCallback)
+					let fields1 = SparksNMN.render(result.result, language, positionCallback)
+					const paginized = SparksNMN.paginize(result.result, fields1, language)
+					const fields = paginized.result
 					if(props.onReportError) {
 						props.onReportError(undefined)
 					}
-					return ret
+					if(props.onReportPages) {
+						props.onReportPages(paginized.pages)
+					}
+					return fields
 				} catch(_err) {
 					console.error('Rendering error occured', _err)
 					if(props.onReportError) {
 						props.onReportError(_err)
+					}
+					if(props.onReportPages) {
+						props.onReportPages(NaN)
 					}
 					return [{
 						element: $('<span style="font-size: 2em">Failed to render preview due to error.</span>')[0],
@@ -137,5 +159,5 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 		}
 	}, [result, renderResultFields, props.cursor, tokenClass])
 
-	return <div ref={divRef}></div>
+	return <div className={classes.previewEf} ref={divRef}></div>
 }
