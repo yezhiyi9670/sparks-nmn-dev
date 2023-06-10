@@ -41,6 +41,7 @@ function ConsoleTest() {
 
 function App() {
 	return <>
+		{/* 此处的印刷样式需要与 builder/wrapper/template.html 保持一致 */}
 		<style>{`
 			@page {
 				margin-left: 0cm;
