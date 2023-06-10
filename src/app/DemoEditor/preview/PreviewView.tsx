@@ -63,6 +63,7 @@ export function PreviewView(props: {
 		if(!hasContent) {
 			props.onReportSize && props.onReportSize(0)
 			props.onReportTiming && props.onReportTiming(0)
+			props.onReportPages && props.onReportPages(NaN)
 		}
 	})
 	useOnceEffect(() => {
