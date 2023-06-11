@@ -46,8 +46,8 @@ function App() {
 			@page {
 				margin-left: 0cm;
 				margin-right: 0cm;
-				margin-top: 8.0vw;
-				margin-bottom: 8.0vw;
+				margin-top: 8.5vw;
+				margin-bottom: 8.5vw;
 			}
 			html, body {
 				padding: 0;
