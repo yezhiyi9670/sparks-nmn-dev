@@ -566,14 +566,14 @@ export class NoteEater {
 				if(c === undefined) {
 					return undefined
 				}
-				if(c == '#' || c == 'b' || c == '^' || c == '%' || c == '$') {
+				if(c == '#' || c == 'b' || c == '+' || c == '%' || c == '$') {
 					if(delta != delta) {
 						delta = 0
 					}
 					delta += {
 						'#': 1,
 						'b': -1,
-						'^': 0.5,
+						'+': 0.5,
 						'%': -0.5,
 						'$': 0
 					}[c]
@@ -708,7 +708,7 @@ export class NoteEater {
 				}
 				let [ pref, base ] = splitBy(token1.content, '/')
 				let prefSplitPos = 1
-				let accidentalDeltas: {[_: string]: number} = {'#': 1, 'b': -1, '$': 0, '^': 0.5, '%': -0.5}
+				let accidentalDeltas: {[_: string]: number} = {'#': 1, 'b': -1, '$': 0, '+': 0.5, '%': -0.5}
 				while(prefSplitPos < pref.length && (
 					inCheck(pref[prefSplitPos - 1], accidentalDeltas) ||
 					withinCharRange(pref[prefSplitPos], 'A', 'Z')
