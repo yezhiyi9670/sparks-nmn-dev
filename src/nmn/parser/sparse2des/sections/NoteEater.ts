@@ -158,7 +158,7 @@ export class NoteEater {
 					return
 				}
 				// ===== 检测连音线左分割符号 =====
-				if(new TokenFilter('symbol', '*').test(token) && leftSplitFlag) {
+				if(new TokenFilter('symbol', '^').test(token) && leftSplitFlag) {
 					this.pass()
 					section.leftSplit = true
 					continue
@@ -352,7 +352,7 @@ export class NoteEater {
 				// ===== 读取音符及音符后缀 =====
 				const range0 = this.peek() ? this.peek()!.range[0] + this.charPtr : 0
 				const noteChar = this.eatNoteChar<TypeSampler>(issues, typeSampler)
-				const suffixes: ('*' | '~' | '.')[] = []
+				const suffixes: ('^' | '~' | '.')[] = []
 				const attrs: NoteAttr[] = []
 				let length = Frac.create(1)
 				let lengthAdd = Frac.create(1)
@@ -369,7 +369,7 @@ export class NoteEater {
 						if(c.type != 'symbol') {
 							break
 						}
-						if(c.content == '~' || c.content == '*' || c.content == '.') {
+						if(c.content == '~' || c.content == '^' || c.content == '.') {
 							suffixes.push(c.content)
 							this.pass()
 							if(c.content == '.') {
