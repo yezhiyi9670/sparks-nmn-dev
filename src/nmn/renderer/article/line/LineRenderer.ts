@@ -615,8 +615,8 @@ export class LineRenderer {
 
 		// 绘制跳房子
 		if(isFirst && line.jumpers.length > 0) {
-			const topY = currY - 1.17 + shift
-			const bottomY = currY + 0.90 + shift
+			const topY = currY - 1.27 + shift
+			const bottomY = currY + 1.00 + shift
 			const centerY = (topY + bottomY) / 2
 			line.jumpers.forEach((jumper) => {
 				let startX = 0
