@@ -240,7 +240,7 @@ export class MusicPaint {
 			if(lastAttr && !(lastAttr.type == 'iter' && attr.type == 'iter')) {
 				currX += 0.5 * scale
 			}
-			currX += this.drawIterOrString(context, currX, y, attr, context.render.font_attr!, 1.9 * fontScale, scale)[0]
+			currX += this.drawIterOrString(context, currX, y, attr, context.render.font_attr!, 2.0 * fontScale, scale)[0]
 			lastAttr = attr
 		})
 	}
