@@ -82,7 +82,7 @@ export function TestApp() {
 	useOnceEffect(() => {
 		const loadLoc = getQueryVariable('load-example')
 		if(loadLoc !== undefined) {
-			const loc = 'example/' + loadLoc
+			const loc = 'example/' + loadLoc + '?time=' + (+new Date())
 			if(loc.startsWith('//') || loc.includes(':') || loc.includes('..')) {
 				console.warn('The request of loading file', loc, 'is blocked because it does not look safe')
 			} else {
