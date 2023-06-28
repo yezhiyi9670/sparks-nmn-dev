@@ -1,10 +1,11 @@
 {
   "name": "sparks-nmn-dev",
-  "version": "1.13.12",
+  "version": "1.13.13",
   "source": "./src/index.html",
   "license": "MIT",
   "scripts": {
     "start": "cross-env BUILD_TYPE=demo parcel --port 8527 --host localhost --dist-dir ./dist/test/",
+    "start-public": "cross-env BUILD_TYPE=demo parcel --port 8527 --host 0.0.0.0 --dist-dir ./dist/test/",
     "build-demo": "ts-node ./src/builder/demo/clean.ts && cross-env BUILD_TYPE=demo parcel build --dist-dir ./dist/demo/ --public-url ./ src/index.html",
     "build-lib": "cross-env BUILD_TYPE=lib parcel build --dist-dir ./dist/lib/ --public-url ./ src/nmn/index.ts",
     "build-umd": "cross-env BUILD_TYPE=umd parcel build --dist-dir ./dist/umd/ --public-url ./ src/nmn/index-umd.ts",

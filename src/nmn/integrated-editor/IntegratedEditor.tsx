@@ -1,18 +1,19 @@
-import React, { createRef, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import React, { createRef, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { createUseStyles } from 'react-jss'
-import { randomToken } from '../../util/random'
-import { useI18n } from '../i18n/i18n'
-import { NMNI18n, SparksNMN } from '../../nmn'
-import { SparksNMNEditor } from '../../nmn/react-ace-editor/SparksNMNEditor'
+import { randomToken } from '../util/random'
+import { NMNI18n, SparksNMN } from '..'
+import { SparksNMNEditor } from '../react-ace-editor/SparksNMNEditor'
 import { StatusDisplayMode } from './status/display-mode'
 import AceEditor from 'react-ace'
-import { createDethrottledApplier } from '../../util/event'
-import { callRef, useMethod } from '../../util/hook'
+import { createDethrottledApplier } from '../util/event'
+import { callRef, useMethod } from '../util/hook'
 import { StatusProcessTime } from './status/process-time'
 import { StatusFileSize } from './status/file-size'
 import { PreviewCursor, PreviewView } from './preview/PreviewView'
 import { StatusDirty } from './status/dirty-state'
 import { StatusPages } from './status/pages'
+import { LanguageArray } from '../i18n'
+import { basenameName } from '../util/basename'
 
 const useStyles = createUseStyles({
 	editor: {
@@ -36,7 +37,6 @@ const useStyles = createUseStyles({
 	groupStatusBar: {
 		borderTop: '1px solid #0002',
 		height: '28px',
-		background: '#F0EEF1',
 		whiteSpace: 'nowrap',
 		display: 'flex',
 		flexDirection: 'row'
@@ -68,14 +68,108 @@ const useStyles = createUseStyles({
 
 type DisplayMode = 'edit' | 'split' | 'preview'
 
-interface Props {}
+export interface IntegratedEditorColorScheme {
+	voidary?: string,
+	voidaryHover?: string,
+	voidarySelected?: string,
+	voidaryActive?: string,
+}
+const defaultColorScheme: IntegratedEditorColorScheme = {
+	voidary: '#F0EEF1',
+	voidaryActive: '#0002',
+	voidaryHover: '#0001',
+	voidarySelected: '#00000019'
+}
+
+export interface IntegratedEditorPrefs {
+	fontFamily?: string,
+	fontSize?: number,
+	autoSave?: 'off' | 'overwrite',
+	previewRefresh?: string,
+	showFileSize?: 'off' | 'source' | 'all',
+	fileSizeUnit?: 'b' | 'kunb' | 'kb' | 'kkunb' | 'mb' | 'mkunb'
+	showProcessTime?: 'off' | 'on'
+	previewMaxWidth?: number,
+	previewAlign?: 'left' | 'center',
+	displayMode?: 'split' | 'preview',
+	modifyTitle?: {
+		"default": string,
+		"new": string,
+		"newDirty": string,
+		"clean": string,
+		"dirty": string
+	},
+
+	importantWarning?: {text: string, height: number},
+	temporarySave?: boolean
+}
+const defaultEditorPrefs: IntegratedEditorPrefs = {
+	fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Sarasa Mono SC'",
+	fontSize: 14.5,
+	autoSave: 'off',
+	previewRefresh: 'delay2000',
+	showFileSize: 'all',
+	fileSizeUnit: 'kb',
+	showProcessTime: 'on',
+	previewMaxWidth: 1000,
+	previewAlign: 'left',
+	displayMode: 'split',
+	modifyTitle: undefined,
+
+	importantWarning: undefined,
+	temporarySave: false
+}
+
+interface Context {
+	language: LanguageArray
+	prefs: IntegratedEditorPrefs
+	colorScheme: IntegratedEditorColorScheme
+}
+export const IntegratedEditorContext = React.createContext<Context>({
+	language: NMNI18n.languages.zh_cn,
+	prefs: defaultEditorPrefs,
+	colorScheme: defaultColorScheme
+})
+
+interface Props {
+	language: LanguageArray
+	editorPrefs?: IntegratedEditorPrefs
+	colorScheme?: IntegratedEditorColorScheme
+	onRequestSave?: () => void
+}
 
 // eslint-disable-next-line react/display-name
-export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((props, ref) => {
+export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((props: Props, ref) => {
+	const contextValue: Context = useMemo(() => ({
+		language: props.language,
+		prefs: {
+			...defaultEditorPrefs,
+			...props.editorPrefs,
+		},
+		colorScheme: {
+			...defaultColorScheme,
+			...props.colorScheme
+		}
+	}), [props.colorScheme, props.editorPrefs, props.language])
+
+	return (
+		<IntegratedEditorContext.Provider value={contextValue}>
+			<__IntegratedEditor ref={ref} onRequestSave={props.onRequestSave} />
+		</IntegratedEditorContext.Provider>
+	)
+})
+
+interface __Props {
+	onRequestSave?: () => void
+}
+
+// eslint-disable-next-line react/display-name
+export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>((props: __Props, ref) => {
+	const { language, prefs, colorScheme } = useContext(IntegratedEditorContext)
+
 	const name = useMemo(() => {
 		return randomToken(24)
 	}, [])
-	const LNG = useI18n()
 	const languageArray = NMNI18n.languages.zh_cn
 	const classes = useStyles()
 	const editorRef = useRef<AceEditor>(null)
@@ -93,7 +187,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 	})
 
 	// ===== 预览刷新模式 =====
-	const updateChoice: string = 'delay10000'
+	const updateChoice = prefs.previewRefresh!
 	let updateMode: 'instant' | 'dethrottle' | 'none' = 'none'
 	let updateDelay: number = 1000
 	if(updateChoice == 'realtime') {
@@ -108,6 +202,7 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 	// ===== 数值与处理 =====
 	const initialValue = ''
 	const [ value, setValue ] = useState(initialValue)
+	const [ filename, setFilename ] = useState<string | undefined>(undefined)
 	const [ isDirty, setIsDirty ] = useState(false)
 	const [ isPreviewDirty, setIsPreviewDirty ] = useState(false)
 	const [ cursor, setCursor ] = useState<PreviewCursor | undefined>(undefined)
@@ -133,7 +228,6 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 			result: parsed.result,
 			timing: parsed.time
 		})
-		// console.log(parsed.result)
 		setIsPreviewDirty(false)
 	})
 
@@ -204,13 +298,20 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 		}
 	}
 
-	const fileSizeMode: string = 'all'
+	const fileSizeMode = prefs.showFileSize!
 	const ret = <div className={classes.editor}>
 		<div className={`${classes.groupPreview} ${displayMode == 'edit' ? classes.hidden : ''}`}>
 			{previewView}
 		</div>
 		<div className={`${classes.groupSeparator} ${displayMode != 'split' ? classes.hidden : ''}`} />
 		<div className={`${classes.groupEdit} ${displayMode == 'preview' ? classes.hidden : ''}`} onKeyDown={handleEditorKey}>
+			<style>
+				{`
+					.${classes.groupEdit} .ace_editor, .ace_editor.ace_autocomplete {
+						font-family: ${prefs.fontFamily!}
+					}
+				`}
+			</style>
 			<SparksNMNEditor
 				key={sessionToken}
 				name={name}
@@ -220,24 +321,26 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 				onCursorChange={handleCursorChange}
 				ref={editorRef}
 				issues={parseResult.result.issues}
-				fontSize={14.5}
+				fontSize={prefs.fontSize!}
 			/>
 		</div>
-		<div className={classes.groupStatusBar}>
+		<div className={classes.groupStatusBar} style={{background: colorScheme.voidary}}>
 			<div className={classes.statusBarGroup}>
 				<StatusDisplayMode value={displayMode} onChange={setDisplayMode} />
 			</div>
 			<div className={classes.statusBarSpacer} />
 			<div className={classes.statusBarGroup}>
 				<StatusDirty
+					filename={filename}
 					isDirty={isDirty}
 					isPreviewDirty={isPreviewDirty}
 					onForceUpdate={handleForceUpdate}
+					onRequestSave={props.onRequestSave}
 				/>
 				<StatusPages
 					pages={renderedPages}
 				/>
-				{'on' == 'on' && (
+				{prefs.showProcessTime! == 'on' && (
 					<StatusProcessTime parseTime={parseResult.timing} renderTime={renderTiming} />
 				)}
 				{fileSizeMode != 'off' && (
@@ -264,10 +367,14 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 	const getIsDirty = useMethod(() => {
 		return isDirty
 	})
+	const getFilename = useMethod(() => {
+		return filename
+	})
 	const handleNew = useMethod(() => {
 		setValue('')
 		updateResult('')
 		setDisplayMode('split')
+		setFilename(undefined)
 		setIsDirty(false)
 		setIsPreviewDirty(false)
 		resetSession()
@@ -279,15 +386,38 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 		updateResult()
 	})
 	const handleSaved = useMethod((filename: string) => {
+		setFilename(filename)
 		setIsDirty(false)
 	})
 	const handleOpen = useMethod((data: {path: string, content: string}) => {
 		setValue(data.content)
 		updateResult(data.content)
-		setDisplayMode('split')
+		setDisplayMode(prefs.displayMode!)
+		setFilename(data.path)
 		setIsDirty(false)
 		setIsPreviewDirty(false)
 		resetSession()
+	})
+	const handleExport = useMethod((template: string, localFontLocation: string) => {
+		if(isPreviewDirty) {
+			updateResult()
+		}
+		const fields = SparksNMN.render(parseResult.result.result, languageArray)
+		const pagedFields = SparksNMN.paginize(parseResult.result.result, fields, languageArray).result
+		let title = NMNI18n.editorText(language, 'preview.new_title')
+		if(filename !== undefined) {
+			title = basenameName(filename)
+		}
+		const packedData = 'window.efData=' + JSON.stringify(pagedFields.map((field) => ({
+			...field,
+			element: field.element.outerHTML
+		}))).replace(/</g, "\\x3c") + ';document.title=' + JSON.stringify(title).replace(/</g, "\\x3c")
+		const htmlData = template
+			.replace('/*{script:content:data}*/', packedData)
+			.replace('/*{script:content:flags}*/', 'window.localFontLocation = ' + JSON.stringify(
+				localFontLocation
+			))
+		return htmlData
 	})
 	useImperativeHandle(ref, () => ({
 		getValue: () => {
@@ -295,6 +425,9 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 		},
 		getIsDirty: () => {
 			return getIsDirty()
+		},
+		getFilename: () => {
+			return getFilename()
 		},
 		triggerBeforeSave: () => {
 			return handleBeforeSave()
@@ -308,6 +441,9 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 		triggerOpen: (data) => {
 			return handleOpen(data)
 		},
+		exportHtml: (template: string, localFontLocation: string) => {
+			return handleExport(template, localFontLocation)
+		}
 	}))
 
 	return ret
@@ -316,8 +452,10 @@ export const IntegratedEditor = React.forwardRef<IntegratedEditorApi, Props>((pr
 export interface IntegratedEditorApi {
 	getValue: () => string
 	getIsDirty: () => boolean
+	getFilename: () => string | undefined
 	triggerBeforeSave: () => void
 	triggerSaved: (filename: string) => void
 	triggerNew: () => void
 	triggerOpen: (data: {path: string, content: string}) => void
+	exportHtml: (template: string, localFontLocation: string) => string
 }

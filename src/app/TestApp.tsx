@@ -1,10 +1,12 @@
-import React, { createRef, ReactNode, useRef } from "react"
+import React, { createRef, ReactNode, useMemo, useRef } from "react"
 import { createUseStyles } from "react-jss"
 import { useOnceEffect } from "../util/event"
 import { callRef } from "../util/hook"
 import { Box } from "../util/component"
-import { IntegratedEditor, IntegratedEditorApi } from "./DemoEditor/IntegratedEditor"
 import $ from 'jquery'
+import { IntegratedEditor, IntegratedEditorApi } from "../nmn/integrated-editor/IntegratedEditor"
+import { useI18n } from "./i18n/i18n"
+import { NMNI18n } from "../nmn"
 
 const useStyles = createUseStyles({
 	outer: {
@@ -78,6 +80,7 @@ function getQueryVariable(variable: string) {
 
 export function TestApp() {
 	const editorRef = createRef<IntegratedEditorApi>()
+	const LNG = useI18n()
 
 	useOnceEffect(() => {
 		const loadLoc = getQueryVariable('load-example')
@@ -109,17 +112,21 @@ export function TestApp() {
 		}
 	})
 
+	function handleSave() {
+		callRef(editorRef, api => {
+			api.triggerBeforeSave()
+			if(api.getIsDirty()) {
+				localStorage.setItem('sparks-nmn-demo-src', api.getValue())
+				api.triggerSaved('')
+			}
+		})
+	}
+
 	function handleKeyDown(evt: React.KeyboardEvent) {
 		if(evt.ctrlKey && !evt.shiftKey) {
 			if(evt.key.toLowerCase() == 's') {
 				evt.preventDefault()
-				callRef(editorRef, api => {
-					api.triggerBeforeSave()
-					if(api.getIsDirty()) {
-						localStorage.setItem('sparks-nmn-demo-src', api.getValue())
-						api.triggerSaved('')
-					}
-				})
+				handleSave()
 			} else if(evt.key.toLowerCase() == 'r') {
 				evt.preventDefault()
 				callRef(editorRef, api => {
@@ -129,7 +136,19 @@ export function TestApp() {
 		}
 	}
 
+	const editorPrefs = useMemo(() => ({
+		modifyTitle: {
+			default: LNG('title.default'),
+			new: LNG('title.new'),
+			newDirty: LNG('title.newDirty'),
+			clean: LNG('title.new'),
+			dirty: LNG('title.newDirty')
+		},
+		importantWarning: {text: LNG('preview.warning'), height: 19},
+		temporarySave: true,
+	}), [LNG])
+
 	return <PageHeader text="Sparks NMN Dev Demo" onKeyDown={handleKeyDown}>
-		<IntegratedEditor ref={editorRef} />
+		<IntegratedEditor onRequestSave={handleSave} ref={editorRef} editorPrefs={editorPrefs} language={NMNI18n.languages.zh_cn} />
 	</PageHeader>
 }
