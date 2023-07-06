@@ -22,13 +22,13 @@ export class ColumnStater {
 		this.input = input
 	}
 
-	parse(issues: LinedIssue[]): ColumnScore<LinedArticle> {
+	parse(issues: LinedIssue[]) {
 		const linked = this.applyArticle(this.flattenArticle, this.input, issues)
 		this.applyArticle(this.allocateLocation, linked, issues)
 		this.applyArticle(this.interLink1, linked, issues)
 		const linked2 = this.applyArticle(this.flatten2Article, linked, issues)
 		const lined = this.applyArticle(this.linifyArticle, linked2, issues)
-		return lined
+		return { lined: lined, flattened: linked2 }
 	}
 
 	applyArticle<I extends ArticleBase, O>(func: (article: I, context: ScoreContext, issues: LinedIssue[]) => O, input: ColumnScore<I>, issues: LinedIssue[]): ColumnScore<O> {

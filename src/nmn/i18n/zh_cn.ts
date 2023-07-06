@@ -199,6 +199,7 @@ export default {
 		'author_sep': ' ',
 		'omit': '(后略)',
 		'page': 'Page ${0} / Total ${1}',
+		'secsel': 'm${0}'
 	},
 	'efLabels': {
 		'top': '文档标题',
@@ -269,5 +270,12 @@ export default {
 				}
 			}
 		},
+
+		// 检查器
+		"inspector": {
+			"play": {
+				"title": "音效试听",
+			},
+		}
 	})
 }

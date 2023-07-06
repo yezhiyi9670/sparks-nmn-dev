@@ -9,7 +9,8 @@ export module SectionStat {
 		idCard: {
 			lineNumber: -1,
 			index: -1,
-			uuid: '',
+			masterId: '',
+			uuid: ''
 		},
 		range: [-1, -1],
 		ordinal: 0,
@@ -356,7 +357,7 @@ export module SectionStat {
 			...line,
 			sections: line.sections.slice(startSection, startSection + sectionCount).map((section, index) => {
 				if(overwriteIdSections && overwriteIdSections.length > index) {
-					section.idCard.uuid = overwriteIdSections[index].idCard.uuid
+					section.idCard.masterId = overwriteIdSections[index].idCard.masterId
 				}
 				return section
 			})

@@ -411,7 +411,14 @@ export type NoteCharMusic = {
 	sampler: 'music'
 	char: string
 	octave: number
+	/**
+	 * 变化音记号，NaN 表示未分配
+	 */
 	delta: number
+	/**
+	 * 最终的变化音数值，在 SectionsParser 结束时赋予
+	 */
+	finalDelta: number
 }
 export const noteCharChecker: {[_: string]: number} = {
 	'0': 0, '1': 0, '2': 0, '3': 0, '4': 0, '5': 0, '6': 0, '7': 0,
@@ -431,6 +438,7 @@ export type NoteCharForce = {
 	char: string
 } | {
 	type: 'force'
+	sampler: 'annotations'
 	void: true
 }
 export const noteCharForceWeight = {
@@ -470,6 +478,7 @@ export type NoteCharChord = {
 	base?: string
 } | {
 	type: 'chord'
+	sampler: 'annotations'
 	void: true
 }
 /**
@@ -482,6 +491,7 @@ export type NoteCharText = {
 	text: string
 } | {
 	type: 'text'
+	sampler: 'annotations' | 'text'
 	void: true
 }
 export type NoteCharAnnotation =
@@ -504,6 +514,12 @@ export type MusicNote<NoteChar> = {
 	 * 字符范围
 	 */
 	range: [number, number]
+	/**
+	 * 唯一 ID
+	 * 
+	 * 在 NoteEater 结束后由 SectionParser 处理，对装饰音符无效
+	 */
+	uuid: string
 	/**
 	 * 起始时间（从小节开头开始计算）
 	 */
@@ -626,9 +642,13 @@ export type MusicSection<NoteChar> = {
 		 */
 		index: number
 		/**
-		 * 全局唯一 ID
+		 * 对应声部小节的小节全局 ID
 		 * 
-		 * 在列统计阶段，标注小节（包括声部的 FCA 和歌词行的 FCA）的 uuid 会被对应声部的音乐小节覆盖
+		 * 起初任何类型的小节都有自己的 masterId。在列统计阶段，标注小节（包括声部的 FCA 和歌词行的 FCA）的 masterId 会被对应声部的音乐小节覆盖
+		 */
+		masterId: string
+		/**
+		 * 自己的全局 ID
 		 */
 		uuid: string
 	}

@@ -346,6 +346,7 @@ export module AttrMatcher {
 			idCard: {
 				lineNumber: -1,
 				index: -1,
+				masterId: '',
 				uuid: ''
 			},
 			range: [tokenIn.range[0] + 1, tokenIn.range[1] - 1],

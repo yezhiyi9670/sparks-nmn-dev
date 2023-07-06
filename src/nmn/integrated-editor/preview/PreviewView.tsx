@@ -12,10 +12,10 @@ const useStyles = createUseStyles({
 	root: {
 		padding: '32px 0',
 		paddingBottom: '320px',
-		width: '100%',
+		width: 'calc(100% + 1px)',
 		boxSizing: 'border-box',
 		userSelect: 'text',
-		minHeight: '100%',
+		minHeight: '100%'
 	},
 	warningEf: {},
 	'@media print': {
@@ -25,6 +25,12 @@ const useStyles = createUseStyles({
 		root: {
 			border: 'none !important',
 			'& .SparksNMN-sechl': {
+				display: 'none'
+			},
+			'& .SparksNMN-notehl': {
+				display: 'none'
+			},
+			'& .SparksNMN-secsel': {
 				display: 'none'
 			}
 		},
@@ -108,6 +114,8 @@ export function PreviewView(props: {
 				onReportTiming={props.onReportTiming}
 				onReportSize={props.onReportSize}
 				onReportPages={props.onReportPages}
+
+				// highlightedNotes={['*']}
 			/> : blankPreview}
 		</div>
 	)

@@ -13,7 +13,7 @@ import { NoteEater } from "./NoteEater";
 type RangedSectionSeparators = SectionSeparators & {
 	range: [number, number]
 }
-type SampledSection<TypeSampler> = MusicSection<NoteCharAny & {type: TypeSampler}>
+type SampledSection<TypeSampler> = MusicSection<NoteCharAny & {sampler: TypeSampler}>
 
 class SectionsParserClass {
 	parseSections<TypeSampler>(tokens: BracketTokenList, lineNumber: number, issues: LinedIssue[], context: ScoreContext, musicalPropsOverride: [MusicProps[], number] | undefined, typeSampler: TypeSampler, acceptVariation?: boolean): SampledSection<TypeSampler>[] {
@@ -121,7 +121,7 @@ class SectionsParserClass {
 			}
 		})
 		// ===== 提取小节线之间的小节并解析（对空白小节、属性区间重叠进行警告） =====
-		let ret: MusicSection<NoteCharAny & {type: TypeSampler}>[] = []
+		let ret: MusicSection<NoteCharAny & {sampler: TypeSampler}>[] = []
 		function virtualLine(rangeL: number, rangeR: number): RangedSectionSeparators {
 			return {
 				range: [rangeL, rangeR],
@@ -384,6 +384,7 @@ class SectionsParserClass {
 		const idCard = {
 			lineNumber: lineNumber,
 			index: sectionIndex,
+			masterId: `${lineNumber}-${sectionIndex}`,
 			uuid: `${lineNumber}-${sectionIndex}`
 		}
 		const base = {
@@ -445,6 +446,27 @@ class SectionsParserClass {
 		})
 		const [ writtenQuarters ] = new NoteEater(tokens, lineNumber, context).parse<TypeSampler>(ret, Frac.create(1), Frac.create(0), issues, typeSampler)
 		ret.totalQuarters = writtenQuarters
+
+		// 分配音符编号
+		let noteOrdinal = 0
+		ret.notes.forEach(note => {
+			note.uuid = idCard.uuid + '-' + (noteOrdinal++)
+		})
+		// 分配未知的变化音
+		let accidentalRemembered: {[_: string]: number} = {}
+		ret.notes.forEach(note => {
+			if(note.type != 'note' || note.char.type != 'music') {
+				return
+			}
+			const noteChar = note.char
+			if(noteChar.delta == noteChar.delta) {
+				noteChar.finalDelta = noteChar.delta
+			} else {
+				noteChar.finalDelta = accidentalRemembered[noteChar.char] ?? 0
+			}
+			accidentalRemembered[noteChar.char] = noteChar.finalDelta
+		})
+
 		return ret
 	}
 }

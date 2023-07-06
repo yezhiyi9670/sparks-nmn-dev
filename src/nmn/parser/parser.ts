@@ -73,24 +73,26 @@ class ParserClass {
 		const lnt = this.clns2lnt(clns, issues)
 		const sparse = this.lnt2sparse(lnt, issues)
 		const des = this.sparse2des(sparse, issues)
-		const cols = this.des2cols(des, issues)
-		const sectionPositions = this.statSectionPositions(cols)
+		const finalResult = this.des2cols(des, issues)
+
+		const sectionPositions = this.statSectionPositions(finalResult.lined)
+		
 		return {
 			phase: {
 				lns,
 				clns,
 				lnt,
 				sparse,
-				cols
 			},
-			result: cols,
+			result: finalResult.lined,
+			flattened: finalResult.flattened,
 			issues,
 			sectionPositions
 		}
 	}
 
 	/**
-	 * 找出需要高亮的小节 uuid
+	 * 找出需要高亮的小节 masterId
 	 */
 	getHighlightedSection(table: SectionPositions, code: string, position: [number, number]): string | undefined {
 		const unconvertResult = SparksNMN.unconvertCursor(code, position)
@@ -182,7 +184,7 @@ class ParserClass {
 	statSectionPositions(data: ColumnScore<LinedArticle>): SectionPositions {
 		const ret: SectionPositions = {}
 		
-		function addSectionInfo(head: string, master: number, lineNumber: number, ordinal: number, uuid: string) {
+		function addSectionInfo(head: string, master: number, lineNumber: number, ordinal: number, masterId: string) {
 			if(!(lineNumber in ret)) {
 				ret[lineNumber] = {
 					head: head,
@@ -192,15 +194,15 @@ class ParserClass {
 			}
 			const currLine = ret[lineNumber]
 			if(!(ordinal in currLine.ids)) {
-				currLine.ids[ordinal] = uuid
+				currLine.ids[ordinal] = masterId
 			}
 		}
 		function handleSections(head: string, masterSections: MusicSection<unknown>[], sections: MusicSection<unknown>[]) {
 			sections.forEach((section, index) => {
-				if(section.idCard.uuid != '' && section.idCard.lineNumber != -1) {
+				if(section.idCard.masterId != '' && section.idCard.lineNumber != -1) {
 					const masterSection = masterSections[index]
 					const master = masterSection?.idCard.lineNumber ?? section.idCard.lineNumber
-					addSectionInfo(head, master, section.idCard.lineNumber, section.idCard.index, section.idCard.uuid)
+					addSectionInfo(head, master, section.idCard.lineNumber, section.idCard.index, section.idCard.masterId)
 				}
 			})
 		}

@@ -3,7 +3,7 @@ import { LinedIssue, Parser, SectionPositions } from "./parser/parser"
 import { getLanguageValue } from './util/template'
 import { I18n, LanguageArray } from './i18n'
 import { commandDefs } from "./parser/commands"
-import { Renderer, RenderPositionCallback } from "./renderer/renderer"
+import { Renderer, RenderPositionCallback, RenderSectionPickCallback } from "./renderer/renderer"
 import { FontLoader } from "./renderer/FontLoader"
 import { FontLoaderProxy } from "./renderer/FontLoaderProxy"
 import { EquifieldSection } from "./equifield/equifield"
@@ -46,11 +46,16 @@ class SparksNMNClass {
 	 * 
 	 * @return `{element: HTMLElement, height: number, breakAfter?: string}[]` element 为 DOM 元素，height 为以 em 为单位的高度。单个元素不应当在打印时截断，除非太长
 	 */
-	render(result: NMNResult['result'], lng: LanguageArray, positionCallback?: RenderPositionCallback): EquifieldSection[] {
+	render(
+		result: NMNResult['result'],
+		lng: LanguageArray,
+		positionCallback?: RenderPositionCallback,
+		sectionPickCallback?: RenderSectionPickCallback,
+	): EquifieldSection[] {
 		if(!window || !('document' in window)) {
 			throw new NoRendererError('Sparks NMN renderer cannot work without a DOM window.')
 		}
-		return Renderer.render(result, lng, positionCallback)
+		return Renderer.render(result, lng, positionCallback, sectionPickCallback)
 	}
 
 	/**
@@ -64,7 +69,7 @@ class SparksNMNClass {
 	}
 
 	/**
-	 * 已知源代码当前行、光标的当前行号以及列号和解析结果，确定需要高亮的声部 uuid 以及声部内的小节序号
+	 * 已知源代码当前行、光标的当前行号以及列号和解析结果，确定需要高亮的声部 masterId 以及声部内的小节序号
 	 * 
 	 * 无法找到相关小节时，给出 undefined。
 	 */

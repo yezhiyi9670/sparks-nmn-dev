@@ -1,5 +1,5 @@
 import $ from 'jquery'
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { NMNResult, SparksNMN } from '..'
 import { Equifield, EquifieldSection } from '../equifield/equifield'
 import { LanguageArray } from '../i18n'
@@ -8,6 +8,7 @@ import { positionDispatcherStats } from '../renderer/article/line/PositionDispat
 import { domPaintStats } from '../renderer/backend/DomPaint'
 import { randomToken } from '../util/random'
 import { createUseStyles } from 'react-jss'
+import { useMethod } from '../util/hook'
 
 const useStyles = createUseStyles({
 	previewEf: {
@@ -32,6 +33,8 @@ type SparksNMNPreviewProps = {
 	onReportSize?: (value: number) => void
 	onReportError?: (_err: any | undefined) => void
 	onReportPages?: (value: number) => void
+	highlightedNotes?: string[]
+	showSectionPickers?: boolean
 }
 export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 	const { onPosition, result, language, logTimeStat } = props
@@ -43,15 +46,15 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 	const token = React.useMemo(() => randomToken(24), [])
 	const tokenClass = `SparksNMN-preview-${token}`
 
-	const positionCallback = React.useCallback((row: number, col: number) => {
+	const positionCallback = useMethod((row: number, col: number) => {
 		if(onPosition) {
 			onPosition(row, col)
 		}
-	}, [onPosition])
+	})
 
 	let hasRendered = false
 	let timing = 0
-	const renderResult = React.useMemo(() => {
+	const renderResult = useMemo(() => {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 		hasRendered = true
 		if(result) {
@@ -62,6 +65,7 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 			let startTime = +new Date()
 			const renderResult = (() => {
 				try {
+					/* TODO[yezhiyi9670]: Add callback hook for section pick */
 					let fields1 = SparksNMN.render(result.result, language, positionCallback)
 					const paginized = SparksNMN.paginize(result.result, fields1, language)
 					const fields = paginized.result
@@ -108,7 +112,7 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 				pages: NaN
 			}
 		}
-	}, [result, language, logTimeStat, positionCallback])
+	}, [result, language, logTimeStat])
 
 	useEffect(() => {
 		if(hasRendered) {
@@ -165,6 +169,32 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 			$(`.${tokenClass} .SparksNMN-sechl-${id}`).css({visibility: 'visible'})
 		}
 	}, [result, renderResult, props.cursor, tokenClass])
+
+	React.useEffect(() => {
+		if(!result) {
+			return
+		}
+		$(`.${tokenClass} .SparksNMN-notehl`).css({visibility: 'hidden'})
+		if(props.highlightedNotes) {
+			props.highlightedNotes.forEach(id => {
+				if(id == '*') {
+					$(`.${tokenClass} .SparksNMN-notehl`).css({visibility: 'visible'})  // 全部开灯
+				} else {
+					$(`.${tokenClass} .SparksNMN-notehl-${id}`).css({visibility: 'visible'})
+				}
+			})
+		}
+	}, [result, renderResult, props.highlightedNotes, tokenClass])
+
+	React.useEffect(() => {
+		if(!result) {
+			return
+		}
+		$(`.${tokenClass} .SparksNMN-secsel`).css({visibility: 'hidden'})
+		if(props.showSectionPickers) {
+			$(`.${tokenClass} .SparksNMN-secsel`).css({visibility: 'visible'})
+		}
+	}, [result, renderResult, props.showSectionPickers, tokenClass])
 
 	return <div className={classes.previewEf} ref={divRef}></div>
 }

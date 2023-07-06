@@ -78,6 +78,8 @@ function getQueryVariable(variable: string) {
 	return undefined
 }
 
+const isMobileInitially = window.innerWidth <= 996
+
 export function TestApp() {
 	const editorRef = createRef<IntegratedEditorApi>()
 	const LNG = useI18n()
@@ -146,6 +148,8 @@ export function TestApp() {
 		},
 		importantWarning: {text: LNG('preview.warning'), height: 19},
 		temporarySave: true,
+		isMobile: isMobileInitially,
+		inspectorOpen: false
 	}), [LNG])
 
 	return <PageHeader text="Sparks NMN Dev Demo" onKeyDown={handleKeyDown}>
