@@ -31,7 +31,7 @@ const useStyles = createUseStyles({
 				display: 'none'
 			},
 			'& .SparksNMN-secsel': {
-				display: 'none'
+				display: 'none !important'
 			}
 		},
 	}
@@ -116,6 +116,7 @@ export function PreviewView(props: {
 				onReportPages={props.onReportPages}
 
 				// highlightedNotes={['*']}
+				// showSectionPickers
 			/> : blankPreview}
 		</div>
 	)

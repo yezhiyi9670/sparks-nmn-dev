@@ -12,6 +12,8 @@ import { Linifier } from "./linify/linify"
 import { ColumnScore, LinedArticle } from "./des2cols/types"
 import { getCommandDef } from "./commands"
 import { SparksNMN } from ".."
+import { SequencedScoreData } from "./sequence/types"
+import { SequenceReader } from "./sequence/SequenceReader"
 
 const tokenOption: TokenizerOption = {
 	symbolChars: '`_$' + `~!@#%^&*()-=+[{]}\|;:",.<>/?`,
@@ -76,19 +78,25 @@ class ParserClass {
 		const finalResult = this.des2cols(des, issues)
 
 		const sectionPositions = this.statSectionPositions(finalResult.lined)
-		
-		return {
-			phase: {
-				lns,
-				clns,
-				lnt,
-				sparse,
-			},
+		const sequencedResult: SequencedScoreData = new SequenceReader(finalResult.flattened, issues).parse()
+
+		const packedResult = {
+			// phase: {
+			// 	lns,
+			// 	clns,
+			// 	lnt,
+			// 	sparse,
+			// },
 			result: finalResult.lined,
-			flattened: finalResult.flattened,
+			sequenced: sequencedResult,
 			issues,
 			sectionPositions
 		}
+
+		// 奶奶的，删掉！
+		console.log(packedResult)
+
+		return packedResult
 	}
 
 	/**

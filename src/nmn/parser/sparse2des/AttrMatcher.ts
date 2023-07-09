@@ -355,7 +355,8 @@ export module AttrMatcher {
 			separator: {
 				before: {char: '/', attrs: []},
 				after: {char: '/', attrs: []},
-				next: {char: '/', attrs: []}
+				next: {char: '/', attrs: []},
+				nextPrev: {char: '/', attrs: []}
 			},
 			musicalProps: scoreContextDefault.musical,
 			type: 'section',

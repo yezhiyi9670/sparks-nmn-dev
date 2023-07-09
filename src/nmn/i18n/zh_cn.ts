@@ -90,6 +90,12 @@ export default {
 		"invalid_self_attr_end": "类型为 ${0} 的小节线属性不能作为序列末尾小节线的上方属性",
 		'unknown_separator_attr': '无法将 `${0}` 解析为小节线属性',
 		'unknown_omit_count': '无效的小节省略数 ${0}',
+
+		'mismatching_beats': '小节 ${0} 与其他声部的同位置小节拍号不一致',
+		'mismatching_quarters': '小节 ${0} 与其他声部的同位置小节长度不一致',
+		'mismatching_speed': '小节 ${0}，迭代数 ${1} 与其他声部的同位置小节拍速不一致',
+		'repeat_overflow': '反复迭代节的数量超出上限 ${0}，可能是因为反复结构存在问题导致死循环',
+		'repeat_conflict': '小节 ${0} 被反复迭代数 ${1} 穿越超过一次',
 	},
 	'notices': {
 		'iter_invalid': '反复记号迭代数写在了无效的位置，很可能是错误的。',
