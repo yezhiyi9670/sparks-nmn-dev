@@ -8,6 +8,7 @@ import { FontLoader } from "./renderer/FontLoader"
 import { FontLoaderProxy } from "./renderer/FontLoaderProxy"
 import { EquifieldSection } from "./equifield/equifield"
 import { Paginizer } from "./renderer/pagnizer"
+import { SequencedScoreData } from "./parser/sequence/types"
 
 /**
  * 渲染错误
@@ -137,7 +138,8 @@ export const SparksNMNLanguage = new SparksNMNLanguageClass()
 export type NMNResult = {
 	issues: LinedIssue[],
 	result: ColumnScore<LinedArticle>,
-	sectionPositions: SectionPositions
+	sectionPositions: SectionPositions,
+	sequenced: SequencedScoreData
 }
 export type NMNIssue = LinedIssue
 export const NMNI18n = I18n

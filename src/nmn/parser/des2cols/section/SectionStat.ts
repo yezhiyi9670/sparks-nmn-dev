@@ -22,7 +22,8 @@ export module SectionStat {
 			nextPrev: {char: '/', attrs: []}
 		},
 		musicalProps: scoreContextDefault.musical,
-		type: 'nullish'
+		structureValidation: 'pass',
+		type: 'nullish',
 	}
 	/**
 	 * 小节列填充（作用同 paintArray 函数）
@@ -88,16 +89,16 @@ export module SectionStat {
 			if(!Frac.equals(section.totalQuarters, shouldBe)) {
 				let ch = Frac.compare(section.totalQuarters, shouldBe)
 				if(ch > 0) {
-					section.validation = 'more'
+					section.beatsValidation = 'more'
 				} else {
-					section.validation = 'less'
+					section.beatsValidation = 'less'
 				}
 			}
 		} else {
 			// 散板节拍型仅判断拍数是否为整数
 			const beats = Frac.prod(Frac.create(section.musicalProps.beats!.value.y), Frac.create(1, 4), section.totalQuarters)
 			if(beats.y != 1) {
-				section.validation = 'less'
+				section.beatsValidation = 'less'
 			}
 		}
 		return Frac.max(section.totalQuarters, shouldBe)

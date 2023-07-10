@@ -32,6 +32,9 @@ const useStyles = createUseStyles({
 			},
 			'& .SparksNMN-secsel': {
 				display: 'none !important'
+			},
+			'& .SparksNMN-validation': {
+				display: 'none'
 			}
 		},
 	}

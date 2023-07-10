@@ -264,7 +264,7 @@ export const separatorAttrPosition: {
 	
 	iter: [true, false, true, 'begin'],
 	reset: [true, false, true, 'begin'],
-	durability: [true, false, true, 'begin'],
+	durability: [true, false, false, 'begin'],
 	repeat: [true, true, true, 'begin'],
 	
 	qpm: [true, true, true, 'end'],
@@ -677,6 +677,10 @@ export type MusicSection<NoteChar> = {
 	 * 音乐属性
 	 */
 	musicalProps: MusicProps
+	/**
+	 * 曲式结构校验状态
+	 */
+	structureValidation: 'pass' | 'conflict'
 } & ({
 	type: 'section'
 	/**
@@ -688,7 +692,7 @@ export type MusicSection<NoteChar> = {
 	 *
 	 * 若拍号中的小节拍数为 0，且该小节不是整数拍，判定为 less
 	 */
-	validation: 'pass' | 'less' | 'more'
+	beatsValidation: 'pass' | 'less' | 'more'
 	/**
 	 * 音符列表
 	 */

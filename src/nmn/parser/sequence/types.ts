@@ -1,3 +1,4 @@
+import { Fraction } from "../../util/frac"
 import { ColumnScore, Linked2Article, PartSignature } from "../des2cols/types"
 import { MusicProps, MusicSection, NoteCharMusic } from "../sparse2des/types"
 
@@ -12,7 +13,10 @@ export type SequencedScoreData = {
 	sequence: SequenceData,
 }
 
-export type SequenceData = (SequenceArticle | undefined)[]
+export type SequenceData = ({
+	normal: SequenceArticle,
+	flat: SequenceArticle
+} | undefined)[]
 
 /**
  * 反复序列
@@ -49,18 +53,22 @@ export type SequenceSection = {
 	/**
 	 * 声部数据，按 hash 分存
 	 */
-	parts: {[hash: string]: SequenceMusicPropsInfo}
+	parts: {[hash: string]: SequencePartInfo}
+	/**
+	 * 小节序（供调试）
+	 */
+	ordinal: number
 	/**
 	 * 按四分音符的小节长度，抄写自乐谱信息。
 	 */
-	lengthQuarters: number
+	lengthQuarters: Fraction
 	/**
 	 * 计算后的小节实际长度，以毫秒计。
 	 */
 	lengthMilliseconds: number
 }
 
-export type SequenceMusicPropsInfo = {
+export type SequencePartInfo = {
 	/**
 	 * 实际的声部签名
 	 */

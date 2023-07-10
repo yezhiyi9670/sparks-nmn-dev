@@ -1,9 +1,11 @@
+import { Frac } from "../../util/frac";
+import { MusicTheory } from "../../util/music";
 import { Jumper, Linked2Article } from "../des2cols/types";
 import { LinedIssue, addIssue } from "../parser";
 import { ScoreContext } from "../sparse2des/context";
 import { JumperAttr, MusicProps, MusicSection, NoteCharAny, SeparatorAttr } from "../sparse2des/types";
 import { SequenceSectionStat } from "./SequenceSectionStat";
-import { SequenceArticle, SequenceIteration } from "./types";
+import { SequenceArticle, SequenceIteration, SequencePartInfo, SequenceSection } from "./types";
 
 export type Linked2MusicArticle = Linked2Article & {type: 'music'}
 
@@ -11,17 +13,19 @@ export class ArticleSequenceReader {
 	article: Linked2MusicArticle
 	context: ScoreContext
 	issues: LinedIssue[]
+	flat: boolean
 
-	constructor(article: Linked2MusicArticle, context: ScoreContext, issues: LinedIssue[]) {
+	constructor(article: Linked2MusicArticle, context: ScoreContext, issues: LinedIssue[], flat: boolean) {
 		this.article = article
 		this.context = context
 		this.issues = issues
+		this.flat = flat
 	}
 
 	/**
 	 * 迭代节数量限制
 	 */
-	iterationLimit: number = 65535
+	iterationLimit: number = 2048
 
 	/**
 	 * 小节数指针位置
@@ -72,7 +76,7 @@ export class ArticleSequenceReader {
 
 		this.initialize()
 
-		while(!this.exploreSection()) {}
+		while(this.exploreSection()) {}
 
 		/* TODO[yezhiyi9670]: 检查拍号与 Quarters 的匹配情况并报错 */
 
@@ -93,13 +97,15 @@ export class ArticleSequenceReader {
 		this.jumperSectionStat = Array(this.article.sectionCount).fill(0).map(() => [])
 		this.passingIterations = Array(this.article.sectionCount).fill(0).map(() => ({}))
 
+		this.statJumpers()
+
 		for(let partSig of this.article.partSignatures) {
 			this.currentProps[partSig.hash] = {
 				...this.context.musical
 			}
 		}
 
-		if(!this.expandFrontier(1)) {
+		if(!this.expandFrontier(this.flat ? 0 : 1)) {
 			throw new Error('ArticleSequenceReader: Failed to create the first iteration. How?')
 		}
 	}
@@ -122,7 +128,7 @@ export class ArticleSequenceReader {
 	 */
 	expandFrontier(iteration: number) {
 		if(this.iterations.length >= this.iterationLimit) {
-			const primoSection = SequenceSectionStat.primoSection(this.article, this.sectionCursor)
+			const primoSection = SequenceSectionStat.getPrimoSection(this.article, this.sectionCursor)
 			addIssue(
 				this.issues, primoSection.idCard.lineNumber, 0,
 				'error', 'repeat_overflow',
@@ -141,7 +147,7 @@ export class ArticleSequenceReader {
 	/**
 	 * 探索当前小节，并自动更新对应值。如果有必要，将添加新的前沿迭代节
 	 * 
-	 * 返回值表示该小节是否是最后小节，终止条件如下：
+	 * 返回值表示能否继续操作，终止条件如下：
 	 * - 指针超出乐谱末尾
 	 * - 发现不加注 Fine. 的终止线，直接结束
 	 * - 发现加注 Fine. 的小节线，如果之后存在被用过的反复指令记号或结构反复标记，则结束
@@ -152,17 +158,30 @@ export class ArticleSequenceReader {
 			throw new Error('ArticleSequenceReader/exploreSection: Section cursor is out of range.')
 		}
 
-		// 跳房子
-		if(this.checkJumperHead()) {
-			if(this.sectionCursor >= this.article.sectionCount) {
-				return true
-			} else {
+		if(!this.flat) {
+			// 跳房子
+			if(this.checkJumperHead()) {
+				if(this.sectionCursor >= this.article.sectionCount) {
+					return false
+				} else {
+					return true
+				}
+			}
+			// Portal 跳转
+			if(this.checkPortalHead()) {
+				if(this.sectionCursor >= this.article.sectionCount) {
+					return false
+				} else {
+					return true
+				}
+			}
+
+			// 之前的事情：检查 reset、检查音乐属性变更
+			if(!this.checkReset('before')) {
 				return false
 			}
 		}
-
-		// 之前的事情：检查 reset、检查音乐属性变更
-		this.checkReset('before')
+		
 		this.checkMusicalVariation('nextPrev')
 		this.checkMusicalVariation('before')
 		// 检测冲突、检查跳房子八度变更、小节推入信息
@@ -170,7 +189,19 @@ export class ArticleSequenceReader {
 		this.pushCurrentSection()
 		// 之后的事情：检查音乐属性变更、检查 reset、检查反复记号并跳转、若未跳转检查结束
 		this.checkMusicalVariation('after')
-		this.checkReset('after')
+		if(!this.flat) {
+			if(!this.checkReset('after')) {
+				return false
+			}
+			if(!this.checkRepeatJump()) {
+				return false
+			}
+		} else {
+			this.sectionCursor += 1
+			if(this.sectionCursor >= this.article.sectionCount) {
+				return false
+			}
+		}
 
 		return true
 	}
@@ -188,12 +219,44 @@ export class ArticleSequenceReader {
 		return false
 	}
 	/**
+	 * 检测结构反复 Portal 记号，如果符合跳过条件（之后存在用过的反复记号）则跳过
+	 * 
+	 * 返回值表示是否跳过
+	 */
+	checkPortalHead() {
+		if(
+			SequenceSectionStat.isStructureRepeatPos(this.article, this.sectionCursor) == '@' &&
+			this.hasUsedRepeatsAfter(this.sectionCursor)
+		) {
+			const jumpTo = SequenceSectionStat.findNextSectionIndex(this.article, this.sectionCursor, cursor => {
+				return SequenceSectionStat.isStructureRepeatCommand(this.article, cursor) == '@'
+			})
+			if(jumpTo === undefined) {
+				return false
+			}
+			this.sectionCursor = jumpTo + 1
+			return true
+		}
+		return false
+	}
+	/**
+	 * 检测之后是否有用过的反复记号
+	 */
+	hasUsedRepeatsAfter(cursor: number) {
+		return SequenceSectionStat.findNextSectionIndex(this.article, cursor, cursor => {
+			return this.repeatDamage[cursor] > 0
+		}) !== undefined
+	}
+	/**
 	 * 检测小节的 reset，如果存在则启动新的迭代节
+	 * 
+	 * 返回是否成功的检查
 	 */
 	checkReset(pos: SequenceSectionStat.AttrPosition) {
-		if(SequenceSectionStat.checkReset(this.article, this.sectionCursor, 'before')) {
-			this.expandFrontier(1)
+		if(this.frontier!.number > 1 && SequenceSectionStat.checkReset(this.article, this.sectionCursor, pos)) {
+			return this.expandFrontier(1)
 		}
+		return true
 	}
 	/**
 	 * 检测小节线属性，进行音乐属性变更
@@ -208,7 +271,7 @@ export class ArticleSequenceReader {
 	 * 速度变更
 	 */
 	checkOneVariation(pos: SequenceSectionStat.AttrPosition, type: 'qpm' | 'shift') {
-		const primoSection = SequenceSectionStat.primoSection(this.article, this.sectionCursor)
+		const primoSection = SequenceSectionStat.getPrimoSection(this.article, this.sectionCursor)
 
 		for(let part of this.article.parts) {
 			const section = part.notes.sections[this.sectionCursor]
@@ -235,7 +298,7 @@ export class ArticleSequenceReader {
 	 * 标记当前小节并检测冲突
 	 */
 	checkConflict() {
-		const primoSection = SequenceSectionStat.primoSection(this.article, this.sectionCursor)
+		const primoSection = SequenceSectionStat.getPrimoSection(this.article, this.sectionCursor)
 		const iter = this.frontier!.number
 		const passingMap = this.passingIterations[this.sectionCursor]
 
@@ -246,8 +309,12 @@ export class ArticleSequenceReader {
 					this.issues, primoSection.idCard.lineNumber, 0,
 					'warning', 'repeat_conflict',
 					'Section ${0} is passed twice by iteration number ${1}',
-					'' + primoSection.idCard.lineNumber, '' + iter
+					'' + (primoSection.ordinal + 1), '' + iter
 				)
+				for(let part of this.article.parts) {
+					part.notes.sections[this.sectionCursor].structureValidation = 'conflict'
+				}
+				this.conflict = true
 			}
 		} else {
 			passingMap[iter] = 'passed'
@@ -258,6 +325,176 @@ export class ArticleSequenceReader {
 	 */
 	pushCurrentSection() {
 		let octaveShift = 0
-		
+		if(this.jumperSectionStat[this.sectionCursor]) {
+			for(let attr of this.jumperSectionStat[this.sectionCursor]) {
+				if(attr.type == 'octave') {
+					octaveShift += attr.sign
+				}
+			}
+		}
+		const quarters = this.article.sectionFields[this.sectionCursor][1]
+		let minSpeed = Infinity
+		const partsInfo: SequencePartInfo[] = this.article.parts.map(part => {
+			let mProps = this.currentProps[part.signature.hash]
+			if(octaveShift != 0) {
+				mProps = {
+					...mProps,
+					base: {
+						...mProps.base!,
+						value: mProps.base!.value + octaveShift * 12,
+						baseValue: mProps.base!.baseValue + octaveShift * 12
+					}
+				}
+			}
+			const section = part.notes.sections[this.sectionCursor]
+			if(section.type != 'nullish') {
+				minSpeed = Math.min(minSpeed, MusicTheory.speedToQpm(
+					mProps.qpm!.value, mProps.qpm!.symbol, mProps.beats!.defaultReduction
+				))
+			}
+			return {
+				signature: part.signature,
+				section: section,
+				props: mProps
+			}
+		})
+		const milliseconds = Frac.toFloat(quarters) / minSpeed
+
+		const partsMap: {[hash: string]: SequencePartInfo} = {}
+		for(let partInfo of partsInfo) {
+			partsMap[partInfo.signature.hash] = partInfo
+		}
+
+		this.frontier!.sections.push({
+			parts: partsMap,
+			ordinal: this.article.parts[0].notes.sections[this.sectionCursor].ordinal,
+			lengthQuarters: quarters,
+			lengthMilliseconds: milliseconds * 60 * 1000
+		})
 	}
+	/**
+	 * 寻找反复记号并跳转
+	 * 
+	 * 返回值能否继续
+	 */
+	checkRepeatJump() {
+		// 小节线反复记号
+		if(
+			SequenceSectionStat.isSeparatorRepeatCommand(this.article, this.sectionCursor) &&
+			this.checkConditionalRepeat(this.sectionCursor, 'after', this.frontier!.number)
+		) {
+			let jumpTo = SequenceSectionStat.findPrevSectionIndex(this.article, this.sectionCursor, cursor => {
+				return (
+					SequenceSectionStat.isSeparatorRepeatPos(this.article, cursor) &&
+					this.checkConditionalRepeat(cursor, 'before', this.frontier!.number + 1)
+				)
+			})
+			if(jumpTo === undefined) {
+				jumpTo = 0
+			}
+			this.sectionCursor = jumpTo
+			if(!this.expandFrontier(this.frontier!.number + 1)) {
+				return false
+			}
+			return true
+		}
+		// 结构反复记号
+		const repeatTypeAttr = SequenceSectionStat.isStructureRepeatCommand(this.article, this.sectionCursor)
+		if(
+			[true, 'D.C.', 'D.S.'].includes(repeatTypeAttr) &&
+			this.checkDurability(this.sectionCursor, 1, +1)
+		) {
+			let jumpTo: number | undefined = 0
+			if(repeatTypeAttr == 'D.S.') {
+				jumpTo = SequenceSectionStat.findPrevSectionIndex(this.article, this.sectionCursor, cursor => {
+					return SequenceSectionStat.isStructureRepeatPos(this.article, cursor) == '$'
+				})
+			}
+			if(jumpTo === undefined) {
+				jumpTo = 0
+			}
+			this.sectionCursor = jumpTo
+			if(!this.expandFrontier(this.frontier!.number + 1)) {
+				return false
+			}
+			return true
+		}
+		// Fine. 结束判定
+		const hasFine = repeatTypeAttr == 'Fine.'
+		if(
+			hasFine &&
+			this.hasUsedRepeatsAfter(this.sectionCursor)
+		) {
+			return false
+		}
+		// 终止线结束判定
+		if(
+			!hasFine &&
+			SequenceSectionStat.isSeparatorFinal(this.article, this.sectionCursor)
+		) {
+			return false
+		}
+		// 后推一位并判断是否越界
+		this.sectionCursor += 1
+		if(this.sectionCursor >= this.article.sectionCount) {
+			return false
+		}
+		return true
+	}
+	/**
+	 * 条件性反复检测（迭代数条件、耐久度）
+	 * 
+	 * 返回表示条件是否满足
+	 */
+	checkConditionalRepeat(cursor: number, pos: SequenceSectionStat.AttrPosition, iteration: number) {
+		let conditioned = false
+		let checkedList: (JumperAttr | SeparatorAttr)[] = []
+		const attrList = SequenceSectionStat.getMergedAttrs(this.article, cursor, pos)
+
+		// 小节线属性作为条件
+		const iterList = attrList.filter(item => item.type == 'iter')
+		if(iterList.length > 0) {
+			checkedList = iterList
+			conditioned = true
+		}
+		// 跳房子记号作为条件
+		if(!conditioned) {
+			const jumperIterList = this.jumperSectionStat[cursor].filter(item => item.type == 'iter')
+			if(jumperIterList.length > 0) {
+				checkedList = jumperIterList
+				conditioned = true
+			}
+		}
+		// 条件序列筛选
+		if(conditioned) {
+			return SequenceSectionStat.jumperAttrMatch(checkedList, iteration)
+		}
+
+		// 反复位置记号不适用耐久度标记
+		if(pos == 'before') {
+			return true
+		}
+
+		// 计算耐久度
+		let durability = 1
+		for(let attr of attrList) {
+			if(attr.type == 'durability') {
+				durability = Math.max(durability, attr.value)
+			}
+		}
+		return this.checkDurability(cursor, durability, +1)
+	}
+	/**
+	 * 检查并标记耐久度
+	 */
+	checkDurability(cursor: number, durability: number, addition: number) {
+		// 按耐久度筛选
+		if(this.repeatDamage[cursor] + addition <= durability) {
+			this.repeatDamage[cursor] += addition
+			return true
+		}
+
+		return false
+	}
+
 }

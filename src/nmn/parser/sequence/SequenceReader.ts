@@ -26,7 +26,10 @@ export class SequenceReader {
 				article.renderProps?.props
 			)
 
-			return new ArticleSequenceReader(article, context, this.issues).parse()
+			return {
+				normal: new ArticleSequenceReader(article, context, this.issues, false).parse(),
+				flat: new ArticleSequenceReader(article, context, this.issues, true).parse()
+			}
 		})
 
 		return {

@@ -390,7 +390,8 @@ class SectionsParserClass {
 			new TokenFilter('word', 'empty')
 		).test(tokens)) {
 			return Object.assign({}, base, {
-				type: 'empty' as 'empty'
+				type: 'empty' as 'empty',
+				structureValidation: 'pass' as 'pass',
 			})
 		}
 		// omit
@@ -399,6 +400,7 @@ class SectionsParserClass {
 		).test(tokens)) {
 			return Object.assign({}, base, {
 				type: 'omit' as 'omit',
+				structureValidation: 'pass' as 'pass',
 				count: NaN
 			})
 		}
@@ -420,6 +422,7 @@ class SectionsParserClass {
 				}
 				return Object.assign({}, base, {
 					type: 'omit' as 'omit',
+					structureValidation: 'pass' as 'pass',
 					count: val
 				})
 			}
@@ -427,7 +430,8 @@ class SectionsParserClass {
 		const ret: SampledSection<TypeSampler> = Object.assign({}, base, {
 			type: 'section' as 'section',
 			totalQuarters: { x: 0, y: 1 },
-			validation: 'pass' as 'pass',
+			beatsValidation: 'pass' as 'pass',
+			structureValidation: 'pass' as 'pass',
 			notes: [],
 			decoration: [],
 			leftSplit: false,

@@ -217,16 +217,27 @@ export class SectionsRenderer {
 				)
 			}
 			if(section.type == 'section') {
-				// 画校验域
-				if(section.validation != 'pass' && context.render.debug!) {
+				// 节拍校验域
+				if(section.beatsValidation != 'pass' && context.render.debug!) {
 					const topY = currY
 					const bottomY = currY + fieldHeight / 2
 					const startX = this.columns.paddedEndPosition(sectionIndex)
 					const endX = this.columns.endPosition(sectionIndex)
 					const midX = (startX + endX) / 2
 					root.drawLine(midX, topY, midX, bottomY, endX - startX, 0, scale, {
-						boxShadow: `inset 0 0 0 100em ${section.validation == 'less' ? '#FF9800' : '#03A9F4'}`
-					})
+						boxShadow: `inset 0 0 0 100em ${section.beatsValidation == 'less' ? '#FF9800' : '#03A9F4'}`
+					}, ['SparksNMN-validation'])
+				}
+				// 曲式结构校验域
+				if(section.structureValidation != 'pass' && context.render.debug!) {
+					const topY = currY - fieldHeight / 2
+					const bottomY = currY
+					const startX = this.columns.paddedEndPosition(sectionIndex)
+					const endX = this.columns.endPosition(sectionIndex)
+					const midX = (startX + endX) / 2
+					root.drawLine(midX, topY, midX, bottomY, endX - startX, 0, scale, {
+						boxShadow: `inset 0 0 0 100em #EE0000`
+					}, ['SparksNMN-validation'])
 				}
 
 				const noteMeasure = msp.measureNoteChar(context, isSmall, scale)
