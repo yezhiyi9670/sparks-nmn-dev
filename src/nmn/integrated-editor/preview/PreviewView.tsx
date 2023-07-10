@@ -117,9 +117,11 @@ export function PreviewView(props: {
 				onReportTiming={props.onReportTiming}
 				onReportSize={props.onReportSize}
 				onReportPages={props.onReportPages}
+				
+				logTimeStat={prefs.logTimeStat}
 
 				// highlightedNotes={['*']}
-				// showSectionPickers
+				// showSectionPickers={['*']}
 			/> : blankPreview}
 		</div>
 	)

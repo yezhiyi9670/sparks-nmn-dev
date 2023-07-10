@@ -210,7 +210,11 @@ export class SectionsRenderer {
 						zIndex: 2,
 						visibility: 'hidden'
 					},
-					['SparksNMN-secsel'],
+					[
+						'SparksNMN-secsel',
+						'SparksNMN-secsel-ordinal-' + section.ordinal,
+						'SparksNMN-secsel-id-' + section.idCard.uuid
+					],
 					() => {
 						context.sectionPickCallback && context.sectionPickCallback(context.articleOrdinal, section)
 					}

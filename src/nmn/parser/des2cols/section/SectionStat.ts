@@ -36,10 +36,10 @@ export module SectionStat {
 			padLength = data.length
 		}
 		while(sections.length < offset) {
-			sections.push(nullish)
+			sections.push({...nullish})
 		}
 		for(let i = 0; i < padLength; i++) {
-			sections[offset + i] = (i < data.length) ? data[i] : nullish
+			sections[offset + i] = (i < data.length) ? data[i] : {...nullish}
 		}
 	}
 	/**

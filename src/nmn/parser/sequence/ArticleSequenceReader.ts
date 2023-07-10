@@ -346,11 +346,24 @@ export class ArticleSequenceReader {
 					}
 				}
 			}
-			const section = part.notes.sections[this.sectionCursor]
+			let section = part.notes.sections[this.sectionCursor]
 			if(section.type != 'nullish') {
 				minSpeed = Math.min(minSpeed, MusicTheory.speedToQpm(
 					mProps.qpm!.value, mProps.qpm!.symbol, mProps.beats!.defaultReduction
 				))
+			}
+			if(!this.flat) { // 替代旋律
+				const lrcLine = SequenceSectionStat.pickLrcLine(part, this.sectionCursor, this.frontier!.number)
+				if(lrcLine) {
+					for(let substitute of lrcLine.notesSubstitute) {
+						const startIndex = substitute.substituteLocation
+						const endIndex = substitute.substituteLocation + substitute.sections.length
+						if(startIndex <= this.sectionCursor && this.sectionCursor < endIndex) {
+							section = substitute.sections[this.sectionCursor - startIndex]
+							break
+						}
+					}
+				}
 			}
 			return {
 				signature: part.signature,

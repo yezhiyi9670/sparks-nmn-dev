@@ -149,7 +149,8 @@ export function TestApp() {
 		importantWarning: {text: LNG('preview.warning'), height: 19},
 		temporarySave: true,
 		isMobile: isMobileInitially,
-		inspectorOpen: false
+		inspectorOpen: false,
+		logTimeStat: true
 	}), [LNG])
 
 	return <PageHeader text="Sparks NMN Dev Demo" onKeyDown={handleKeyDown}>

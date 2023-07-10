@@ -57,7 +57,6 @@ const useStyles = createUseStyles({
 		flex: 4,
 		borderLeft: 'none',
 		borderTop: '1px solid #0002',
-		overflowY: 'auto'
 	},
 	editorInnerInner: {
 		height: '100%',
@@ -70,7 +69,7 @@ const useStyles = createUseStyles({
 	editorInnerInnerMobile: {
 		height: 0,
 		width: '100%',
-		flex: 5,
+		flex: 4,
 	},
 	groupPreview: {
 		height: 0,
@@ -189,6 +188,7 @@ export interface IntegratedEditorPrefs {
 
 	importantWarning?: {text: string, height: number},
 	temporarySave?: boolean,
+	logTimeStat?: boolean,
 
 	isMobile?: boolean,
 }
@@ -208,6 +208,7 @@ const defaultEditorPrefs: IntegratedEditorPrefs = {
 
 	importantWarning: undefined,
 	temporarySave: false,
+	logTimeStat: false,
 
 	isMobile: false
 }

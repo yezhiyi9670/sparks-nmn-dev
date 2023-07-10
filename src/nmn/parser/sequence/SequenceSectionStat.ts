@@ -1,3 +1,5 @@
+import { SectionStat } from "../des2cols/section/SectionStat";
+import { Linked2LyricLine, Linked2Part, LinkedPartBase } from "../des2cols/types";
 import { handleMusicShiftInplace } from "../sparse2des/context";
 import { JumperAttr, MusicProps, MusicSection, NoteCharAny, SectionSeparator, SectionSeparators, SeparatorAttr } from "../sparse2des/types";
 import { Linked2MusicArticle } from "./ArticleSequenceReader";
@@ -212,5 +214,42 @@ export module SequenceSectionStat {
 			}
 		}
 		return undefined
+	}
+
+	/**
+	 * 寻找某小节的对应歌词行
+	 */
+	export function pickLrcLine(part: LinkedPartBase<Linked2LyricLine>, index: number, iteration: number) {
+		const lrcLines = part.lyricLines.filter(lrcLine => {
+			return SectionStat.isLyricSectionRenderWorthy(lrcLine, index)
+		}).sort((a, b) => {
+			return a.indexMap[index] - b.indexMap[index]
+		})
+		let numberedLines: Linked2LyricLine[] = []
+		let unnumberedLines: Linked2LyricLine[] = []
+		for(let lrcLine of lrcLines) {
+			const attrs = lrcLine.attrsMap[index]
+			const hasIter = attrs.filter(item => item.type == 'iter').length > 0
+			if(hasIter) {
+				numberedLines.push(lrcLine)
+			} else {
+				unnumberedLines.push(lrcLine)
+			}
+		}
+		// 从已标号行中选取
+		for(let lrcLine of numberedLines) {
+			const attrs = lrcLine.attrsMap[index]
+			if(attrs.filter(item => item.type == 'iter' && item.iter == iteration).length > 0) {
+				return lrcLine
+			}
+		}
+		// 无法选取
+		if(unnumberedLines.length == 0) {
+			return undefined
+		}
+		// 从未标号行中选取
+		return unnumberedLines[
+			Math.min(unnumberedLines.length - 1, iteration - 1)
+		]
 	}
 }

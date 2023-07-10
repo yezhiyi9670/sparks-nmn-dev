@@ -34,7 +34,7 @@ type SparksNMNPreviewProps = {
 	onReportError?: (_err: any | undefined) => void
 	onReportPages?: (value: number) => void
 	highlightedNotes?: string[]
-	showSectionPickers?: boolean
+	showSectionPickers?: string[]
 }
 export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 	const { onPosition, result, language, logTimeStat } = props
@@ -192,7 +192,13 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 		}
 		$(`.${tokenClass} .SparksNMN-secsel`).css({visibility: 'hidden'})
 		if(props.showSectionPickers) {
-			$(`.${tokenClass} .SparksNMN-secsel`).css({visibility: 'visible'})
+			props.showSectionPickers.forEach(id => {
+				if(id == '*') {
+					$(`.${tokenClass} .SparksNMN-secsel`).css({visibility: 'visible'})  // 全部开灯
+				} else {
+					$(`.${tokenClass} .SparksNMN-secsel-${id}`).css({visibility: 'visible'})
+				}
+			})
 		}
 	}, [result, renderResult, props.showSectionPickers, tokenClass])
 
