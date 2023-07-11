@@ -9,6 +9,8 @@ import { domPaintStats } from '../renderer/backend/DomPaint'
 import { randomToken } from '../util/random'
 import { createUseStyles } from 'react-jss'
 import { useMethod } from '../util/hook'
+import { MusicSection, NoteCharAny, NoteCharMusic } from '../parser/sparse2des/types'
+import { RenderSectionPickCallback } from '../renderer/renderer'
 
 const useStyles = createUseStyles({
 	previewEf: {
@@ -24,6 +26,7 @@ type SparksNMNPreviewProps = {
 	result: NMNResult | undefined
 	language: LanguageArray
 	onPosition?: (row: number, col: number) => void
+	onPickSection?: RenderSectionPickCallback
 	logTimeStat?: boolean
 	cursor?: {
 		code: string,
@@ -37,7 +40,7 @@ type SparksNMNPreviewProps = {
 	showSectionPickers?: string[]
 }
 export function SparksNMNPreview(props: SparksNMNPreviewProps) {
-	const { onPosition, result, language, logTimeStat } = props
+	const { onPosition, onPickSection, result, language, logTimeStat } = props
 
 	const classes = useStyles()
 	
@@ -49,6 +52,12 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 	const positionCallback = useMethod((row: number, col: number) => {
 		if(onPosition) {
 			onPosition(row, col)
+		}
+	})
+
+	const pickCallback = useMethod((articleId: number, section: MusicSection<NoteCharMusic>) => {
+		if(onPickSection) {
+			onPickSection(articleId, section)
 		}
 	})
 
@@ -66,7 +75,7 @@ export function SparksNMNPreview(props: SparksNMNPreviewProps) {
 			const renderResult = (() => {
 				try {
 					/* TODO[yezhiyi9670]: Add callback hook for section pick */
-					let fields1 = SparksNMN.render(result.result, language, positionCallback)
+					let fields1 = SparksNMN.render(result.result, language, positionCallback, pickCallback)
 					const paginized = SparksNMN.paginize(result.result, fields1, language)
 					const fields = paginized.result
 					return {

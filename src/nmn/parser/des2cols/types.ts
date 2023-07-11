@@ -88,6 +88,9 @@ export type Linked2Article = LinkedArticleBase<Linked2LyricLine> & ({
 } | {
 	type: 'text'
 })
+
+export type Linked2MusicArticle = Linked2Article & {type: 'music'}
+
 export type Linked2Part = LinkedPartBase<Linked2LyricLine>
 
 export type Linked2LyricLineBase = DestructedFCA & {

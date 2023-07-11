@@ -12,13 +12,17 @@ import { StatusFileSize } from './status/file-size'
 import { PreviewCursor, PreviewView } from './preview/PreviewView'
 import { StatusDirty } from './status/dirty-state'
 import { StatusPages } from './status/pages'
-import { LanguageArray } from '../i18n'
+import { I18n, LanguageArray } from '../i18n'
 import { basenameName } from '../util/basename'
+import $ from 'jquery'
 
 import * as Icons from 'react-icons/vsc'
 import { useRecreatedStyles } from './styles'
 import { InspectorView } from './inspector/InspectorView'
 import { PlayPanel } from './inspector/play/PlayPanel'
+import { DomUtils } from '../util/dom'
+import { MusicSection, NoteCharMusic } from '../parser/sparse2des/types'
+import { RenderSectionPickCallback } from '../renderer/renderer'
 
 const useStyles = createUseStyles({
 	editor: {
@@ -136,6 +140,9 @@ const useStyles = createUseStyles({
 		groupInspectorButton: {
 			display: 'none'
 		},
+		groupInspector: {
+			display: 'none'
+		},
 		editorInner: {
 			height: 'unset',
 		},
@@ -158,9 +165,9 @@ export interface IntegratedEditorColorScheme {
 }
 const defaultColorScheme: IntegratedEditorColorScheme = {
 	voidary: '#F0EEF1',
-	voidaryActive: '#0002',
-	voidaryHover: '#0001',
-	voidarySelected: '#00000019',
+	voidaryActive: '#d0ced1',
+	voidaryHover: '#e0dee1',
+	voidarySelected: '#d8d7d9',
 	positive: '#8764b8',
 	positiveHover: '#7851af',
 	positiveActive: '#644392',
@@ -368,18 +375,6 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 	})
 
 	const cursorShown = (displayMode == 'preview') ? undefined : cursor
-	const previewView = useMemo(() => {
-		const ret = <PreviewView
-			result={parseResult.result}
-			onPosition={handlePosition}
-			language={languageArray}
-			cursor={cursorShown}
-			onReportSize={setRenderedSize}
-			onReportTiming={setRenderTiming}
-			onReportPages={setRenderedPages}
-		/>
-		return ret
-	}, [parseResult, handlePosition, languageArray, cursorShown])
 
 	function handleEditorKey(evt: React.KeyboardEvent) {
 		if(evt.key == 'Escape') { // 键盘导航无障碍：允许 ESC 键离开编辑器
@@ -396,10 +391,55 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 	const groupPreviewShown = displayMode != 'edit'
 	const groupEditShown = displayMode != 'preview' && (displayMode != 'split' || !prefs.isMobile || !inspectorOpen)
 	const fileSizeMode = prefs.showFileSize!
+
+	// ===== 检查器·音效试听 =====
+	const [ noteHighlights, setNoteHighlights ] = useState<string[]>([])
+	const updateNoteHighlights = useMethod(setNoteHighlights)
+	const previewContainerRef = useRef<HTMLDivElement>(null)
+	const autoScrollPreview = useMethod((val: string) => {
+		if(previewContainerRef.current) {
+			const outBox = previewContainerRef.current
+			const inBox = $<HTMLDivElement>('.SparksNMN-notehl-' + val)[0]
+			if(!inBox) {
+				return
+			}
+			const targetElement = DomUtils.iterateForClass(inBox, 'wcl-equifield-field')!
+			DomUtils.scrollToMakeVisible(outBox, targetElement, 'top')
+		}
+	})
+	const [ pickingSections, setPickingSections ] = useState(false)
+	const onTogglePicker = useMethod((state: boolean) => {
+		setPickingSections(state)
+	})
+	const sectionPickRef = useRef<RenderSectionPickCallback | null>(null)
+	const handleSectionPick = useMethod((articleId: number, section: MusicSection<NoteCharMusic>) => {
+		setPickingSections(false)
+		if(sectionPickRef.current) {
+			sectionPickRef.current(articleId, section)
+		}
+	})
+
+	const previewView = useMemo(() => {
+		const ret = <PreviewView
+			result={parseResult.result}
+			onPosition={handlePosition}
+			language={languageArray}
+			cursor={cursorShown}
+			onReportSize={setRenderedSize}
+			onReportTiming={setRenderTiming}
+			onReportPages={setRenderedPages}
+
+			highlightedNotes={noteHighlights}
+			pickingSections={pickingSections}
+			onPickSection={handleSectionPick}
+		/>
+		return ret
+	}, [parseResult, noteHighlights, handlePosition, languageArray, cursorShown, pickingSections, handleSectionPick])
+
 	const ret = <div className={classes.editor}>
 		<div className={`${classes.editorInner} ${prefs.isMobile ? classes.editorInnerMobile : ''}`}>
 			<div className={`${classes.editorInnerInner} ${prefs.isMobile ? classes.editorInnerInnerMobile : ''}`}>
-				<div className={`${classes.groupPreview} ${!groupPreviewShown ? classes.hidden : ''}`}>
+				<div ref={previewContainerRef} className={`${classes.groupPreview} ${!groupPreviewShown ? classes.hidden : ''}`}>
 					{previewView}
 				</div>
 				<div className={`${classes.groupSeparator} ${!(groupPreviewShown && groupEditShown) ? classes.hidden : ''}`} />
@@ -426,6 +466,7 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 				{!inspectorOpen && <div className={`${classes.groupInspectorButton} ${prefs.isMobile ? classes.groupInspectorButtonMobile : ''}`} style={{background: colorScheme.voidary}}>
 					<button
 						className={`${classes.inspectorButton} ${classesColored.voidaryButton}`}
+						title={I18n.editorText(language, 'inspector.tooltip')}
 						onClick={() => setInspectorOpen(true)}
 					>
 						<Icons.VscWand style={{transform: 'translateY(2px)'}} />
@@ -438,7 +479,14 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 					inspectors={[
 						{
 							id: 'play',
-							content: () => <PlayPanel />
+							content: () => <PlayPanel
+								result={parseResult.result}
+								pickingSections={pickingSections}
+								onAutoScroll={autoScrollPreview}
+								onNoteHighlightUpdate={updateNoteHighlights}
+								onTogglePicker={onTogglePicker}
+								getPickReporter={sectionPickRef}
+							/>
 						},
 					]}
 				/>

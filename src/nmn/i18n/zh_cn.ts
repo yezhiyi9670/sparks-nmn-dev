@@ -279,8 +279,33 @@ export default {
 
 		// 检查器
 		"inspector": {
+			"tooltip": "乐谱检查工具",
 			"play": {
-				"title": "音效试听",
+				"title": "音效试听与结构检查",
+				"play": "播放",
+				"play_pre": "打节拍一小节后播放",
+				"pause": "暂停",
+				"stop": "回到此章节开头",
+				"auto_scroll": "自动滚动预览",
+				"export": "保存为 MIDI 文件",
+				"modifier": {
+					"speed": "倍速",
+					"pitch": "音高"
+				},
+				"selector": {
+					"article": {
+						"untitled": "无标题章节 ${0}",
+						"titled": "章节 ${0}"
+					},
+					"visual_pick": "在乐谱预览中点选小节",
+					"no_articles": "没有可供试听的音乐章节",
+					"iter_number": "反复次数",
+					"ignore_repeats": "忽略反复与区分（不建议使用）",
+					"no_sections": "此章节内没有任何小节",
+				},
+				"overview": {
+					"section_unavailable": "此小节不存在于当前迭代节中"
+				}
 			},
 		}
 	})

@@ -7,6 +7,7 @@ import $ from 'jquery'
 import { Equifield } from "../../equifield/equifield"
 import { IntegratedEditorContext } from "../IntegratedEditor"
 import { useOnceEffect } from "../../util/event"
+import { RenderSectionPickCallback } from "../../renderer/renderer"
 
 const useStyles = createUseStyles({
 	root: {
@@ -53,6 +54,9 @@ export function PreviewView(props: {
 	onReportTiming?: (value: number) => void
 	onReportSize?: (value: number) => void
 	onReportPages?: (value: number) => void
+	highlightedNotes?: string[]
+	pickingSections?: boolean
+	onPickSection?: RenderSectionPickCallback
 }) {
 	const { language, prefs, colorScheme } = useContext(IntegratedEditorContext)
 
@@ -120,8 +124,9 @@ export function PreviewView(props: {
 				
 				logTimeStat={prefs.logTimeStat}
 
-				// highlightedNotes={['*']}
-				// showSectionPickers={['*']}
+				highlightedNotes={props.highlightedNotes}
+				showSectionPickers={props.pickingSections ? ['*'] : []}
+				onPickSection={props.onPickSection}
 			/> : blankPreview}
 		</div>
 	)

@@ -13,10 +13,7 @@ export type SequencedScoreData = {
 	sequence: SequenceData,
 }
 
-export type SequenceData = ({
-	normal: SequenceArticle,
-	flat: SequenceArticle
-} | undefined)[]
+export type SequenceData = (SequenceArticle | undefined)[]
 
 /**
  * 反复序列
@@ -58,6 +55,10 @@ export type SequenceSection = {
 	 * 小节序（供调试）
 	 */
 	ordinal: number
+	/**
+	 * 小节下标
+	 */
+	index: number
 	/**
 	 * 按四分音符的小节长度，抄写自乐谱信息。
 	 */

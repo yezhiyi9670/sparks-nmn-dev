@@ -1,13 +1,11 @@
 import { Frac } from "../../util/frac";
 import { MusicTheory } from "../../util/music";
-import { Jumper, Linked2Article } from "../des2cols/types";
+import { Jumper, Linked2MusicArticle } from "../des2cols/types";
 import { LinedIssue, addIssue } from "../parser";
 import { ScoreContext } from "../sparse2des/context";
 import { JumperAttr, MusicProps, MusicSection, NoteCharAny, SeparatorAttr } from "../sparse2des/types";
 import { SequenceSectionStat } from "./SequenceSectionStat";
 import { SequenceArticle, SequenceIteration, SequencePartInfo, SequenceSection } from "./types";
-
-export type Linked2MusicArticle = Linked2Article & {type: 'music'}
 
 export class ArticleSequenceReader {
 	article: Linked2MusicArticle
@@ -381,6 +379,7 @@ export class ArticleSequenceReader {
 		this.frontier!.sections.push({
 			parts: partsMap,
 			ordinal: this.article.parts[0].notes.sections[this.sectionCursor].ordinal,
+			index: this.sectionCursor,
 			lengthQuarters: quarters,
 			lengthMilliseconds: milliseconds * 60 * 1000
 		})

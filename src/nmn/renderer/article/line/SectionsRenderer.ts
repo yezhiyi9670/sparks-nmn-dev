@@ -37,12 +37,15 @@ export class SectionsRenderer {
 
 	noteHighlightColor(note: MusicNote<NoteCharMusic>) {
 		if(note.type == 'extend') {
+			if(note.voided) {
+				return '#0000'
+			}
 			return 'hsl(0deg, 0%, 80%)'
 		}
 		const char = note.char.char
 		const finalDelta = note.char.finalDelta
 		if(char == '0') {
-			return 'hsl(0deg, 0%, 100%)'
+			return 'hsl(0deg, 0%, 80%)'
 		}
 		if('1234567'.indexOf(char) == -1) {
 			return 'hsl(0deg, 0%, 60%)'
@@ -51,10 +54,9 @@ export class SectionsRenderer {
 		const tuneValue = ([-1, 0, 2, 4, 5, 7, 9, 11][+char] + finalDelta) * 1 % 12
 		const hue = tuneValue * 30
 		const lightnessMid = 60
-		const lightnessAmp = 15
-		const lightness = lightnessMid - lightnessAmp * Math.cos((hue - 60) * Math.PI / 180)
+		const lightness = lightnessMid - 20 * Math.cos((hue - 60) * Math.PI / 180) + 7 * Math.cos((hue + 20) * Math.PI / 180)
 
-		return `hsl(${hue}deg, 80%, ${lightness}%)`
+		return `hsl(${hue}deg, 85%, ${lightness}%)`
 	}
 
 	render(currY: number, part: SectionsRenderData, sectionCount: number, root: DomPaint, context: RenderContext, hasJumperOverlap: boolean, isFirstPart: boolean, type: 'normal' | 'accompany' | 'substitute') {
@@ -182,11 +184,11 @@ export class SectionsRenderer {
 		sections.forEach((section, sectionIndex) => {
 			// 画高亮区
 			if(type != 'substitute' && section.idCard.lineNumber != -1 && section.idCard.masterId != '') {
-				const startX = this.columns.startPosition(sectionIndex)
-				const endX = this.columns.endPosition(sectionIndex)
-				const centerY = currY + fieldHeight / 4
+				const startX = this.columns.paddedStartPosition(sectionIndex)
+				const endX = this.columns.paddedEndPosition(sectionIndex)
+				const centerY = currY + fieldHeight * (0.5 - 0.5 / 2)
 				const highlightClass = [`SparksNMN-sechl`, `SparksNMN-sechl-${section.idCard.masterId}`]
-				const lineWidth = fieldHeight / 2
+				const lineWidth = fieldHeight * 0.5
 				root.drawLine(startX, centerY, endX, centerY, lineWidth, 0, scale, {
 					boxShadow: 'none',
 					background: `#9C27B0`,
@@ -200,13 +202,13 @@ export class SectionsRenderer {
 				const topY = currY - fieldHeight / 2
 				root.drawText(
 					startX, topY,
-					NMNI18n.renderToken(context.language, 'secsel', '' + section.ordinal),
+					NMNI18n.renderToken(context.language, 'secsel', '' + (section.ordinal + 1)),
 					new FontMetric('CommonLight/700/1', 2.0), scale,
 					'left', 'top', {
 						background: '#8764b8',
 						color: '#FFF',
 						cursor: 'pointer',
-						padding: '4px 8px',
+						padding: '8px 8px',
 						zIndex: 2,
 						visibility: 'hidden'
 					},
@@ -266,7 +268,7 @@ export class SectionsRenderer {
 					root.drawLine(noteX, topY, noteX, bottomY, lineWidth, 0, scale, {
 						boxShadow: 'none',
 						background: this.noteHighlightColor(note),
-						opacity: 0.40,
+						opacity: 0.5,
 						visibility: 'hidden'
 					}, highlightClass)
 

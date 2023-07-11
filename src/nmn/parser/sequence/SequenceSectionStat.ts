@@ -1,8 +1,8 @@
 import { SectionStat } from "../des2cols/section/SectionStat";
-import { Linked2LyricLine, Linked2Part, LinkedPartBase } from "../des2cols/types";
+import { Linked2LyricLine, Linked2MusicArticle, Linked2Part, LinkedPartBase } from "../des2cols/types";
 import { handleMusicShiftInplace } from "../sparse2des/context";
 import { JumperAttr, MusicProps, MusicSection, NoteCharAny, SectionSeparator, SectionSeparators, SeparatorAttr } from "../sparse2des/types";
-import { Linked2MusicArticle } from "./ArticleSequenceReader";
+import { SequenceData } from "./types";
 
 export module SequenceSectionStat {
 
@@ -221,6 +221,13 @@ export module SequenceSectionStat {
 	 */
 	export function pickLrcLine(part: LinkedPartBase<Linked2LyricLine>, index: number, iteration: number) {
 		const lrcLines = part.lyricLines.filter(lrcLine => {
+			for(let substitute of lrcLine.notesSubstitute) {
+				const startSection = substitute.substituteLocation
+				const endSection = startSection + substitute.sections.length
+				if(startSection <= index && index < endSection) {
+					return true
+				}
+			}
 			return SectionStat.isLyricSectionRenderWorthy(lrcLine, index)
 		}).sort((a, b) => {
 			return a.indexMap[index] - b.indexMap[index]
@@ -251,5 +258,53 @@ export module SequenceSectionStat {
 		return unnumberedLines[
 			Math.min(unnumberedLines.length - 1, iteration - 1)
 		]
+	}
+
+	/**
+	 * 寻找小节定位信息对应的下标
+	 */
+	export function locateSection(sequences: SequenceData, articleIndex: number, preferredIter: number, sectionId: string) {
+		const sequence = sequences[articleIndex]
+		if(!sequence || sequence.iterations.length == 0) {
+			return {
+				article: articleIndex,
+				iteration: -1,
+				section: -1
+			}
+		}
+		const iterIndexes: number[] = []
+		for(let i = 1; i < sequence.iterations.length; i++) {
+			if(i == preferredIter) {
+				iterIndexes.push(i)
+			}
+		}
+		for(let i = 1; i < sequence.iterations.length; i++) {
+			if(i != preferredIter) {
+				iterIndexes.push(i)
+			}
+		}
+		iterIndexes.push(0)
+		for(let iterationIndex of iterIndexes) {
+			const iteration = sequence.iterations[iterationIndex]
+			let sectionIndex = 0
+			for(let section of iteration.sections) {
+				for(let partId in section.parts) {
+					const part = section.parts[partId]
+					if(part.section.idCard.uuid == sectionId) {
+						return {
+							article: articleIndex,
+							iteration: iterationIndex,
+							section: section.index
+						}
+					}
+				}
+				sectionIndex += 1
+			}
+		}
+		return {
+			article: articleIndex,
+			iteration: -1,
+			section: -1
+		}
 	}
 }
