@@ -228,6 +228,9 @@ export const PlayPanel = React.memo(function(props: {
 		setArticleIndex(result.article)
 		setIterationIndex(result.iteration)
 		setSectionIndex(result.section)
+		if(divRef.current) {
+			divRef.current.focus()
+		}
 	}
 
 	// 播放事件
