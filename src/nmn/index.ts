@@ -9,6 +9,7 @@ import { FontLoaderProxy } from "./renderer/FontLoaderProxy"
 import { EquifieldSection } from "./equifield/equifield"
 import { Paginizer } from "./renderer/pagnizer"
 import { SequencedScoreData } from "./parser/sequence/types"
+import { MetaCommentWriter } from "./meta-comment-writer/MetaCommentWriter"
 
 /**
  * 渲染错误
@@ -123,6 +124,8 @@ class SparksNMNClass {
 			position: position
 		}
 	}
+
+	metaCommentWriter = MetaCommentWriter
 
 	fontLoader = FontLoaderProxy
 }

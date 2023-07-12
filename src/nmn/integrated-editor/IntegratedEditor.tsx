@@ -487,12 +487,15 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 						{
 							id: 'play',
 							content: () => <PlayPanel
+								key={sessionToken}
 								result={parseResult.result}
 								pickingSections={pickingSections}
 								onAutoScroll={autoScrollPreview}
 								onNoteHighlightUpdate={updateNoteHighlights}
 								onTogglePicker={onTogglePicker}
 								getPickReporter={sectionPickRef}
+								code={value}
+								setCode={handleChange}
 							/>
 						},
 					]}

@@ -320,7 +320,12 @@ export default {
 						"dip": "滴",
 						"dah": "嗒",
 						"drum": "鼓点"
-					}
+					},
+					"prefab": {
+						"save": "保存混音设置",
+						"load": "加载混音设置"
+					},
+					"remark": "保存的混音配置文件"
 				}
 			},
 		}

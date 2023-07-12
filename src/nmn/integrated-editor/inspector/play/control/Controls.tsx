@@ -1,6 +1,6 @@
 /* eslint-disable react/display-name */
 import React, { memo, useContext } from 'react'
-import { BeatMachineSignature, ControlData, ControlDataPart, DrumlineInstruments, TonicInstruments } from './types'
+import { BeatMachineSignature, ControlData, ControlDataPart, DrumlineInstruments, MixingControlUtils, TonicInstruments } from './types'
 import { iterateMap } from '../../../../util/array'
 import { PartSignature } from '../../../../parser/des2cols/types'
 import { useMethod } from '../../../../util/hook'
@@ -8,7 +8,7 @@ import { createUseStyles } from 'react-jss'
 import { IntegratedEditorContext } from '../../../IntegratedEditor'
 import { LanguageArray } from '../../../../i18n'
 import { NMNI18n } from '../../../..'
-import { Button, ButtonMargin, ButtonSelect } from '../../component/button'
+import { Button, ButtonGroup, ButtonMargin, ButtonSelect } from '../../component/button'
 import { ReactSelect } from '../../component/react-select'
 import { ReactSlider } from '../../component/react-slider'
 
@@ -47,6 +47,14 @@ const useStyles = createUseStyles({
 	},
 	controlValue: {
 		padding: '0 0.4em'
+	},
+	saveCard: {
+		padding: '12px 0'
+	},
+	saveButton: {
+		flexBasis: 0,
+		flex: 1,
+		fontSize: '15px !important'
 	}
 })
 
@@ -54,7 +62,13 @@ const useStyles = createUseStyles({
 export const Controls = memo((props: {
 	data: ControlData
 	setData: (newData: ControlData) => void
+	onSaveData: () => void
+	onLoadData: () => void
+	canLoadData: boolean
 }) => {
+	const classes = useStyles()
+	const { language } = useContext(IntegratedEditorContext)
+
 	const updatePartData = useMethod((hash: string, newData: ControlDataPart) => {
 		const data1: ControlData = {
 			...props.data,
@@ -77,6 +91,15 @@ export const Controls = memo((props: {
 				/>
 			)
 		})}
+		<ButtonGroup classes={[classes.saveCard]}>
+			<Button classes={[classes.saveButton]} onClick={props.onSaveData}>
+				{NMNI18n.editorText(language, `${i18nPrefix}prefab.save`)}
+			</Button>
+			<ButtonMargin />
+			<Button disabled={!props.canLoadData} classes={[classes.saveButton]} onClick={props.onLoadData}>
+				{NMNI18n.editorText(language, `${i18nPrefix}prefab.load`)}
+			</Button>
+		</ButtonGroup>
 	</>
 })
 
@@ -99,7 +122,7 @@ export const ControlsPart = memo((props: {
 			return
 		}
 		const newOctave = partData.octave + val
-		if(Math.abs(newOctave) > 6) {
+		if(Math.abs(newOctave) > MixingControlUtils.maxOctave) {
 			return
 		}
 		setPartData({
@@ -135,7 +158,7 @@ export const ControlsPart = memo((props: {
 					thumbColor={'white'}
 					hoverColor={colorScheme.voidary}
 					activeColor={colorScheme.voidaryHover}
-					min={0} max={150} step={2} value={partData.volume}
+					min={0} max={MixingControlUtils.maxVolume} step={2} value={partData.volume}
 					onChange={(val) => {setPartData({...partData, volume: val})}}
 					onRootKeyDown={(evt) => {
 						evt.stopPropagation()

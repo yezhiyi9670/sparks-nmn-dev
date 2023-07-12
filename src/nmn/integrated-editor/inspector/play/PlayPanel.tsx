@@ -14,8 +14,10 @@ import { SequenceSection } from '../../../parser/sequence/types'
 import { DomUtils } from '../../../util/dom'
 import { RenderSectionPickCallback } from '../../../renderer/renderer'
 import { SequenceSectionStat } from '../../../parser/sequence/SequenceSectionStat'
-import { BeatMachineSignature, ControlData, controlDataPartBeatMachine, controlDataPartDefault } from './control/types'
+import { BeatMachineSignature, ControlData, MixingControlUtils, controlDataPartBeatMachine, controlDataPartDefault } from './control/types'
 import { Controls } from './control/Controls'
+import { useOnceEffect } from '../../../util/event'
+import { MetaCommentWriter } from '../../../meta-comment-writer/MetaCommentWriter'
 
 const useStyles = createUseStyles({
 	headroom: {
@@ -100,6 +102,10 @@ export const PlayPanel = React.memo(function(props: {
 	pickingSections: boolean
 	onTogglePicker: (state: boolean) => void
 	getPickReporter: React.MutableRefObject<RenderSectionPickCallback | null>
+
+	// 传递原始代码是为了实现混音设置的保存功能
+	code: string
+	setCode: (val: string) => void
 }) {
 	const { prefs, language, colorScheme } = useContext(IntegratedEditorContext)
 	const classes = useStyles()
@@ -284,6 +290,33 @@ export const PlayPanel = React.memo(function(props: {
 		}
 	}
 
+	// 混音设置导出
+	const mixingMetaName = 'SparksNMN.MIDIPlay.MixingConfig'
+	const saveMixingConfig = useMethod(() => {
+		const newCode = MetaCommentWriter.writeMeta(
+			props.code, mixingMetaName, MixingControlUtils.dehydrate(controlData),
+			NMNI18n.editorText(language, 'inspector.play.controls.remark')
+		)
+		if(newCode != props.code) {
+			props.setCode(newCode)
+		}
+	})
+	const loadMixingConfig = useMethod(() => {
+		const readData = MetaCommentWriter.readMeta(props.code, mixingMetaName)
+		if(!readData) {
+			return
+		}
+		setControlData(MixingControlUtils.revive(controlData, readData))
+	})
+	const canLoadMixingConfig = useMemo(() => {
+		return MetaCommentWriter.hasMeta(props.code, mixingMetaName)
+	}, [props.code])
+	useOnceEffect(() => {
+		if(canLoadMixingConfig) {
+			loadMixingConfig()
+		}
+	})
+
 	// 播放事件
 	function resetProgress() {
 		updateIterationIndex(1)
@@ -410,6 +443,9 @@ export const PlayPanel = React.memo(function(props: {
 				<Controls
 					data={controlData}
 					setData={updateControlData}
+					onSaveData={saveMixingConfig}
+					onLoadData={loadMixingConfig}
+					canLoadData={canLoadMixingConfig}
 				/>
 			</div>
 		</div>
