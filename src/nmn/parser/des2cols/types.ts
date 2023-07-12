@@ -293,7 +293,7 @@ export type PartSignature = {
 	hash: string
 } & ({
 	type: 'titled'
-	value: PartAttr[]
+	value: PartAttr
 } | {
 	type: 'untitled'
 	value: number
@@ -313,10 +313,18 @@ export function partSignature(head: string, tags: PartAttr[], index: number): Pa
 		hashStr = 'index_' + index.toString()
 	}
 	hashStr = head + '_' + hashStr
-	return {
-		hash: signatureHash(hashStr),
-		type: tags.length > 0 ? 'titled' : 'untitled',
-		value: (tags.length > 0 ? tags[0] : index) as any
+	if(tags.length > 0) {
+		return {
+			hash: signatureHash(hashStr),
+			type: 'titled',
+			value: tags[0]
+		}
+	} else {
+		return {
+			hash: signatureHash(hashStr),
+			type: 'untitled',
+			value: index
+		}
 	}
 }
 

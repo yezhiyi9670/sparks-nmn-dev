@@ -7,13 +7,15 @@ import { NMNI18n, NMNResult } from '../../..'
 import { ModifierControls } from './modifier/ModifierControls'
 import { ArticleSelector } from './selector/ArticleSelector'
 import { IterationSelector } from './selector/IterationSelector'
-import { Linked2MusicArticle } from '../../../parser/des2cols/types'
+import { Linked2MusicArticle, PartSignature } from '../../../parser/des2cols/types'
 import { useMethod } from '../../../util/hook'
 import { SectionSelector } from './overview/SectionSelector'
 import { SequenceSection } from '../../../parser/sequence/types'
 import { DomUtils } from '../../../util/dom'
 import { RenderSectionPickCallback } from '../../../renderer/renderer'
 import { SequenceSectionStat } from '../../../parser/sequence/SequenceSectionStat'
+import { BeatMachineSignature, ControlData, controlDataPartBeatMachine, controlDataPartDefault } from './control/types'
+import { Controls } from './control/Controls'
 
 const useStyles = createUseStyles({
 	headroom: {
@@ -51,9 +53,44 @@ const useStyles = createUseStyles({
 	},
 	controlRoom: {
 		flexShrink: 0,
-		padding: '12px'
+		padding: '0 12px'
 	}
 })
+
+function recreateControlData(result: NMNResult, previous?: ControlData) {
+	const partHashes: {[partHash: string]: boolean} = {}
+	const newData: ControlData = {}
+	function handleSignature(signature: PartSignature | BeatMachineSignature) {
+		const hash = signature.hash
+		if(!partHashes[hash]) {
+			partHashes[hash] = true
+			if(previous && previous[hash]) {
+				newData[hash] = {
+					...previous[hash],
+					signature: signature,
+				}
+			} else {
+				newData[hash] = {
+					control: signature.type == 'beatMachine' ? controlDataPartBeatMachine : controlDataPartDefault,
+					signature: signature,
+				}
+			}
+		}
+	}
+	handleSignature({
+		type: 'beatMachine',
+		hash: 'beatMachine'
+	})
+	for(let article of result.sequenced.score.articles) {
+		if(article.type != 'music') {
+			continue
+		}
+		for(let part of article.parts) {
+			handleSignature(part.signature)
+		}
+	}
+	return newData
+}
 
 // eslint-disable-next-line react/display-name
 export const PlayPanel = React.memo(function(props: {
@@ -93,7 +130,21 @@ export const PlayPanel = React.memo(function(props: {
 	const [ sectionIndex, setSectionIndex ] = useState(-1)
 	const updateSectionIndex = useMethod(setSectionIndex)
 
+	const [ controlData, setControlData ] = useState(() => recreateControlData(props.result))
+	const getControlData = useMethod(() => {
+		return controlData
+	})
+	const resetControlData = useMethod((newData: ControlData) => {
+		setControlData(newData)
+	})
+	const updateControlData = useMethod(setControlData)
+
 	// ===== END STATES =====
+
+	// 重建 controlData
+	useMemo(() => {
+		resetControlData(recreateControlData(props.result, getControlData()))
+	}, [props.result, resetControlData, getControlData])
 
 	// 高亮音符
 	const lastHighlight = useRef<string | null>(null)
@@ -219,7 +270,7 @@ export const PlayPanel = React.memo(function(props: {
 			}
 			DomUtils.scrollToMakeVisible(outBox, inBox, 'top', -32, 0.4)
 		}
-	})
+	}, [sectionIndex])
 
 	// 小节选择器
 	props.getPickReporter.current = (articleId, section) => {
@@ -356,6 +407,10 @@ export const PlayPanel = React.memo(function(props: {
 				}
 			</div>
 			<div className={classes.controlRoom} style={{...(!prefs.isMobile && {flex: 5, height: 0, overflowY: 'auto'})}}>
+				<Controls
+					data={controlData}
+					setData={updateControlData}
+				/>
 			</div>
 		</div>
 	</div>

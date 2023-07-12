@@ -31,6 +31,8 @@ export const SectionSelector = memo((props: {
 	value: number
 	onChange: (val: number) => void
 }) => {
+	console.log('render section selector')
+
 	const classes = useStyles()
 	const { article, iteration } = props
 	const { language } = useContext(IntegratedEditorContext)

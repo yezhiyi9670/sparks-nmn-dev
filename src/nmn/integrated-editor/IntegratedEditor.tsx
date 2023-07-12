@@ -29,6 +29,13 @@ const useStyles = createUseStyles({
 		height: '100%',
 		display: 'flex',
 		flexDirection: 'column',
+		'& ::-webkit-scrollbar': {
+			width: '8px',
+			height: '8px'
+		},
+		'& ::-webkit-scrollbar-thumb': {
+			background: '#0004',
+		}
 	},
 	groupStatusBar: {
 		borderTop: '1px solid #0002',

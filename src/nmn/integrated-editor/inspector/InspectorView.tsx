@@ -4,6 +4,7 @@ import { createUseStyles } from 'react-jss'
 import * as Icons from 'react-icons/vsc'
 import { IntegratedEditorContext } from '../IntegratedEditor'
 import { NMNI18n } from '../..'
+import { ReactSelect } from './component/react-select'
 
 const useStyles = createUseStyles({
 	title: {
@@ -14,7 +15,6 @@ const useStyles = createUseStyles({
 		flexShrink: 0,
 	},
 	titleSelector: {
-		display: 'block',
 		height: '100%',
 		width: 0,
 		flex: 'auto',
@@ -22,6 +22,7 @@ const useStyles = createUseStyles({
 		borderRadius: 0,
 		background: '#FFF',
 		padding: '0 12px',
+		paddingRight: '0',
 		fontSize: '18px',
 		paddingBottom: '1px',
 		outline: 'none'
@@ -59,13 +60,24 @@ export function InspectorView(props: {
 
 	return <>
 		<div className={classes.title}>
-			<select className={classes.titleSelector} onChange={val => setCurrentPage(val.currentTarget.value)} value={currentPage}>
+			{/* <select className={classes.titleSelector} onChange={val => setCurrentPage(val.currentTarget.value)} value={currentPage}>
 				{inspectors.map(item => (
 					<option key={item.id} value={item.id}>
 						{NMNI18n.editorText(language, `${i18nPrefix}${item.id}.title`)}
 					</option>
 				))}
-			</select>
+			</select> */}
+			<ReactSelect
+				className={classes.titleSelector}
+				label={NMNI18n.editorText(language, `${i18nPrefix}select`)}
+				value={currentPage}
+				onChange={setCurrentPage}
+				items={inspectors.map(item => ({
+					value: item.id,
+					label: NMNI18n.editorText(language, `${i18nPrefix}${item.id}.title`),
+				}))}
+				itemFontSize='16px'
+			/>
 			<button className={classes.titleClose} onClick={() => props.onClose && props.onClose()}>
 				<Icons.VscChromeClose style={{transform: 'translateY(2px)'}} />
 			</button>

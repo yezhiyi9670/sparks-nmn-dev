@@ -2,6 +2,7 @@
 import React, { ReactNode, forwardRef, useContext } from 'react'
 import { IntegratedEditorContext } from '../../IntegratedEditor'
 import { useRecreatedStyles } from './styles'
+import { ReactSelect, ReactSelectItem } from './react-select'
 
 function useStyles() {
 	const { colorScheme } = useContext(IntegratedEditorContext)
@@ -25,6 +26,7 @@ export function Button(props: {
 	children?: ReactNode
 	title?: string
 	small?: boolean
+	mini?: boolean
 	large?: boolean
 	selected?: boolean
 	disabled?: boolean
@@ -38,7 +40,7 @@ export function Button(props: {
 	return <button
 		title={props.title}
 		className={
-			[`${classes.button} ${props.small ? classes.buttonSmall : ''} ${props.large ? classes.buttonLarge : ''} ${props.selected ? 'active' : ''}`,
+			[`${classes.button} ${props.small ? classes.buttonSmall : ''} ${props.large ? classes.buttonLarge : ''} ${props.selected ? 'active' : ''} ${props.mini ? classes.buttonMini : ''}`,
 				...(props.classes ?? [])
 			].join(' ')
 		}
@@ -62,27 +64,27 @@ export function ButtonSpacer() {
 }
 
 export function ButtonSelect(props: {
-	children?: ReactNode
-	title?: string
+	items: ReactSelectItem[]
 	small?: boolean
 	large?: boolean
-	value?: string
-	defaultValue?: string
+	mini?: boolean
+	value: string
 	onChange?: (val: string) => void
 	style?: React.CSSProperties
+	itemFontSize?: number | string
 }) {
 	const classes = useStyles()
+	const { colorScheme } = useContext(IntegratedEditorContext)
 
 	return (
-		<select
-			title={props.title}
-			className={`${classes.button} ${props.small ? classes.buttonSmall : ''} ${props.large ? classes.buttonLarge : ''}`}
+		<ReactSelect
+			className={`${classes.button} ${props.small ? classes.buttonSmall : ''} ${props.large ? classes.buttonLarge : ''} ${props.mini ? classes.buttonMini : ''}`}
 			style={{flex: 'auto', ...props.style}}
-			onChange={(evt) => props.onChange && props.onChange(evt.currentTarget.value)}
+			onChange={props.onChange}
 			value={props.value}
-			defaultValue={props.defaultValue}
-		>
-			{props.children}
-		</select>
+			items={props.items}
+			backgroundColor={colorScheme.voidary}
+			itemFontSize={props.itemFontSize}
+		/>
 	)
 }

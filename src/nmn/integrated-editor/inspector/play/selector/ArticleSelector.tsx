@@ -16,7 +16,7 @@ export const ArticleSelector = memo((props: {
 	pickingSections: boolean,
 	onTogglePicker: () => void
 }) => {
-	const { language } = useContext(IntegratedEditorContext)
+	const { colorScheme, language } = useContext(IntegratedEditorContext)
 
 	const musicArticles = props.articles.filter(item => item.type == 'music')
 
@@ -34,8 +34,7 @@ export const ArticleSelector = memo((props: {
 				value={'' + props.value}
 				onChange={(val) => props.onChange(+val)}
 				style={{fontSize: '15px', padding: '0 0.4em'}}
-			>
-				{props.articles.map((article, index) => {
+				items={props.articles.map((article, index) => {
 					const articleTitle = article.title?.text
 					let title = ''
 					if(articleTitle !== undefined) {
@@ -43,11 +42,14 @@ export const ArticleSelector = memo((props: {
 					} else {
 						title = NMNI18n.editorText(language, `${i18nPrefix}article.untitled`, '' + (index + 1))
 					}
-					return (
-						<option key={index} value={'' + index} disabled={article.type != 'music'}>{title}</option>
-					)
+					return {
+						value: '' + index,
+						disabled: article.type != 'music',
+						label: title
+					}
 				})}
-			</ButtonSelect>
+				itemFontSize='15px'
+			/>
 		</ButtonGroup>
 	) : (
 		<div style={{padding: '0 12px', paddingBottom: '12px'}}>

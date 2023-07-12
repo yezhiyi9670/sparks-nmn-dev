@@ -279,6 +279,7 @@ export default {
 		// 检查器
 		"inspector": {
 			"tooltip": "乐谱检查工具",
+			"select": "选择工具",
 			"play": {
 				"title": "音效试听与结构检查",
 				"play": "播放",
@@ -294,7 +295,7 @@ export default {
 				"selector": {
 					"article": {
 						"untitled": "无标题章节 ${0}",
-						"titled": "章节 ${0}"
+						"titled": "${0}"
 					},
 					"visual_pick": "在乐谱预览中点选小节",
 					"no_articles": "没有可供试听的音乐章节",
@@ -304,6 +305,22 @@ export default {
 				},
 				"overview": {
 					"section_unavailable": "此小节不存在于当前迭代节中"
+				},
+				"controls": {
+					"part": {
+						"beat_machine": "节拍器",
+						"titled": "${0}",
+						"untitled": "未命名声部 ${0}"
+					},
+					"octave": "八度",
+					"synth": "乐器",
+					"instrument": {
+						"piano": "钢琴",
+						"string": "弦乐",
+						"dip": "滴",
+						"dah": "嗒",
+						"drum": "鼓点"
+					}
 				}
 			},
 		}

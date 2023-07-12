@@ -46,6 +46,11 @@ export const useRecreatedStyles = (colorScheme: IntegratedEditorColorScheme) => 
 			height: '28px',
 			fontSize: '16px',
 		},
+		buttonMini: {
+			minWidth: '24px',
+			height: '24px',
+			fontSize: '14px',
+		},
 		buttonMargin: {
 			flex: 0,
 			flexBasis: '12px',

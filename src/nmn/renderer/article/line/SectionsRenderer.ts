@@ -184,8 +184,8 @@ export class SectionsRenderer {
 		sections.forEach((section, sectionIndex) => {
 			// 画高亮区
 			if(type != 'substitute' && section.idCard.lineNumber != -1 && section.idCard.masterId != '') {
-				const startX = this.columns.paddedStartPosition(sectionIndex)
-				const endX = this.columns.paddedEndPosition(sectionIndex)
+				const startX = this.columns.startPosition(sectionIndex)
+				const endX = this.columns.endPosition(sectionIndex)
 				const centerY = currY + fieldHeight * (0.5 - 0.5 / 2)
 				const highlightClass = [`SparksNMN-sechl`, `SparksNMN-sechl-${section.idCard.masterId}`]
 				const lineWidth = fieldHeight * 0.5
