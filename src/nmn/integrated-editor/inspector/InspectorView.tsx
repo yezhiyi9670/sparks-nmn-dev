@@ -11,7 +11,7 @@ const useStyles = createUseStyles({
 		display: 'flex',
 		flexDirection: 'row',
 		height: '42px',
-		borderBottom: '1px solid #0002',
+		borderBottom: '1px solid #0004',
 		flexShrink: 0,
 	},
 	titleSelector: {

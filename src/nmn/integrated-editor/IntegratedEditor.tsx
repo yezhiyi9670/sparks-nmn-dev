@@ -56,7 +56,7 @@ const useStyles = createUseStyles({
 	groupInspector: {
 		width: '360px',
 		height: '100%',
-		borderLeft: '1px solid #0002',
+		borderLeft: '2px solid #0002',
 		flexShrink: '0',
 		overflowY: 'hidden',
 		display: 'flex',
@@ -67,7 +67,7 @@ const useStyles = createUseStyles({
 		height: 0,
 		flex: 4,
 		borderLeft: 'none',
-		borderTop: '1px solid #0002',
+		borderTop: '2px solid #0002',
 	},
 	editorInnerInner: {
 		height: '100%',

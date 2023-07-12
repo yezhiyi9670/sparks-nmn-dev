@@ -22,7 +22,7 @@ import { MetaCommentWriter } from '../../../meta-comment-writer/MetaCommentWrite
 const useStyles = createUseStyles({
 	headroom: {
 		flexShrink: 0,
-		borderBottom: '1px solid #0002',
+		borderBottom: '1px solid #0004',
 		padding: '12px'
 	},
 	contentroom: {
@@ -34,7 +34,7 @@ const useStyles = createUseStyles({
 	},
 	modifierRoom: {
 		flexShrink: 0,
-		borderBottom: '1px solid #0002',
+		borderBottom: '1px solid #0004',
 		padding: '12px',
 		display: 'flex',
 		flexDirection: 'row',
@@ -51,7 +51,7 @@ const useStyles = createUseStyles({
 	},
 	overviewRoom: {
 		flexShrink: 0,
-		borderBottom: '1px solid #0002',
+		borderBottom: '1px solid #0004',
 	},
 	controlRoom: {
 		flexShrink: 0,
