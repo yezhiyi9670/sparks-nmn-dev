@@ -55,6 +55,12 @@ const useStyles = createUseStyles({
 		flexBasis: 0,
 		flex: 1,
 		fontSize: '15px !important'
+	},
+	hint: {
+		paddingBottom: '0.8em',
+		fontSize: '14px',
+		opacity: 0.6,
+		lineHeight: 1.5
 	}
 })
 
@@ -91,15 +97,18 @@ export const Controls = memo((props: {
 				/>
 			)
 		})}
-		<ButtonGroup classes={[classes.saveCard]}>
-			<Button classes={[classes.saveButton]} onClick={props.onSaveData}>
-				{NMNI18n.editorText(language, `${i18nPrefix}prefab.save`)}
-			</Button>
-			<ButtonMargin />
-			<Button disabled={!props.canLoadData} classes={[classes.saveButton]} onClick={props.onLoadData}>
-				{NMNI18n.editorText(language, `${i18nPrefix}prefab.load`)}
-			</Button>
-		</ButtonGroup>
+		<div className={classes.saveCard}>
+			<div className={classes.hint}>{NMNI18n.editorText(language, `${i18nPrefix}prefab.hint`)}</div>
+			<ButtonGroup>
+				<Button classes={[classes.saveButton]} onClick={props.onSaveData}>
+					{NMNI18n.editorText(language, `${i18nPrefix}prefab.save`)}
+				</Button>
+				<ButtonMargin />
+				<Button disabled={!props.canLoadData} classes={[classes.saveButton]} onClick={props.onLoadData}>
+					{NMNI18n.editorText(language, `${i18nPrefix}prefab.load`)}
+				</Button>
+			</ButtonGroup>
+		</div>
 	</>
 })
 
