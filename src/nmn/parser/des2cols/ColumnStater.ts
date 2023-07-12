@@ -283,10 +283,15 @@ export class ColumnStater {
 							if(mySection) {
 								section.startPos = mySection.startPos
 								section.statQuarters = mySection.statQuarters
+								section.ordinal = mySection.ordinal
 							}
 						})
 						// 小节连接
 						SectionStat.interLink(Ns.sections, Ns.decorations)
+						// 节拍校验
+						for(let section of Ns.sections) {
+							SectionStat.quarterCount(section)
+						}
 						frontier.notesSubstitute.push(Ns)
 					})
 					// 歌词小节化并合并（为防止连音线问题应当在小节连接之后）

@@ -666,7 +666,9 @@ export type MusicSection<NoteChar> = {
 	 */
 	startPos: Fraction
 	/**
-	 * 分配的四分音符数量（仅限声部主旋律）
+	 * 分配的四分音符数量（仅限声部主旋律及其替代旋律）
+	 * 
+	 * 替代旋律的对应值在歌词行合并过程中中获得
 	 */
 	statQuarters?: Fraction
 	/**

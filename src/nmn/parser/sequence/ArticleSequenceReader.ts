@@ -1,9 +1,9 @@
-import { Frac } from "../../util/frac";
+import { Frac, Fraction } from "../../util/frac";
 import { MusicTheory } from "../../util/music";
 import { Jumper, Linked2MusicArticle } from "../des2cols/types";
 import { LinedIssue, addIssue } from "../parser";
 import { ScoreContext } from "../sparse2des/context";
-import { JumperAttr, MusicProps, MusicSection, NoteCharAny, SeparatorAttr } from "../sparse2des/types";
+import { Beats, JumperAttr, MusicProps, MusicSection, NoteCharAny, SeparatorAttr } from "../sparse2des/types";
 import { SequenceSectionStat } from "./SequenceSectionStat";
 import { SequenceArticle, SequenceIteration, SequencePartInfo, SequenceSection } from "./types";
 
@@ -76,8 +76,6 @@ export class ArticleSequenceReader {
 
 		while(this.exploreSection()) {}
 
-		/* TODO[yezhiyi9670]: 检查拍号与 Quarters 的匹配情况并报错 */
-
 		return {
 			overflow: this.overflow,
 			conflict: this.conflict,
@@ -128,7 +126,7 @@ export class ArticleSequenceReader {
 		if(this.iterations.length >= this.iterationLimit) {
 			const primoSection = SequenceSectionStat.getPrimoSection(this.article, this.sectionCursor)
 			addIssue(
-				this.issues, primoSection.idCard.lineNumber, 0,
+				this.issues, primoSection.idCard.lineNumber, primoSection.range[0],
 				'error', 'repeat_overflow',
 				'Total number of repeat iterations exceeded the limit ${0}. This may be caused by dead loops.',
 				'' + this.iterationLimit
@@ -185,6 +183,7 @@ export class ArticleSequenceReader {
 		// 检测冲突、检查跳房子八度变更、小节推入信息
 		this.checkConflict()
 		this.pushCurrentSection()
+		this.checkPropsMatch()
 		// 之后的事情：检查音乐属性变更、检查 reset、检查反复记号并跳转、若未跳转检查结束
 		this.checkMusicalVariation('after')
 		if(!this.flat) {
@@ -262,6 +261,18 @@ export class ArticleSequenceReader {
 	 * 这里不处理变拍，因为处理过了
 	 */
 	checkMusicalVariation(pos: SequenceSectionStat.AttrPosition) {
+		if(pos == 'before') { // 更新拍号，这里没有考虑替代旋律，因为不需要考虑
+			for(let part of this.article.parts) {
+				const section = part.notes.sections[this.sectionCursor]
+				if(section.type == 'nullish') {
+					continue
+				}
+				this.currentProps[part.signature.hash] = {
+					...this.currentProps[part.signature.hash],
+					beats: section.musicalProps.beats
+				}
+			}
+		}
 		this.checkOneVariation(pos, 'qpm')
 		this.checkOneVariation(pos, 'shift')
 	}
@@ -304,7 +315,7 @@ export class ArticleSequenceReader {
 			if(passingMap[iter] == 'passed') {
 				passingMap[iter] = 'warned'
 				addIssue(
-					this.issues, primoSection.idCard.lineNumber, 0,
+					this.issues, primoSection.idCard.lineNumber, primoSection.range[0],
 					'warning', 'repeat_conflict',
 					'Section ${0} is passed twice by iteration number ${1}',
 					'' + (primoSection.ordinal + 1), '' + iter
@@ -380,9 +391,63 @@ export class ArticleSequenceReader {
 			parts: partsMap,
 			ordinal: this.article.parts[0].notes.sections[this.sectionCursor].ordinal,
 			index: this.sectionCursor,
+			qpm: minSpeed,
 			lengthQuarters: quarters,
 			lengthMilliseconds: milliseconds * 60 * 1000
 		})
+	}
+	/**
+	 * 检查声部间音乐属性的匹配
+	 */
+	checkPropsMatch() {
+		const section = this.frontier!.sections[this.frontier!.sections.length - 1]
+		if(!section) {
+			return	
+		}
+		let rememberedBeats: Beats | undefined = undefined
+		for(let partId in section.parts) {
+			const part = section.parts[partId]
+			if(part.section.type == 'nullish') {
+				continue
+			}
+			// 拍号校验，仅限于平铺模式
+			if(this.flat) {
+				const beats = part.props.beats!
+				if(rememberedBeats === undefined) {
+					rememberedBeats = beats
+				} else {
+					if(
+						beats.value.x != rememberedBeats.value.x ||
+						beats.value.y != rememberedBeats.value.y ||
+						beats.defaultReduction != rememberedBeats.defaultReduction ||
+						beats.swing != rememberedBeats.swing
+					) {
+						addIssue(this.issues,
+							part.section.idCard.lineNumber, part.section.range[0],
+							'error', 'mismatching_beats',
+							'Section ${0} (m${1}) has mismatching beats against other concurrent sections.',
+							'' + part.section.idCard.uuid, '' + (part.section.ordinal + 1)
+						)
+					}
+				}
+			}
+			// 拍速校验，仅限于非平铺模式
+			if(!this.flat) {
+				const mProps = part.props
+				const speed = MusicTheory.speedToQpm(
+					mProps.qpm!.value, mProps.qpm!.symbol, mProps.beats!.defaultReduction
+				)
+				if(Math.abs(speed - section.qpm) >= 1e-3) {
+					addIssue(this.issues,
+						part.section.idCard.lineNumber, part.section.range[0],
+						'warning', 'mismatching_speed',
+						'Section ${0} (m${1}) at iteration ${2} has mismatching speed against other concurrent sections (${3}≠${4})',
+						'' + part.section.idCard.uuid, '' + (part.section.ordinal + 1), '' + this.frontier!.number,
+						'' + speed, '' + section.qpm
+					)
+				}
+			}
+		}
 	}
 	/**
 	 * 寻找反复记号并跳转

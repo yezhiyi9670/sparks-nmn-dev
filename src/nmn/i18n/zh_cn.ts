@@ -91,9 +91,8 @@ export default {
 		'unknown_separator_attr': '无法将 `${0}` 解析为小节线属性',
 		'unknown_omit_count': '无效的小节省略数 ${0}',
 
-		'mismatching_beats': '小节 ${0}（第 ${1} 小节）与其他声部的同位置小节拍号不一致',
-		'mismatching_quarters': '小节 ${0}（第 ${1} 小节）与其他声部的同位置小节长度不一致',
-		'mismatching_speed': '小节 ${0}（第 ${1} 小节），迭代数 ${2} 与其他声部的同位置小节拍速不一致',
+		'mismatching_beats': '小节 ${0}（第 ${1} 小节）与其他同时的小节拍号不一致',
+		'mismatching_speed': '小节 ${0}（第 ${1} 小节），迭代数 ${2} 与其他声部的同位置小节拍速不一致 (${3}≠${4})',
 		'repeat_overflow': '反复迭代节的数量超出上限 ${0}，可能是因为反复结构存在问题导致死循环',
 		'repeat_conflict': '第 ${0} 小节被反复迭代数 ${1} 穿越超过一次',
 	},

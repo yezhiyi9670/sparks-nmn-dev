@@ -60,6 +60,10 @@ export type SequenceSection = {
 	 */
 	index: number
 	/**
+	 * 每分钟四分音符数量
+	 */
+	qpm: number
+	/**
 	 * 按四分音符的小节长度，抄写自乐谱信息。
 	 */
 	lengthQuarters: Fraction
