@@ -77,7 +77,6 @@ export const IterationSelector = forwardRef<HTMLDivElement, IterationSelectorPro
 				)
 			})}
 		</ButtonGroup>
-		<div style={{margin: '0 12px', borderBottom: '1px solid #0002'}}></div>
 	</>) : (
 		<div className={classes.void}>
 			{NMNI18n.editorText(language, `${i18nPrefix}no_sections`)}

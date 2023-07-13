@@ -52,10 +52,12 @@ const useStyles = createUseStyles({
 	overviewRoom: {
 		flexShrink: 0,
 		borderBottom: '1px solid #0004',
+		fontSize: '12px' // 用于减缓滚动
 	},
 	controlRoom: {
 		flexShrink: 0,
-		padding: '0 12px'
+		padding: '0 12px',
+		fontSize: '12px' // 用于减缓滚动
 	}
 })
 
@@ -372,23 +374,23 @@ export const PlayPanel = React.memo(function(props: {
 	>
 		<div className={classes.headroom} style={{...(!prefs.isMobile && {borderBottom: 'none', paddingBottom: 0})}}>
 			<ButtonGroup>
-				<Button large title={NMNI18n.editorText(language, 'inspector.play.play')}>
+				<Button title={NMNI18n.editorText(language, 'inspector.play.play')}>
 					<Icons.VscPlay style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonMargin />
-				<Button large title={NMNI18n.editorText(language, 'inspector.play.play_pre')}>
+				<Button title={NMNI18n.editorText(language, 'inspector.play.play_pre')}>
 					<Icons.VscDebugContinueSmall style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonMargin />
-				<Button large selected title={NMNI18n.editorText(language, 'inspector.play.pause')}>
+				<Button selected title={NMNI18n.editorText(language, 'inspector.play.pause')}>
 					<Icons.VscDebugPause style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonMargin />
-				<Button large title={NMNI18n.editorText(language, 'inspector.play.stop')} onClick={() => resetProgress()}>
+				<Button title={NMNI18n.editorText(language, 'inspector.play.stop')} onClick={() => resetProgress()}>
 					<Icons.VscRefresh style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonMargin />
-				<Button large
+				<Button
 					title={NMNI18n.editorText(language, 'inspector.play.auto_scroll')}
 					selected={autoScroll}
 					onClick={() => toggleAutoScroll()}
@@ -396,7 +398,7 @@ export const PlayPanel = React.memo(function(props: {
 					<Icons.VscFoldDown style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonSpacer />
-				{/* <Button large title={NMNI18n.editorText(language, 'inspector.play.export')}>
+				{/* <Button title={NMNI18n.editorText(language, 'inspector.play.export')}>
 					<Icons.VscSave style={{transform: 'translateY(0.13em)'}} />
 				</Button> */}
 			</ButtonGroup>
@@ -429,7 +431,7 @@ export const PlayPanel = React.memo(function(props: {
 					/>
 				}
 			</div>
-			<div ref={sectionDivRef} className={classes.overviewRoom} style={{...(!prefs.isMobile && {flex: 4, height: 0, overflowY: 'auto'})}}>
+			<div ref={sectionDivRef} className={classes.overviewRoom} style={{...(!prefs.isMobile && {flex: 3, height: 0, overflowY: 'auto'})}}>
 				{article && iteration &&
 					<SectionSelector
 						article={article}
@@ -439,7 +441,7 @@ export const PlayPanel = React.memo(function(props: {
 					/>
 				}
 			</div>
-			<div className={classes.controlRoom} style={{...(!prefs.isMobile && {flex: 5, height: 0, overflowY: 'auto'})}}>
+			<div className={classes.controlRoom} style={{...(!prefs.isMobile && {flex: 4, height: 0, overflowY: 'auto'})}}>
 				<Controls
 					data={controlData}
 					setData={updateControlData}

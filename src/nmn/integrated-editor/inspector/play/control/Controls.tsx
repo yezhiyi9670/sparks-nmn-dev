@@ -20,7 +20,7 @@ const i18nPrefix = `inspector.play.controls.`
 const useStyles = createUseStyles({
 	partCard: {
 		padding: '12px 0',
-		borderBottom: '1px solid #0002'
+		borderBottom: '1px solid #0004'
 	},
 	labelLine: {
 		fontSize: '16px',
@@ -161,7 +161,7 @@ export const ControlsPart = memo((props: {
 			</div>
 			<div className={classes.volumeLine}>
 				<ReactSlider
-					style={{flex: 'auto', fontSize: '20px'}}
+					style={{flex: 'auto', fontSize: '18px'}}
 					highlightColor={colorScheme.positive}
 					trackColor={colorScheme.voidaryHover}
 					thumbColor={'white'}

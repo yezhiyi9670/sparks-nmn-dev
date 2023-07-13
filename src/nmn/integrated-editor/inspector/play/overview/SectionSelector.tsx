@@ -9,7 +9,7 @@ import { IntegratedEditorContext } from '../../../IntegratedEditor'
 const useStyles = createUseStyles({
 	container: {
 		padding: '12px',
-		// paddingTop: 0,
+		paddingTop: 0,
 		overflowY: 'auto',
 	},
 	containerIn: {
