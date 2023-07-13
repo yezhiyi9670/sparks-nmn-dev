@@ -23,6 +23,7 @@ import { PlayPanel } from './inspector/play/PlayPanel'
 import { DomUtils } from '../util/dom'
 import { MusicSection, NoteCharMusic } from '../parser/sparse2des/types'
 import { RenderSectionPickCallback } from '../renderer/renderer'
+import { InstrumentTestPanel } from './inspector/instrument-test/InstrumentTestPanel'
 
 const useStyles = createUseStyles({
 	editor: {
@@ -205,6 +206,7 @@ export interface IntegratedEditorPrefs {
 	logTimeStat?: boolean,
 
 	isMobile?: boolean,
+	instrumentSourceUrl?: string,
 }
 const defaultEditorPrefs: IntegratedEditorPrefs = {
 	fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'Sarasa Mono SC'",
@@ -485,6 +487,10 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 					onClose={() => setInspectorOpen(false)}
 					inspectors={[
 						{
+							id: 'instrument_test',
+							content: () => <InstrumentTestPanel />
+						},
+						{
 							id: 'play',
 							content: () => <PlayPanel
 								key={sessionToken}
@@ -497,7 +503,7 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 								code={value}
 								setCode={handleChange}
 							/>
-						},
+						}
 					]}
 				/>
 			</div>}

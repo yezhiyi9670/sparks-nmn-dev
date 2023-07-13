@@ -41,8 +41,10 @@ export const controlDataPartBeatMachine: ControlDataPart = {
 }
 
 export const TonicInstruments = {
+	chip: {},
 	piano: {},
 	string: {},
+	horn: {},
 	dah: {}
 }
 export type TonicInstrumentName = keyof(typeof TonicInstruments)

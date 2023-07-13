@@ -251,7 +251,11 @@ export class ArticleSequenceReader {
 	 */
 	checkReset(pos: SequenceSectionStat.AttrPosition) {
 		if(this.frontier!.number > 1 && SequenceSectionStat.checkReset(this.article, this.sectionCursor, pos)) {
-			return this.expandFrontier(1)
+			if(!this.frontier || this.frontier.sections.length > 0) {
+				return this.expandFrontier(1)
+			} else {
+				this.frontier.number = 1
+			}
 		}
 		return true
 	}

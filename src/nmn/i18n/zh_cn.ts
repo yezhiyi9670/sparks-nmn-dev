@@ -315,7 +315,9 @@ export default {
 					"octave": "八度",
 					"synth": "乐器",
 					"instrument": {
+						"chip": "芯片",
 						"piano": "钢琴",
+						"horn": "管乐",
 						"string": "弦乐",
 						"dip": "滴",
 						"dah": "嗒",
@@ -329,6 +331,9 @@ export default {
 					"remark": "保存的混音配置文件"
 				}
 			},
+			"instrument_test": {
+				"title": "乐器音源测试"
+			}
 		}
 	})
 }
