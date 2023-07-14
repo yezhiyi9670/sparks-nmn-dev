@@ -76,7 +76,7 @@ export function InspectorView(props: {
 					value: item.id,
 					label: NMNI18n.editorText(language, `${i18nPrefix}${item.id}.title`),
 				}))}
-				itemFontSize='16px'
+				itemFontSize='18px'
 			/>
 			<button className={classes.titleClose} onClick={() => props.onClose && props.onClose()}>
 				<Icons.VscChromeClose style={{transform: 'translateY(2px)'}} />

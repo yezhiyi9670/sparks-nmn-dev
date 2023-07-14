@@ -51,7 +51,7 @@ export function ReactSelect(props: {
 				</Select.Icon>
 			</Select.Trigger>
 			<Select.Portal>
-				<Select.Content position='popper' className={classes.SelectContent} style={{
+				<Select.Content position='item-aligned' className={classes.SelectContent} style={{
 					backgroundColor: props.backgroundColor ?? '#FFF'
 				}}>
 					<Select.Viewport>
