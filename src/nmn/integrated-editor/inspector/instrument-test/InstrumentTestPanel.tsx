@@ -58,7 +58,7 @@ export function InstrumentTestPanel() {
 				<span style={{paddingRight: '0.4em'}}>
 					{NMNI18n.editorText(language, `${i18nPrefixIns}${key}`)}
 				</span>
-				{[131, 220, 262, 440, 524, 880].map(freq => (
+				{[131, 220, 262, 440, 524].map(freq => (
 					<Button style={{marginRight: '8px'}} key={freq} small onMouseDown={() => testTonicInstrument(
 						freq,
 						instrument,
