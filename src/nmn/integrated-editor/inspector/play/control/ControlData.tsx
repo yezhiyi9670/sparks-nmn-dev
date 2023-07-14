@@ -48,7 +48,7 @@ export const controlDataPartBeatMachine: ControlDataPart = {
 	volume: 100,
 	pan: 0,
 	type: 'beatMachine',
-	drumlineInstrument: 'beat1',
+	drumlineInstrument: 'beat2',
 	beatModulo: 1
 }
 

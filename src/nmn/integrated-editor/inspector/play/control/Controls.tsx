@@ -39,8 +39,6 @@ const useStyles = createUseStyles({
 	partLabelIn: {
 		display: 'inline-block',
 		verticalAlign: 'middle',
-		textOverflow: 'ellipsis',
-		overflowX: 'hidden',
 		width: '100%'
 	},
 	volumeLine: {

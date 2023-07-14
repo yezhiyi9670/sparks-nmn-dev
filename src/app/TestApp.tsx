@@ -149,7 +149,7 @@ export function TestApp() {
 		importantWarning: {text: LNG('preview.warning'), height: 19},
 		temporarySave: true,
 		isMobile: isMobileInitially,
-		inspectorOpen: true,
+		inspectorOpen: false,
 		logTimeStat: true,
 		instrumentSourceUrl: './nmn/resource/audio/',
 	}), [LNG])

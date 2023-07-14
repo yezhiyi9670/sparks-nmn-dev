@@ -22,7 +22,7 @@ export const useRecreatedStyles = (colorScheme: IntegratedEditorColorScheme) => 
 				background: colorScheme.voidaryActive
 			},
 			'&[disabled]': {
-				opacity: 0.5
+				opacity: 0.6
 			},
 			'&.active.active': {
 				background: colorScheme.positive,
