@@ -38,11 +38,12 @@ export function ReactSelect(props: {
 	style?: React.CSSProperties
 	backgroundColor?: string
 	itemFontSize?: number | string
+	disabled?: boolean
 }) {
 	const classes = useStyles()
 
 	return (
-		<Select.Root value={props.value} onValueChange={props.onChange}>
+		<Select.Root value={props.value} onValueChange={props.onChange} disabled={props.disabled}>
 			<Select.Trigger className={[classes.SelectTrigger, props.className].join(' ')} style={props.style} aria-label={props.label}>
 				<Select.Value />
 				<Select.Icon style={{marginLeft: 'auto'}}>

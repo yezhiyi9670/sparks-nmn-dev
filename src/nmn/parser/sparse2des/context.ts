@@ -66,8 +66,15 @@ export function copyContext(context: ScoreContext): ScoreContext {
 	}
 }
 
-export function handleMusicShiftInplace(props: MusicProps, attr: AttrShift): MusicProps {
-	props = Object.assign({}, props)
+export function handleMusicShift(props: MusicProps, attr: AttrShift): MusicProps {
+	props = { ...props }
+	props.base = { ...props.base! }
+	if(props.base!.value != props.base!.value) {
+		props.base!.value = 0
+	}
+	if(props.base!.baseValue != props.base!.baseValue) {
+		props.base!.baseValue = 0
+	}
 	const oldBase = props.base!.value
 	if(attr.metrics == 'absolute') {
 		props.base = attr.value

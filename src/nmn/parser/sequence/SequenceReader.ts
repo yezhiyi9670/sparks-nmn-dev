@@ -14,7 +14,10 @@ export class SequenceReader {
 	}
 
 	parse(): SequencedScoreData {
-		const defaultContext = scoreContextDefault
+		const defaultContext = addRenderProp(
+			addMusicProp(scoreContextDefault, this.score.musicalProps?.props),
+			this.score.renderProps?.props
+		)
 		
 		const sequences = this.score.articles.map(article => {
 			if(article.type != 'music') {

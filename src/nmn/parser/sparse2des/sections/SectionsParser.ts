@@ -6,7 +6,7 @@ import { BracketPair } from "../../lnt2sparse/SparseBuilder";
 import { addIssue, LinedIssue } from "../../parser";
 import { BracketPairFilters, BracketToken, BracketTokenList, TokenFilter, Tokens } from "../../tokenizer/tokens";
 import { AttrMatcher } from "../AttrMatcher";
-import { ScoreContext, handleMusicShiftInplace } from "../context";
+import { ScoreContext, handleMusicShift } from "../context";
 import { AttrShift, MusicProps, MusicSection, NoteCharAny, NoteCharMusic, SectionSeparator, SectionSeparatorChar, sectionSeparatorCharMap, SectionSeparators, SeparatorAttr, SeparatorAttrBase, separatorAttrPosition } from "../types";
 import { NoteEater } from "./NoteEater";
 
@@ -255,7 +255,7 @@ class SectionsParserClass {
 					context.musical.qpm = attr.qpm
 				}
 				if(attr.type == 'shift') {
-					context.musical = handleMusicShiftInplace(context.musical, attr)
+					context.musical = handleMusicShift(context.musical, attr)
 				}
 			}
 			if(acceptVariation) {

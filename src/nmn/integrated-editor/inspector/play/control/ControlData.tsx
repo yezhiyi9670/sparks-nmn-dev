@@ -1,5 +1,15 @@
 import { PartSignature } from "../../../../parser/des2cols/types"
+import { ChipInstrument } from "../../../../tone/instrument/tonic/ChipInstrument"
+import { SnareDrumlineInstrument, SnareTonicInstrument } from "../../../../tone/instrument/SnareInstrument"
+import { HornInstrument } from "../../../../tone/instrument/tonic/HornInstrument"
+import { PianoInstrument } from "../../../../tone/instrument/tonic/PianoInstrument"
 import { inCheck, iterateMap } from "../../../../util/array"
+import { OrganInstrument } from "../../../../tone/instrument/tonic/OrganInstrument"
+import { GuitarInstrument } from "../../../../tone/instrument/tonic/GuitarInstrument"
+import { ViolinInstrument } from "../../../../tone/instrument/tonic/ViolinInstrument"
+import { BeatInstrument1 } from "../../../../tone/instrument/drumline/BeatInstrument1"
+import { BeatInstrument2 } from "../../../../tone/instrument/drumline/BeatInstrument2"
+import { DrumsInstrument } from "../../../../tone/instrument/drumline/DrumsInstrument"
 
 export type ControlData = {[partHash: string]: {
 	control: ControlDataPart
@@ -19,6 +29,7 @@ export type ControlDataPart = {
 } | {
 	type: 'beatMachine',
 	drumlineInstrument: DrumlineInstrumentName
+	beatModulo: number
 })
 
 export const controlDataPartDefault: ControlDataPart = {
@@ -37,22 +48,26 @@ export const controlDataPartBeatMachine: ControlDataPart = {
 	volume: 100,
 	pan: 0,
 	type: 'beatMachine',
-	drumlineInstrument: 'dip'
+	drumlineInstrument: 'beat1',
+	beatModulo: 1
 }
 
 export const TonicInstruments = {
-	chip: {},
-	piano: {},
-	string: {},
-	horn: {},
-	dah: {}
+	chip: ChipInstrument,
+	piano: PianoInstrument,
+	organ: OrganInstrument,
+	violin: ViolinInstrument,
+	guitar: GuitarInstrument,
+	horn: HornInstrument,
+	snare: SnareTonicInstrument
 }
 export type TonicInstrumentName = keyof(typeof TonicInstruments)
 
 export const DrumlineInstruments = {
-	drum: {},
-	dip: {},
-	dah: {}
+	drum: DrumsInstrument,
+	beat1: BeatInstrument1,
+	beat2: BeatInstrument2,
+	snare: SnareDrumlineInstrument
 }
 export type DrumlineInstrumentName = keyof(typeof DrumlineInstruments)
 
@@ -61,11 +76,18 @@ export type BeatMachineSignature = {
 	type: 'beatMachine'
 }
 
-export type Instrument = (typeof TonicInstruments)['piano']
-
 export module MixingControlUtils {
 	export const maxVolume = 150
 	export const maxOctave = 6
+	export const maxModulo = 18
+
+	export function moduloList() {
+		let ret: number[] = []
+		for(let i = 1; i <= maxModulo; i++) {
+			ret.push(i)
+		}
+		return ret
+	}
 
 	export function dehydrate(data: ControlData): string[] {
 		const result: string[] = []
@@ -75,11 +97,15 @@ export module MixingControlUtils {
 				c: {
 					m: part.control.mute,
 					s: part.control.solo,
+					p: part.control.pan,
 					v: part.control.volume,
 					nx: part.control.drumlineInstrument,
 					...(part.control.type != 'beatMachine' && {
 						nn: part.control.tonicInstrument,
 						o: part.control.octave
+					}),
+					...(part.control.type == 'beatMachine' && {
+						bm: part.control.beatModulo
 					})
 				}
 			}))
@@ -98,6 +124,9 @@ export module MixingControlUtils {
 		if('s' in configObj && typeof configObj.s == 'boolean') {
 			target.solo = configObj.s
 		}
+		if('p' in configObj && typeof configObj.p == 'number' && configObj.p == configObj.p) {
+			target.pan = Math.min(1, Math.max(-1, configObj.p))
+		}
 		if('v' in configObj && typeof configObj.v == 'number' && configObj.v == configObj.v) {
 			target.volume = Math.min(maxVolume, Math.max(0, Math.floor(configObj.v)))
 		}
@@ -110,6 +139,10 @@ export module MixingControlUtils {
 			}
 			if('o' in configObj && typeof configObj.o == 'number' && configObj.o == configObj.o) {
 				target.octave = Math.min(maxOctave, Math.max(-maxOctave, Math.floor(configObj.o)))
+			}
+		} else {
+			if('bm' in configObj && typeof configObj.bm == 'number' && configObj.bm == configObj.bm) {
+				target.beatModulo = Math.min(maxModulo, Math.max(0, Math.floor(configObj.bm)))
 			}
 		}
 		return target

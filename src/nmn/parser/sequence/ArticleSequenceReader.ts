@@ -384,20 +384,22 @@ export class ArticleSequenceReader {
 				props: mProps
 			}
 		})
-		const milliseconds = Frac.toFloat(quarters) / minSpeed
+		const minutes = Frac.toFloat(quarters) / minSpeed
 
 		const partsMap: {[hash: string]: SequencePartInfo} = {}
 		for(let partInfo of partsInfo) {
 			partsMap[partInfo.signature.hash] = partInfo
 		}
 
+		const primoSection = SequenceSectionStat.getPrimoSection(this.article, this.sectionCursor)
+
 		this.frontier!.sections.push({
 			parts: partsMap,
 			ordinal: this.article.parts[0].notes.sections[this.sectionCursor].ordinal,
 			index: this.sectionCursor,
 			qpm: minSpeed,
+			beats: primoSection.musicalProps.beats!,
 			lengthQuarters: quarters,
-			lengthMilliseconds: milliseconds * 60 * 1000
 		})
 	}
 	/**

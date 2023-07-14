@@ -334,6 +334,9 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 		}
 	})
 	const updateResult = useMethod((valueOverride?: string) => {
+		if(undefined === valueOverride && !isPreviewDirty) {
+			return
+		}
 		const parsed = parseNMN(valueOverride ?? value)
 		setParseResult({
 			result: parsed.result,
@@ -487,10 +490,6 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 					onClose={() => setInspectorOpen(false)}
 					inspectors={[
 						{
-							id: 'instrument_test',
-							content: () => <InstrumentTestPanel />
-						},
-						{
 							id: 'play',
 							content: () => <PlayPanel
 								key={sessionToken}
@@ -503,6 +502,10 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 								code={value}
 								setCode={handleChange}
 							/>
+						},
+						{
+							id: 'instrument_test',
+							content: () => <InstrumentTestPanel />
 						}
 					]}
 				/>

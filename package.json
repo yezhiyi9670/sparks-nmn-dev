@@ -1,6 +1,6 @@
 {
   "name": "sparks-nmn-dev",
-  "version": "1.13.17",
+  "version": "1.14.0",
   "source": "./src/index.html",
   "license": "MIT",
   "scripts": {
@@ -49,8 +49,8 @@
   },
   "staticFiles": [
     {
-      "staticPath": "src/nmn/resource/font",
-      "staticOutPath": "nmn/resource/font",
+      "staticPath": "src/nmn/resource",
+      "staticOutPath": "nmn/resource",
       "env": {
         "BUILD_TYPE": "demo"
       }

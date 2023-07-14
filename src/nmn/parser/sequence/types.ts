@@ -1,6 +1,6 @@
 import { Fraction } from "../../util/frac"
 import { ColumnScore, Linked2Article, PartSignature } from "../des2cols/types"
-import { MusicProps, MusicSection, NoteCharMusic } from "../sparse2des/types"
+import { Beats, MusicProps, MusicSection, NoteCharMusic } from "../sparse2des/types"
 
 export type SequencedScoreData = {
 	/**
@@ -64,13 +64,13 @@ export type SequenceSection = {
 	 */
 	qpm: number
 	/**
+	 * 拍号
+	 */
+	beats: Beats
+	/**
 	 * 按四分音符的小节长度，抄写自乐谱信息。
 	 */
 	lengthQuarters: Fraction
-	/**
-	 * 计算后的小节实际长度，以毫秒计。
-	 */
-	lengthMilliseconds: number
 }
 
 export type SequencePartInfo = {

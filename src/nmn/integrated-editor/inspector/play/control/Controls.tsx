@@ -1,6 +1,6 @@
 /* eslint-disable react/display-name */
 import React, { memo, useContext } from 'react'
-import { BeatMachineSignature, ControlData, ControlDataPart, DrumlineInstruments, MixingControlUtils, TonicInstruments } from './types'
+import { BeatMachineSignature, ControlData, ControlDataPart, DrumlineInstruments, MixingControlUtils, TonicInstruments } from './ControlData'
 import { iterateMap } from '../../../../util/array'
 import { PartSignature } from '../../../../parser/des2cols/types'
 import { useMethod } from '../../../../util/hook'
@@ -25,11 +25,23 @@ const useStyles = createUseStyles({
 	labelLine: {
 		fontSize: '16px',
 		display: 'flex',
-		flexDirection: 'row'
+		flexDirection: 'row',
+		alignContent: 'middle'
 	},
 	partLabel: {
 		flex: 'auto',
-		display: 'table'
+		whiteSpace: 'nowrap',
+		flexBasis: 0,
+		overflowX: 'hidden',
+		tableLayout: 'fixed',
+		display: 'block',
+	},
+	partLabelIn: {
+		display: 'inline-block',
+		verticalAlign: 'middle',
+		textOverflow: 'ellipsis',
+		overflowX: 'hidden',
+		width: '100%'
 	},
 	volumeLine: {
 		fontSize: '16px',
@@ -71,6 +83,7 @@ export const Controls = memo((props: {
 	onSaveData: () => void
 	onLoadData: () => void
 	canLoadData: boolean
+	playing: boolean
 }) => {
 	const classes = useStyles()
 	const { language } = useContext(IntegratedEditorContext)
@@ -94,6 +107,7 @@ export const Controls = memo((props: {
 					key={hash}
 					partData={part.control}
 					setPartData={updatePartData}
+					playing={props.playing}
 				/>
 			)
 		})}
@@ -104,7 +118,7 @@ export const Controls = memo((props: {
 					{NMNI18n.editorText(language, `${i18nPrefix}prefab.save`)}
 				</Button>
 				<ButtonMargin />
-				<Button disabled={!props.canLoadData} classes={[classes.saveButton]} onClick={props.onLoadData}>
+				<Button disabled={props.playing || !props.canLoadData} classes={[classes.saveButton]} onClick={props.onLoadData}>
 					{NMNI18n.editorText(language, `${i18nPrefix}prefab.load`)}
 				</Button>
 			</ButtonGroup>
@@ -116,6 +130,7 @@ export const ControlsPart = memo((props: {
 	signature: PartSignature | BeatMachineSignature
 	partData: ControlDataPart,
 	setPartData: (hash: string, newData: ControlDataPart) => void
+	playing: boolean
 }) => {
 	const { language, colorScheme } = useContext(IntegratedEditorContext)
 	const { partData } = props
@@ -144,7 +159,27 @@ export const ControlsPart = memo((props: {
 		<div className={classes.partCard}>
 			<div className={classes.labelLine}>
 				<div className={classes.partLabel} style={{...(isBeatMachine && {fontStyle: 'italic'})}}>
-					<span style={{display: 'table-cell', verticalAlign: 'middle'}}>{partLabel(language, props.signature)}</span>
+					<span className={classes.partLabelIn}>
+						{partLabel(language, props.signature)}
+					</span>
+				</div>
+				<div style={{display: 'table', paddingRight: '0.4em', paddingLeft: '0.4em', flex: 0}}>
+					<div style={{display: 'table-cell', verticalAlign: 'middle'}}>
+						<ReactSlider
+							style={{width: '100px', fontSize: '18px'}}
+							highlightColor={colorScheme.positive}
+							trackColor={colorScheme.voidaryHover}
+							thumbColor={'white'}
+							hoverColor={colorScheme.voidary}
+							activeColor={colorScheme.voidaryHover}
+							min={-1} max={1} step={0.25} value={partData.pan}
+							onChange={(val) => {setPartData({...partData, pan: val})}}
+							noRange
+							onRootKeyDown={(evt) => {
+								evt.stopPropagation()
+							}}
+						/>
+					</div>
 				</div>
 				<Button
 					selected={partData.mute}
@@ -167,7 +202,7 @@ export const ControlsPart = memo((props: {
 					thumbColor={'white'}
 					hoverColor={colorScheme.voidary}
 					activeColor={colorScheme.voidaryHover}
-					min={0} max={MixingControlUtils.maxVolume} step={2} value={partData.volume}
+					min={0} max={MixingControlUtils.maxVolume} step={5} value={partData.volume}
 					onChange={(val) => {setPartData({...partData, volume: val})}}
 					onRootKeyDown={(evt) => {
 						evt.stopPropagation()
@@ -181,11 +216,8 @@ export const ControlsPart = memo((props: {
 			</div>
 			<div className={classes.miscLine}>
 				<span style={{flexBasis: 0, flex: 3}}>
-					<span className={classes.controlLabel}>
-						{NMNI18n.editorText(language, `${i18nPrefix}synth`)}
-					</span>
-					{!isBeatMachine && <>
-						<IconsGo.GoNumber style={{fontSize: '1.2em', transform: 'translateY(0.2em)'}} />
+					{!isBeatMachine && <span style={{marginRight: '0.2em'}}>
+						<IconsGo.GoNumber style={{fontSize: '1.2em', transform: 'translateY(0.2em)', marginLeft: '-0.1em'}} />
 						<ButtonSelect
 							mini
 							items={iterateMap(TonicInstruments, (instrument, id) => ({
@@ -195,11 +227,12 @@ export const ControlsPart = memo((props: {
 							onChange={val => setPartData({...partData, tonicInstrument: val as any})}
 							itemFontSize='14px'
 							value={partData.tonicInstrument}
-							style={{width: '4em', marginRight: '0.4em'}}
+							style={{minWidth: '4.8em', marginRight: '0.4em'}}
+							disabled={props.playing}
 						/>
-					</>}
-					<>
-						<IconsTb.TbLetterX style={{fontSize: '1.2em', transform: 'translateY(0.2em)'}} />
+					</span>}
+					<span>
+						<IconsTb.TbLetterX style={{fontSize: '1.2em', transform: 'translateY(0.2em)', marginLeft: '-0.2em'}} />
 						<ButtonSelect
 							mini
 							items={iterateMap(DrumlineInstruments, (instrument, id) => ({
@@ -209,9 +242,25 @@ export const ControlsPart = memo((props: {
 							onChange={val => setPartData({...partData, drumlineInstrument: val as any})}
 							itemFontSize='14px'
 							value={partData.drumlineInstrument}
-							style={{width: '4em', paddingRight: '0.4em'}}
+							style={{minWidth: '4.8em', marginRight: '0.4em'}}
+							disabled={props.playing}
 						/>
-					</>
+					</span>
+					{isBeatMachine && <span>
+						<IconsTb.TbPercentage style={{fontSize: '1.2em', transform: 'translateY(0.2em)'}} />
+						<ButtonSelect
+							mini
+							items={MixingControlUtils.moduloList().map(item => ({
+								value: '' + item,
+								label: '' + item
+							}))}
+							onChange={val => setPartData({...partData, beatModulo: +val})}
+							itemFontSize='14px'
+							value={'' + partData.beatModulo}
+							style={{minWidth: '4.8em', paddingRight: '0.4em'}}
+							disabled={props.playing}
+						/>
+					</span>}
 				</span>
 				{!isBeatMachine && <span style={{}}>
 					<span className={classes.controlLabel}>

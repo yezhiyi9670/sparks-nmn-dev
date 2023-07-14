@@ -36,7 +36,7 @@ const useThumbStyles = (color: string, hoverColor: string, activeColor: string, 
 				border: '2px solid ' + highlightColor,
 				'&:hover': { backgroundColor: hoverColor },
 				'&:focus': { baclgroundColor: activeColor },
-				outline: 'none'
+				outline: 'none',
 			}
 		})
 	}, [color, hoverColor, activeColor, highlightColor])()
@@ -54,6 +54,7 @@ export function ReactSlider(props: {
 	thumbColor?: string
 	hoverColor?: string
 	activeColor?: string
+	noRange?: boolean
 	onChange?: (val: number) => void
 	onRootKeyDown?: (evt: React.KeyboardEvent) => void
 }) {
@@ -75,9 +76,18 @@ export function ReactSlider(props: {
 			onKeyDown={props.onRootKeyDown}
 		>
 			<Slider.Track style={{background: props.trackColor ?? '#0002'}} className={classes.SliderTrack}>
-				<Slider.Range style={{background: props.highlightColor ?? '#0004'}} className={classes.SliderRange} />
+				<Slider.Range style={{
+					background: props.highlightColor ?? '#0004',
+					...(props.noRange && {
+						display: 'none'
+					})
+				}} className={classes.SliderRange} />
 			</Slider.Track>
-			<Slider.Thumb className={thumbClasses.SliderThumb} />
+			<Slider.Thumb className={thumbClasses.SliderThumb} style={{
+				...(props.noRange && props.value == 0 && {
+					borderColor: props.trackColor
+				})
+			}} />
 		</Slider.Root>
 	)
 }

@@ -14,7 +14,8 @@ export const ArticleSelector = memo((props: {
 	value: number,
 	onChange: (val: number) => void,
 	pickingSections: boolean,
-	onTogglePicker: () => void
+	onTogglePicker: () => void,
+	playing: boolean
 }) => {
 	const { colorScheme, language } = useContext(IntegratedEditorContext)
 
@@ -26,6 +27,7 @@ export const ArticleSelector = memo((props: {
 				title={NMNI18n.editorText(language, `${i18nPrefix}visual_pick`)}
 				selected={props.pickingSections}
 				onClick={props.onTogglePicker}
+				disabled={props.playing}
 			>
 				<Icons.VscInspect style={{transform: 'translateY(0.13em)'}} />
 			</Button>
@@ -49,6 +51,7 @@ export const ArticleSelector = memo((props: {
 					}
 				})}
 				itemFontSize='15px'
+				disabled={props.playing}
 			/>
 		</ButtonGroup>
 	) : (

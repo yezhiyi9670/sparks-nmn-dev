@@ -315,12 +315,15 @@ export default {
 					"octave": "八度",
 					"synth": "乐器",
 					"instrument": {
-						"chip": "芯片",
+						"chip": "芯片*",
 						"piano": "钢琴",
-						"horn": "管乐",
-						"string": "弦乐",
-						"dip": "滴",
-						"dah": "嗒",
+						"organ": "管风琴",
+						"violin": "提琴",
+						"guitar": "吉他",
+						"horn": "管乐*",
+						"beat1": "节拍1",
+						"beat2": "节拍2",
+						"snare": "Snare",
 						"drum": "鼓点"
 					},
 					"prefab": {
@@ -332,7 +335,10 @@ export default {
 				}
 			},
 			"instrument_test": {
-				"title": "乐器音源测试"
+				"title": "乐(lè)器音源测试",
+				"tonic": "音符乐器类",
+				"drumline": "鼓点乐器类",
+				"comment": "注：带有 * 的是电子合成音，其余是采样音。"
 			}
 		}
 	})

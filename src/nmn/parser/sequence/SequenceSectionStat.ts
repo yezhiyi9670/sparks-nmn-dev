@@ -1,6 +1,6 @@
 import { SectionStat } from "../des2cols/section/SectionStat";
 import { Linked2LyricLine, Linked2MusicArticle, Linked2Part, LinkedPartBase } from "../des2cols/types";
-import { handleMusicShiftInplace } from "../sparse2des/context";
+import { handleMusicShift } from "../sparse2des/context";
 import { JumperAttr, MusicProps, MusicSection, NoteCharAny, SectionSeparator, SectionSeparators, SeparatorAttr } from "../sparse2des/types";
 import { SequenceData } from "./types";
 
@@ -94,11 +94,8 @@ export module SequenceSectionStat {
 			}
 		}
 		if(attr.type == 'shift') {
-			const newProps = {
-				...props
-			}
-			handleMusicShiftInplace(newProps, attr)
-			return props
+			const newProps = handleMusicShift(props, attr)
+			return newProps
 		}
 		return props
 	}

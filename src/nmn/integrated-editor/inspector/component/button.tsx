@@ -34,6 +34,8 @@ export function Button(props: {
 	style?: React.CSSProperties
 	classes?: string[]
 	index?: number
+	onMouseDown?: () => void
+	onMouseUp?: () => void
 }) {
 	const classes = useStyles()
 
@@ -48,6 +50,8 @@ export function Button(props: {
 		disabled={props.disabled}
 		style={props.style}
 		data-index={props.index}
+		onMouseDown={props.onMouseDown}
+		onMouseUp={props.onMouseUp}
 	>
 		{props.children}
 	</button>
@@ -72,6 +76,7 @@ export function ButtonSelect(props: {
 	onChange?: (val: string) => void
 	style?: React.CSSProperties
 	itemFontSize?: number | string
+	disabled?: boolean
 }) {
 	const classes = useStyles()
 	const { colorScheme } = useContext(IntegratedEditorContext)
@@ -85,6 +90,7 @@ export function ButtonSelect(props: {
 			items={props.items}
 			backgroundColor={colorScheme.voidary}
 			itemFontSize={props.itemFontSize}
+			disabled={props.disabled}
 		/>
 	)
 }

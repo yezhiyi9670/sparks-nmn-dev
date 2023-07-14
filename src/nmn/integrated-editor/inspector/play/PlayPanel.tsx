@@ -14,10 +14,11 @@ import { SequenceSection } from '../../../parser/sequence/types'
 import { DomUtils } from '../../../util/dom'
 import { RenderSectionPickCallback } from '../../../renderer/renderer'
 import { SequenceSectionStat } from '../../../parser/sequence/SequenceSectionStat'
-import { BeatMachineSignature, ControlData, MixingControlUtils, controlDataPartBeatMachine, controlDataPartDefault } from './control/types'
+import { BeatMachineSignature, ControlData, MixingControlUtils, controlDataPartBeatMachine, controlDataPartDefault } from './control/ControlData'
 import { Controls } from './control/Controls'
 import { useOnceEffect } from '../../../util/event'
 import { MetaCommentWriter } from '../../../meta-comment-writer/MetaCommentWriter'
+import { PlayerComponent } from './player/PlayerComponent'
 
 const useStyles = createUseStyles({
 	headroom: {
@@ -126,6 +127,13 @@ export const PlayPanel = React.memo(function(props: {
 
 	// ===== BEGIN STATES =====
 
+	const [ playing, setPlaying ] = useState(false)
+	const updatePlaying = useMethod((val: boolean) => {
+		setPlaying(val)
+	})
+	const [ preSection, setPreSection ] = useState(false)
+	const updatePreSection = useMethod(setPreSection)
+
 	const [ autoScroll, setAutoScroll ] = useState(true)
 
 	const [ speedModifier, setSpeedModifier ] = useState(1)
@@ -175,6 +183,7 @@ export const PlayPanel = React.memo(function(props: {
 	})
 	useEffect(() => {
 		return () => {
+			// 清除高亮
 			updateNoteHighlight([])
 			updatePicker(false)
 		}
@@ -228,8 +237,8 @@ export const PlayPanel = React.memo(function(props: {
 		setSectionIndex(index = iteration.sections[0].index)
 		return [ iteration.sections[0], 0 ]
 	}, [iteration, sectionIndex])
-	// 更新高亮区
-	useEffect(() => {
+	// 计算高亮区
+	const computeNoteHighlight = useMethod(() => {
 		if(!sequenceSection) {
 			updateNoteHighlight([])
 			return
@@ -245,7 +254,13 @@ export const PlayPanel = React.memo(function(props: {
 			}
 		}
 		updateNoteHighlight(highlights)
-	}, [sequenceSection, updateNoteHighlight])
+	})
+	// 更新高亮区
+	useEffect(() => {
+		if(!playing) {
+			computeNoteHighlight()
+		}
+	}, [sequenceSection, computeNoteHighlight, playing])
 
 	// 自动滚动·Iteration
 	const iterationDivRef = useRef<HTMLDivElement>(null)
@@ -320,6 +335,15 @@ export const PlayPanel = React.memo(function(props: {
 	})
 
 	// 播放事件
+	function play(usePreSection: boolean) {
+		updatePlaying(true)
+		updatePreSection(usePreSection)
+		props.onTogglePicker(false)
+	}
+	function stopPlaying() {
+		setPlaying(false)
+		setPreSection(false)
+	}
 	function resetProgress() {
 		updateIterationIndex(1)
 		updateSectionIndex(0)
@@ -332,9 +356,15 @@ export const PlayPanel = React.memo(function(props: {
 		}
 		setAutoScroll(s => !s)
 	}
+	const updatePlayerNoteHighlight = useMethod((val: string[]) => {
+		if(playing) {
+			updateNoteHighlight(val)
+		}
+	})
 
 	// 键盘事件
 	const handleKeyDown = (evt: React.KeyboardEvent) => {
+		let hasAction = true
 		// 调整进度
 		if(!evt.ctrlKey && (evt.key == 'ArrowLeft' || evt.key == 'ArrowRight')) {
 			evt.preventDefault()
@@ -354,17 +384,35 @@ export const PlayPanel = React.memo(function(props: {
 			}
 		}
 		// 重新开始
-		if(!evt.ctrlKey && evt.key.toLocaleLowerCase() == 'r') {
+		else if(!evt.ctrlKey && evt.key.toLocaleLowerCase() == 'r') {
 			resetProgress()
 		}
 		// 自动滚动
-		if(!evt.ctrlKey && evt.key.toLocaleLowerCase() == 'a') {
+		else if(!evt.ctrlKey && evt.key.toLocaleLowerCase() == 'a') {
 			toggleAutoScroll()
 		}
-		if(divRef.current) {
-			divRef.current.focus()
+		// 自动播放
+		else if(!evt.ctrlKey && evt.key == ' ') {
+			if(playing) {
+				setPlaying(false)
+			} else {
+				if(canPlay) {
+					setPlaying(true)
+					setPreSection(false)
+				}
+			}
+		}
+		else {
+			hasAction = false
+		}
+		if(hasAction) {
+			if(divRef.current) {
+				divRef.current.focus()
+			}
 		}
 	}
+
+	const canPlay = (prefs.instrumentSourceUrl !== undefined)
 
 	return <div
 		style={{flex: 'auto', display: 'flex', flexDirection: 'column'}}
@@ -372,17 +420,46 @@ export const PlayPanel = React.memo(function(props: {
 		ref={divRef}
 		tabIndex={0}
 	>
+		<PlayerComponent
+			playing={playing} setPlaying={updatePlaying}
+			preSection={preSection} setPreSection={updatePreSection}
+			sequence={sequence!}
+			controlData={controlData}
+			iterationIndex={iterationIndex}
+			setIterationIndex={updateIterationIndex}
+			sectionIndex={sectionIndex}
+			setSectionIndex={updateSectionIndex}
+
+			speedModifier={speedModifier}
+			pitchModifier={pitchModifier}
+
+			updateNoteHighlight={updatePlayerNoteHighlight}
+		/>
 		<div className={classes.headroom} style={{...(!prefs.isMobile && {borderBottom: 'none', paddingBottom: 0})}}>
 			<ButtonGroup>
-				<Button title={NMNI18n.editorText(language, 'inspector.play.play')}>
+				<Button
+					title={NMNI18n.editorText(language, 'inspector.play.play')}
+					onClick={() => play(false)}
+					selected={playing && !preSection}
+					disabled={(playing && preSection) || !canPlay}
+				>
 					<Icons.VscPlay style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonMargin />
-				<Button title={NMNI18n.editorText(language, 'inspector.play.play_pre')}>
+				<Button
+					title={NMNI18n.editorText(language, 'inspector.play.play_pre')}
+					onClick={() => play(true)}
+					selected={playing && preSection}
+					disabled={(playing && !preSection) || !canPlay}
+				>
 					<Icons.VscDebugContinueSmall style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonMargin />
-				<Button selected title={NMNI18n.editorText(language, 'inspector.play.pause')}>
+				<Button
+					title={NMNI18n.editorText(language, 'inspector.play.pause')}
+					onClick={() => stopPlaying()}
+					selected={!playing}
+				>
 					<Icons.VscDebugPause style={{transform: 'translateY(0.13em)'}} />
 				</Button>
 				<ButtonMargin />
@@ -420,6 +497,7 @@ export const PlayPanel = React.memo(function(props: {
 					onChange={updateArticleIndex}
 					pickingSections={props.pickingSections}
 					onTogglePicker={() => updatePicker(!props.pickingSections)}
+					playing={playing}
 				/>
 				{article &&
 					<IterationSelector
@@ -448,6 +526,7 @@ export const PlayPanel = React.memo(function(props: {
 					onSaveData={saveMixingConfig}
 					onLoadData={loadMixingConfig}
 					canLoadData={canLoadMixingConfig}
+					playing={playing}
 				/>
 			</div>
 		</div>

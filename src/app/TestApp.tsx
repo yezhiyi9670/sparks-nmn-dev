@@ -150,7 +150,8 @@ export function TestApp() {
 		temporarySave: true,
 		isMobile: isMobileInitially,
 		inspectorOpen: true,
-		logTimeStat: true
+		logTimeStat: true,
+		instrumentSourceUrl: './nmn/resource/audio/',
 	}), [LNG])
 
 	return <PageHeader text="Sparks NMN Dev Demo" onKeyDown={handleKeyDown}>
