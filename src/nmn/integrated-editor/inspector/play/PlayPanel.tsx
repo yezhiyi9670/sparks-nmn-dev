@@ -412,7 +412,7 @@ export const PlayPanel = React.memo(function(props: {
 		}
 	}
 
-	const canPlay = (prefs.instrumentSourceUrl !== undefined)
+	const canPlay = (prefs.instrumentSourceUrl !== undefined) && sequenceSection !== undefined
 
 	return <div
 		style={{flex: 'auto', display: 'flex', flexDirection: 'column'}}
