@@ -10,7 +10,7 @@
 	page-break-inside: avoid;
 	page-break-after: auto;
 	overflow-x: visible;
-	content-visibility: auto;
+	/* content-visibility: auto; */
 	/* border-bottom: 1px dashed #00000019; */
 }
 .wcl-equifield-content {
