@@ -62,7 +62,7 @@ templateText = replaceFields(templateText, (text, contentType, protocol, locatio
 		if(location == 'data') {
 			return fs.readFileSync(paths.source + 'builder/wrapper/test.txt').toString()
 		} else if(location == 'flags') {
-			return 'window.localFontLocation = "../../src/nmn/font"'
+			return 'window.localFontLocation = "../../src/nmn/resource/font"'
 		}
 	}
 	return text
