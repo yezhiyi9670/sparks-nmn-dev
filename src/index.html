@@ -17,7 +17,19 @@
 	<title>Sparks NMN Playground</title>
 </head>
 <body>
-	<div id="root" class="root">Loading resources, please wait...</div>
+	<div id="root" class="root">
+		<div class="root-loading" style="padding: 12px 24px">
+			<p>Loading required resources, add some patience...</p>
+			<p style="display: flex; flex-direction: row; width: 100%; max-width: 400px">
+				<span style="background: #0002; flex: auto; position: relative;">
+					<span class="root-bar-in" style="position: absolute; display: block; height: 100%; width: 0%; background: #000;"></span>
+				</span>
+				<span style="margin-left:8px; flex: 0; min-width: 2.5em;">
+					<span class="root-progress">N</span>/<span class="root-total">A</span>
+				</span>
+			</p>
+		</div>
+	</div>
 	<!--This is unacceptable. I tried different units for a sole 0 in print margin and Firefox gave totally different results.-->
 	<!-- <div style="
 		position: absolute;

@@ -9,6 +9,8 @@ import { md5 } from './nmn/util/md5'
 import { TestApp } from './app/TestApp'
 import { I18nProvider } from './app/i18n/i18n'
 
+import $ from 'jquery'
+
 function ConsoleTest() {
 	// console.log(md5('abc'))
 	// console.log('Complicated')
@@ -64,4 +66,11 @@ SparksNMN.fontLoader.requestFontLoad('./nmn/resource/font', () => {
 			<App />
 		</I18nProvider>
 	)
+}, (progress, total) => {
+	if($('.root-loading').length == 0) {
+		return
+	}
+	$('.root-progress').text(progress)
+	$('.root-total').text(total)
+	$('.root-bar-in').css('width', `${progress / total * 100}%`)
 })
