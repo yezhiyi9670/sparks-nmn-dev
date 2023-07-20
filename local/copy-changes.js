@@ -41,7 +41,7 @@ if(fs.existsSync(nexrSrc)) {
 nexrSrc = '../sparks-nmn-website/src/nmn'
 if(fs.existsSync(nexrSrc)) {
 	console.log('Copy to sparks-nmn-website')
-	copy('src/nmn', nexrSrc, ['font'])
+	copy('src/nmn', nexrSrc, ['resource'])
 }
 
 const templateSrc = '../sparks-nmn-desktop/public/static/export-template.txt'
