@@ -1,8 +1,8 @@
 {
   "name": "sparks-nmn-dev",
-  "version": "1.14.13",
+  "version": "1.14.14",
   "source": "./src/index.html",
-  "license": "MIT",
+  "license": "Apache",
   "scripts": {
     "start": "cross-env BUILD_TYPE=demo parcel --port 8527 --host localhost --dist-dir ./dist/test/",
     "start-public": "cross-env BUILD_TYPE=demo parcel --port 8527 --host 0.0.0.0 --dist-dir ./dist/test/",
