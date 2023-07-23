@@ -1,7 +1,7 @@
 import { LineTree, mapTreeLines } from "../clns2lnt/LineTreeBuilder"
 import { CookedLine } from "../commands/priLine"
 import { addIssue, LinedIssue } from "../parser"
-import { CodeToken } from "../tokenizer/tokenizer"
+import { CodeToken, tokenizer_unescapeLine } from "../tokenizer/tokenizer"
 import { Tokens } from "../tokenizer/tokens"
 
 export type SparseLine = {
@@ -82,6 +82,21 @@ export class SparseBuilder {
 	parse(issues: LinedIssue[]): LineTree<SparseLine> {
 		return mapTreeLines<CookedLine & {type: 'command'}, SparseLine>(this.input!, (line: CookedLine & {type: 'command'}) => this.handleLine(line, issues))
 	}
+	
+	/**
+	 * 处理转义符号
+	 */
+	handleUnescape(line: CookedLine & {type: 'command'}, issues: LinedIssue[]) {
+		const parsed = tokenizer_unescapeLine(line.text, 0, line.text.length)
+		const mappedIssues: LinedIssue[] = parsed.issues.map(issue => ({
+			...issue,
+			index: line.textRange[0] + issue.index,
+			lineNumber: line.lineNumber,
+			rendered: false
+		}))
+		mappedIssues.forEach(issue => issues.push(issue))
+		return parsed.result
+	}
 
 	/**
 	 * 处理行
@@ -91,7 +106,7 @@ export class SparseBuilder {
 			return {
 				lineNumber: line.lineNumber,
 				head: line.head as 'T',
-				content: line.text
+				content: this.handleUnescape(line, issues)
 			}
 		}
 		if(['Da', 'Df'].indexOf(line.head) != -1) {
@@ -99,14 +114,14 @@ export class SparseBuilder {
 				lineNumber: line.lineNumber,
 				head: line.head as 'Da',
 				props: line.propsText,
-				content: line.text
+				content: this.handleUnescape(line, issues)
 			}
 		}
 		if(['P', 'Pi', 'Rp', 'Sp', 'Srp', 'Frp'].indexOf(line.head) != -1) {
 			return {
 				lineNumber: line.lineNumber,
 				head: line.head as 'P',
-				content: line.text.split(' ').filter((str) => !!str)
+				content: this.handleUnescape(line, issues).split(' ').filter((str) => !!str)
 			}
 		}
 		if(line.head == 'B') {
