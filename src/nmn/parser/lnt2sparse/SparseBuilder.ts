@@ -82,6 +82,18 @@ export class SparseBuilder {
 	parse(issues: LinedIssue[]): LineTree<SparseLine> {
 		return mapTreeLines<CookedLine & {type: 'command'}, SparseLine>(this.input!, (line: CookedLine & {type: 'command'}) => this.handleLine(line, issues))
 	}
+
+	/**
+	 * 删除字符串行内容中的报错
+	 */
+	filterIssues(line: CookedLine & {type: 'command'}, issues: LinedIssue[]) {
+		/* TODO: Performance fix */
+		for(let i = issues.length - 1; i >= 0; i--) {
+			if(line.lineNumber == issues[i].lineNumber && issues[i].index >= line.textRange[0]) {
+				issues.splice(i, 1)
+			}
+		}
+	}
 	
 	/**
 	 * 处理转义符号
@@ -103,6 +115,7 @@ export class SparseBuilder {
 	 */
 	handleLine(line: CookedLine & {type: 'command'}, issues: LinedIssue[]): SparseLine {
 		if(['Dt', 'Dp', 'Dv', 'Ds', 'Dl', 'Dr', 'T', 'S'].indexOf(line.head) != -1) {
+			this.filterIssues(line, issues)
 			return {
 				lineNumber: line.lineNumber,
 				head: line.head as 'T',
@@ -110,6 +123,7 @@ export class SparseBuilder {
 			}
 		}
 		if(['Da', 'Df'].indexOf(line.head) != -1) {
+			this.filterIssues(line, issues)
 			return {
 				lineNumber: line.lineNumber,
 				head: line.head as 'Da',
@@ -118,6 +132,7 @@ export class SparseBuilder {
 			}
 		}
 		if(['P', 'Pi', 'Rp', 'Sp', 'Srp', 'Frp'].indexOf(line.head) != -1) {
+			this.filterIssues(line, issues)
 			return {
 				lineNumber: line.lineNumber,
 				head: line.head as 'P',

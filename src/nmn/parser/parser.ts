@@ -335,7 +335,7 @@ class ParserClass {
 						content: tokens.slice(colonIndex + 1),
 						text: origTextTrimStartEnd,
 						textRange: [
-							origText.length - origTextTrimStart.length,
+							tokens[colonIndex].range[1] + origText.length - origTextTrimStart.length,
 							origText.length - (origTextTrimStart.length - origTextTrimStartEnd.length)
 						],
 						propsText: null
