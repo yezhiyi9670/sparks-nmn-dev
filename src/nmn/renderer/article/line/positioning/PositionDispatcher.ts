@@ -1,18 +1,19 @@
-import { NMNResult } from "../../.."
-import { ScoreContext } from "../../../parser/sparse2des/context"
-import { MusicSection, NoteCharAny, sectionSeparatorInset } from "../../../parser/sparse2des/types"
-import { countArray, findIndexWithKey, findWithKey } from "../../../util/array"
-import { Frac, Fraction } from "../../../util/frac"
-import { DomPaint } from "../../backend/DomPaint"
-import { MusicPaint } from "../../paint/MusicPaint"
-import { RenderContext } from "../../renderer"
-import { addNotesScale, getLineFont } from "./font/fontMetrics"
+import { NMNResult } from "../../../.."
+import { ScoreContext } from "../../../../parser/sparse2des/context"
+import { MusicSection, NoteCharAny, sectionSeparatorInset } from "../../../../parser/sparse2des/types"
+import { countArray, findIndexWithKey, findWithKey } from "../../../../util/array"
+import { Frac, Fraction } from "../../../../util/frac"
+import { DomPaint } from "../../../backend/DomPaint"
+import { MusicPaint } from "../../../paint/MusicPaint"
+import { RenderContext } from "../../../renderer"
+import { addNotesScale, getLineFont } from "../font/fontMetrics"
+import { FieldStatBuilder } from "./FieldStatBuilder"
 
 type NMNLine = (NMNResult['result']['articles'][0] & {type: 'music'})['lines'][0]
 const checkEps = 0.001
 
 export const positionDispatcherStats = {
-	computeTime: 0
+	computeTime: 0,
 }
 
 type SectionPositions = {
@@ -33,11 +34,11 @@ type SectionPositions = {
 	 */
 	fraction: [Fraction, Fraction]
 	/**
-	 * 限制条件
+	 * 列及其限制条件
 	 */
 	columns: ColumnPosition[]
 }
-type ColumnPosition = {
+export type ColumnPosition = {
 	/**
 	 * 分数位置的签名
 	 */
@@ -229,7 +230,7 @@ export class PositionDispatcher {
 				range: [rangeL, rangeR],
 				padding: [ sectionPadding + localPadding, sectionPadding + localPadding ],
 				fraction: [ Frac.sub(fields[0], Frac.create(1, 2)), Frac.add(fields[0], fields[1]) ], // 开头扩展半个四分音符的位置，以调和“极不自然”的不对称性
-				columns: []
+				columns: [],
 			}
 			let beforeBeatsWidth = 0
 			let afterBeatsWidth = 0
@@ -274,34 +275,9 @@ export class PositionDispatcher {
 	 * 分配位置 - 统计布局列
 	 */
 	dispatch$statColumns() {
+		const builder = new FieldStatBuilder(this.line.sectionCount, this.line.sectionFields)
 		const msp = new MusicPaint(this.root)
-		// 记录限制条件信息
-		const addConstraint = (pos: Fraction, index: number, field: [number, number], occupiesSpace: boolean) => {
-			const currentSection = this.data[index]
-			const fracSign = Frac.repr(pos)
-			let current = findWithKey(currentSection.columns, 'hash', fracSign)
-			if(!current) {
-				currentSection.columns.push(current = {
-					hash: fracSign,
-					fraction: pos,
-					field: [0, 0],
-					requiredField: [0, 0],
-					rigid: [false, false],
-					position: currentSection.range[0] + currentSection.padding[0]
-				})
-			}
-			if(occupiesSpace) {
-				current.field = [
-					Math.max(current.field[0], field[0]),
-					Math.max(current.field[1], field[1])
-				]
-			}
-			current.requiredField = [
-				Math.max(current.requiredField[0], field[0]),
-				Math.max(current.requiredField[1], field[1])
-			]
-		}
-		const handleSections = (sections: MusicSection<NoteCharAny>[] | undefined, isMusic: boolean, isSmall: boolean, rangeStart: number = 0) => {
+		const handleSections = (rowHash: string, sections: MusicSection<NoteCharAny>[] | undefined, isMusic: boolean, isSmall: boolean, rangeStart: number = 0) => {
 			if(!sections) {
 				return
 			}
@@ -349,35 +325,36 @@ export class PositionDispatcher {
 							dotCount = countArray(note.suffix, '.')
 						}
 						const normalCharWidthRatio = 1.1
-						addConstraint(fracPos, actualIndex, [
+						builder.writeConstraint(rowHash, fracPos, actualIndex, [
 							noteCharMeasure[0] / 2 * 1,
 							noteCharMeasure[0] / 2 * 1
 						], true) // 音符本身占据排版域
-						addConstraint(fracPos, actualIndex, [
+						builder.writeConstraint(rowHash, fracPos, actualIndex, [
 							noteCharMeasure[0] / 2 * normalCharWidthRatio,
 							noteCharMeasure[0] / 2 * normalCharWidthRatio
 						], false) // 音符本身占据排版域
-						addConstraint(fracPos, actualIndex, [
-							noteCharMeasure[0] / 2 * normalCharWidthRatio + accidentalCount * accidentalMeasure[0] + leftAddCount * addNoteCharMeasure[0] / 2 + noteCharMeasure[1] * 1.2,
-							noteCharMeasure[0] / 2 * normalCharWidthRatio + Math.max(
+						builder.writeConstraint(rowHash, fracPos, actualIndex, [
+							noteCharMeasure[0] / 2 + accidentalCount * accidentalMeasure[0] + leftAddCount * addNoteCharMeasure[0] / 2 + noteCharMeasure[1] * 1.2,
+							noteCharMeasure[0] / 2 + Math.max(
 								noteCharMeasure[0] / 2 * dotCount,
 								rightAddCount * addNoteCharMeasure[0] / 2 + noteCharMeasure[1] * 1.2,
-								(+hasSlide) * noteCharMeasure[1] * 0.45 * this.scale)
+								(+hasSlide) * noteCharMeasure[1] * 0.45 * this.scale
+							)
 						], false) // 音符的附加符号（升降调、装饰音、滑音）的排版空间必须满足，但不需要参与计算
 					} else {
 						if(note.type != 'extend' && !('void' in note.char)) {
-							addConstraint(fracPos, actualIndex, [0, 0], false) // 标记内容不参与自动排版，但是保留席位
+							builder.writeConstraint(rowHash, fracPos, actualIndex, [0, 0], false) // 标记内容不参与自动排版，但是保留席位
 						}
 					}
 				})
 			})
 		}
-		this.line.parts.forEach((part) => {
-			handleSections(part.notes.sections, true, false)
-			part.fcaItems.forEach((ann) => {
-				handleSections(ann.sections, false, false)
+		this.line.parts.forEach((part, partIndex) => {
+			handleSections(`part-notes-${partIndex}`, part.notes.sections, true, false)
+			part.fcaItems.forEach((ann, annIndex) => {
+				handleSections(`part-annotation-${partIndex}-${annIndex}`, ann.sections, false, false)
 			})
-			part.lyricLines.forEach((lrcLine) => {
+			part.lyricLines.forEach((lrcLine, lrcLineIndex) => {
 				// 歌词占位推断
 				lrcLine.sections.forEach((lrcSection, sectionIndex) => {
 					if(lrcSection.type != 'section') {
@@ -414,40 +391,34 @@ export class PositionDispatcher {
 									rm = dm
 								}
 							}
-							addConstraint(Frac.add(lrcSection.startPos, char.startPos), sectionIndex, [
+							builder.writeConstraint(`lyric-${partIndex}-${lrcLineIndex}`, Frac.add(lrcSection.startPos, char.startPos), sectionIndex, [
 								-boundaries[0] + lm,
 								boundaries[1] + rm
 							], false)
 						}
 					})
 				})
-				handleSections(lrcLine.lyricAnnotations?.sections, false, false)
-				lrcLine.fcaItems.forEach((ann) => {
-					handleSections(ann.sections, false, false)
+				handleSections(`lyric-${partIndex}-${lrcLineIndex}`, lrcLine.lyricAnnotations?.sections, false, false)
+				lrcLine.fcaItems.forEach((ann, annIndex) => {
+					handleSections(`lyric-annotation-${partIndex}-${lrcLineIndex}-${annIndex}`, ann.sections, false, false)
 				})
 				lrcLine.notesSubstitute.forEach((Ns) => {
-					handleSections(Ns.sections, true, true, Ns.substituteLocation)
+					handleSections(`lyric-substitute-${partIndex}-${lrcLineIndex}`, Ns.sections, true, true, Ns.substituteLocation)
 				})
 			})
 		})
-		// 排序以便后续布局
-		this.line.sectionFields.forEach((_, i) => {
-			const data = this.data[i]
-			// 若没有列，添加一个防止后续出现问题
-			if(data.columns.length == 0) {
-				addConstraint(data.fraction[0], i, [0, 0], true)
-			}
-			// 若最大列距离右边界有超过八分音符的距离，将右边界缩短一个八分音符
-			// let maxCol = Frac.max(...data.columns.map((x) => x.fraction))
-			// if(Frac.compare(Frac.sub(data.fraction[1], maxCol), Frac.create(1, 2)) > 0) {
-			// 	if(Frac.compare(Frac.sub(data.fraction[1], data.fraction[0]), Frac.create(1, 1)) > 0) {
-			// 		data.fraction[1] = Frac.sub(data.fraction[1], Frac.create(1, 2))
-			// 	}
-			// }
-			data.columns.sort((x, y) => {
-				return Frac.compare(x.fraction, y.fraction)
-			})
-		})
+		// 获取数据
+		const acquiredData = builder.compute()
+		for(let sectionIndex = 0; sectionIndex < this.line.sectionCount; sectionIndex++) {
+			this.data[sectionIndex].columns = acquiredData[sectionIndex].map(column => ({
+				hash: column.hash,
+				field: column.field,
+				requiredField: column.requiredField,
+				fraction: column.fraction,
+				position: this.data[sectionIndex].range[0],
+				rigid: [false, false]
+			}))
+		}
 	}
 	/**
 	 * 分配位置 - 计算布局
