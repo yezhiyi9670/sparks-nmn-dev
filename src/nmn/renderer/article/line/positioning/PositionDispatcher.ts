@@ -275,7 +275,7 @@ export class PositionDispatcher {
 	 * 分配位置 - 统计布局列
 	 */
 	dispatch$statColumns() {
-		const builder = new FieldStatBuilder(this.line.sectionCount, this.line.sectionFields)
+		const builder = new FieldStatBuilder(this.line.sectionCount, this.line.sectionFields, this.context.render.legacy_positioning!)
 		const msp = new MusicPaint(this.root)
 		const handleSections = (rowHash: string, sections: MusicSection<NoteCharAny>[] | undefined, isMusic: boolean, isSmall: boolean, rangeStart: number = 0) => {
 			if(!sections) {

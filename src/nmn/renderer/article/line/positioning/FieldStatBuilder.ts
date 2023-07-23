@@ -43,11 +43,13 @@ type SectionFields = [Fraction, Fraction][]
 export class FieldStatBuilder {
 	sectionCount: number = 0
 	sectionFields: SectionFields = []
-	constructor(sectionCount: number, sectionFields: SectionFields) {
+	ignoreRowHash: boolean = false
+	constructor(sectionCount: number, sectionFields: SectionFields, ignoreRowHash: boolean) {
 		this.sectionCount = sectionCount
 		this.columnChecker = Array(this.sectionCount).fill(0).map(() => ({}))
 		this.result = Array(this.sectionCount).fill(0).map(() => ([]))
 		this.sectionFields = sectionFields
+		this.ignoreRowHash = ignoreRowHash
 	}
 
 	rows: {[_: string]: FieldRow} = {}
@@ -90,6 +92,10 @@ export class FieldStatBuilder {
 	 * 写入宽度需求数据
 	 */
 	writeConstraint(rowHash: string, pos: Fraction, sectionIndex: number, field: [number, number], occupiesSpace: boolean) {
+		if(this.ignoreRowHash) {
+			rowHash = 'ignored'
+		}
+		
 		this.markColumn(pos, sectionIndex)
 		const row = this.getRow(rowHash)
 		const colHash = Frac.repr(pos)
