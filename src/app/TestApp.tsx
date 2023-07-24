@@ -1,10 +1,10 @@
 import React, { createRef, ReactNode, useMemo, useRef } from "react"
 import { createUseStyles } from "react-jss"
 import { useOnceEffect } from "../util/event"
-import { callRef } from "../util/hook"
+import { callRef, useMethod } from "../util/hook"
 import { Box } from "../util/component"
 import $ from 'jquery'
-import { IntegratedEditor, IntegratedEditorApi } from "../nmn/integrated-editor/IntegratedEditor"
+import { IntegratedEditor, IntegratedEditorApi, IntegratedEditorPrefs } from "../nmn/integrated-editor/IntegratedEditor"
 import { useI18n } from "./i18n/i18n"
 import { NMNI18n } from "../nmn"
 
@@ -138,21 +138,31 @@ export function TestApp() {
 		}
 	}
 
-	const editorPrefs = useMemo(() => ({
+	const handleExportFinish = useMethod((data: Uint8Array) => {
+		const blob = new Blob([data], {type: 'audio/flac'})
+		const url = URL.createObjectURL(blob)
+		window.prompt(LNG('export_finish'), url)
+		setTimeout(() => {
+			URL.revokeObjectURL(url)
+		}, 120 * 1000)
+	})
+
+	const editorPrefs = useMemo((): IntegratedEditorPrefs => ({
 		modifyTitle: {
 			default: LNG('title.default'),
 			new: LNG('title.new'),
 			newDirty: LNG('title.newDirty'),
 			clean: LNG('title.new'),
-			dirty: LNG('title.newDirty')
+			dirty: LNG('title.newDirty'),
 		},
 		importantWarning: {text: LNG('preview.warning'), height: 19},
 		temporarySave: true,
 		isMobile: isMobileInitially,
-		inspectorOpen: false,
+		inspectorOpen: true,
 		logTimeStat: true,
 		instrumentSourceUrl: './nmn/resource/audio/',
-	}), [LNG])
+		onAudioExport: handleExportFinish
+	}), [LNG, handleExportFinish])
 
 	return <PageHeader text="Sparks NMN Dev Demo" onKeyDown={handleKeyDown}>
 		<IntegratedEditor onRequestSave={handleSave} ref={editorRef} editorPrefs={editorPrefs} language={NMNI18n.languages.zh_cn} />
