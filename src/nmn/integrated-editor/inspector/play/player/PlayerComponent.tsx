@@ -79,6 +79,7 @@ export const PlayerComponent = memo((props: {
 	const handlePlay = useMethod((preSec: boolean) => {
 		let token = playToken.current = randomToken(12)
 		Tone.start().then(() => {
+			Tone.context.lookAhead = 1 / 20
 			prepareInstruments()
 			Tone.loaded().then(() => {
 				if(token != playToken.current) {
