@@ -18,5 +18,5 @@ export default flattenI18nData({
 	},
 
 	// 导出完成
-	"export_finish": "音频数据导出完成，点击“确定”即可将链接复制到剪贴板。\链接将在 2 分钟内失效。"
+	"export_finish": "音频数据导出完成，请复制下面地址访问。\n链接将在 2 分钟内失效。"
 })

@@ -144,7 +144,7 @@ export function TestApp() {
 	const handleExportFinish = useMethod((data: Uint8Array) => {
 		const blob = new Blob([data], {type: 'audio/ogg'})
 		const url = URL.createObjectURL(blob)
-		window.alert(LNG('export_finish'))
+		window.prompt(LNG('export_finish'), url)
 		
 		const ele = document.createElement('textarea')
 		ele.setAttribute('readonly', 'readonly')
