@@ -1,4 +1,4 @@
-import React, { createRef, ReactNode, useMemo, useRef } from "react"
+import React, { createElement, createRef, ReactNode, useMemo, useRef } from "react"
 import { createUseStyles } from "react-jss"
 import { useOnceEffect } from "../util/event"
 import { callRef, useMethod } from "../util/hook"
@@ -138,10 +138,23 @@ export function TestApp() {
 		}
 	}
 
+	/**
+	 * 导出完成
+	 */
 	const handleExportFinish = useMethod((data: Uint8Array) => {
-		const blob = new Blob([data], {type: 'audio/flac'})
+		const blob = new Blob([data], {type: 'audio/ogg'})
 		const url = URL.createObjectURL(blob)
-		window.prompt(LNG('export_finish'), url)
+		window.alert(LNG('export_finish'))
+		
+		const ele = document.createElement('textarea')
+		ele.setAttribute('readonly', 'readonly')
+		ele.value = url
+		document.body.appendChild(ele)
+		ele.focus()
+		ele.select()
+		console.log(url, document.execCommand('copy'))
+		ele.remove()
+
 		setTimeout(() => {
 			URL.revokeObjectURL(url)
 		}, 120 * 1000)
