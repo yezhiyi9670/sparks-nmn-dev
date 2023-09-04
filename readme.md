@@ -8,6 +8,8 @@
 
 [官方网站](https://nmn.sparks-lab.art/) · [在线试玩](https://nmn.sparks-lab.art/playground/) · [桌面版](https://github.com/yezhiyi9670/sparks-nmn-desktop) · [赞助](https://nmn.sparks-lab.art/donate/)
 
+讨论中的设计方案：[广义 TAB 记谱法（吉他谱）](./proposal/tab-notation.md)
+
 > 由于数字简谱在英语国家中似乎并不常用，此项目还没有将英语添加为显示语言的计划（但是有英文歌词的支持）。
 
 Sparks NMN 是一个基于文本的简谱（Numbered Music Notation）制作语言，其设计灵感和语法经过长期实践而形成，具有简洁、自然、易读且高效的特点。

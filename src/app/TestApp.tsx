@@ -171,7 +171,7 @@ export function TestApp() {
 		importantWarning: {text: LNG('preview.warning'), height: 19},
 		temporarySave: true,
 		isMobile: isMobileInitially,
-		inspectorOpen: false,
+		inspectorOpen: true,
 		logTimeStat: true,
 		instrumentSourceUrl: './nmn/resource/audio/',
 		onAudioExport: handleExportFinish

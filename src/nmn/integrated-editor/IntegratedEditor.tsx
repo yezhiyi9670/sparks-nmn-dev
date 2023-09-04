@@ -25,6 +25,7 @@ import { MusicSection, NoteCharMusic } from '../parser/sparse2des/types'
 import { RenderSectionPickCallback } from '../renderer/renderer'
 import { InstrumentTestPanel } from './inspector/instrument-test/InstrumentTestPanel'
 import { StatusExporting } from './status/exporting'
+import { DeterminePropsPanel } from './inspector/determine-props/DeterminePropsPanel'
 
 const useStyles = createUseStyles({
 	editor: {
@@ -499,6 +500,7 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 				<InspectorView
 					onClose={() => setInspectorOpen(false)}
 					inspectors={[
+						
 						{
 							id: 'play',
 							content: () => <PlayPanel
@@ -522,7 +524,11 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 						{
 							id: 'instrument_test',
 							content: () => <InstrumentTestPanel />
-						}
+						},
+						{
+							id: 'determine_props',
+							content: () => <DeterminePropsPanel />
+						},
 					]}
 				/>
 			</div>}
