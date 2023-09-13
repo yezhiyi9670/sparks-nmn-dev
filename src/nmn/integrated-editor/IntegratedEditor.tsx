@@ -500,7 +500,6 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 				<InspectorView
 					onClose={() => setInspectorOpen(false)}
 					inspectors={[
-						
 						{
 							id: 'play',
 							content: () => <PlayPanel
@@ -522,12 +521,12 @@ export const __IntegratedEditor = React.forwardRef<IntegratedEditorApi, __Props>
 							/>
 						},
 						{
-							id: 'instrument_test',
-							content: () => <InstrumentTestPanel />
-						},
-						{
 							id: 'determine_props',
 							content: () => <DeterminePropsPanel />
+						},
+						{
+							id: 'instrument_test',
+							content: () => <InstrumentTestPanel />
 						},
 					]}
 				/>
