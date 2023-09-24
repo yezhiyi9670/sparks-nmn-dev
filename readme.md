@@ -8,7 +8,7 @@
 
 [官方网站](https://nmn.sparks-lab.art/) · [在线试玩](https://nmn.sparks-lab.art/playground/) · [桌面版](https://github.com/yezhiyi9670/sparks-nmn-desktop) · [赞助](https://nmn.sparks-lab.art/donate/)
 
-讨论中的设计方案：[广义 TAB 记谱法（吉他谱）](./proposal/tab-notation.md)
+讨论中的设计方案：[广义 TAB 记谱法（吉他谱）](./proposal/version-2/tab-notation.md) · [新的排版方案](./proposal/version-2/bounding-box-layout.md)
 
 > 由于数字简谱在英语国家中似乎并不常用，此项目还没有将英语添加为显示语言的计划（但是有英文歌词的支持）。
 
