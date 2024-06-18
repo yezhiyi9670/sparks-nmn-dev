@@ -6,7 +6,7 @@
 
 使用文本高效地编写简谱！
 
-[官方网站](https://nmn.sparks-lab.art/) · [在线试玩](https://nmn.sparks-lab.art/playground/) · [桌面版](https://github.com/yezhiyi9670/sparks-nmn-desktop) · [赞助](https://nmn.sparks-lab.art/donate/)
+[官方网站](https://notation.sparkslab.art/) · [在线试玩](https://notation.sparkslab.art/playground/) · [桌面版](https://github.com/yezhiyi9670/sparks-nmn-desktop) · [赞助](https://notation.sparkslab.art/donate/)
 
 讨论中的设计方案：[广义 TAB 记谱法（吉他谱）](./proposal/version-2/tab-notation.md) · [新的排版方案](./proposal/version-2/bounding-box-layout.md)
 

@@ -1,6 +1,6 @@
 {
   "name": "sparks-nmn-dev",
-  "version": "1.14.23",
+  "version": "1.14.24",
   "source": "./src/index.html",
   "license": "Apache",
   "scripts": {
