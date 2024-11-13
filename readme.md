@@ -1,5 +1,7 @@
 <img src="src/logo.png" align="right" width="128" height="128"/>
 
+> ⚠ **此仓库已弃用。请访问 [sparks-notation-1](https://github.com/yezhiyi9670/sparks-notation-1) 的统一仓库。**
+
 # Sparks NMN (Dev)
 
 **简体中文** | [English](./README-en.md)

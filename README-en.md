@@ -1,5 +1,7 @@
 <img src="src/logo.png" align="right" width="128" height="128"/>
 
+> ⚠ **This repository has now moved to the [sparks-notation-1](https://github.com/yezhiyi9670/sparks-notation-1) monorepo.**
+
 # Sparks NMN (Dev)
 
 [简体中文](./README-en.md) | **English**
